@@ -79,9 +79,11 @@
 .ex-tag { display: inline-flex; align-items: center; gap: 6px; }
 .ex-chip { display: inline-block; padding: 2px 8px; border-radius: 3px; background: #F1F2F5; font-size: 12px; color: #4D5562; }
 .ex-empty { color: var(--ex-muted); font-size: 13px; padding: 10px; }
-.ex-foot { font-size: 12px; color: var(--ex-muted); }
-.ex-foot summary { cursor: pointer; }
-.ex-foot p { line-height: 1.6; max-width: 80ch; }
+.ex-sav-total { display: flex; flex-direction: column; gap: 2px; padding-bottom: 14px; margin-bottom: 14px; border-bottom: 1px solid #EEF0F3; }
+.ex-sav-big { font-size: 32px; font-weight: 700; letter-spacing: -.01em; font-variant-numeric: tabular-nums; line-height: 1.15; color: var(--ex-down); }
+.ex-sav-cap { font-size: 12px; color: var(--ex-muted); font-variant-numeric: tabular-nums; }
+.ex-sav-plan { grid-column: 1 / -1; font-size: 12px; color: #5D6470; font-variant-numeric: tabular-nums; }
+.ex-sav-plan b { color: var(--ex-down); font-weight: 700; }
 [data-dash-source-state=refreshing] { opacity: .5; }
 .ex-shell { container-type: inline-size; }
 .ex-single table[data-row-key] th:first-child, .ex-single table[data-row-key] td:first-child { display: none; }
@@ -149,41 +151,42 @@ html, body { margin: 0; padding: 0; background: #F1F2F4; }
     </header>
 
     <section class="ex-grid" id="kpis">
-      <div class="ex-card ex-kpi ex-kpi6" id="kpi-total">
+      <div class="ex-card ex-kpi ex-span3" id="kpi-total">
         <div class="ex-kpi-label">Total Spent</div>
         <div class="ex-delta" data-draw="dTotal" data-source="summary"></div>
         <div class="ex-kpi-value" data-draw="vTotal" data-source="summary">—</div>
         <div class="ex-kpi-cap" data-draw="cTotal" data-source="summary">—</div>
       </div>
-      <div class="ex-card ex-kpi ex-kpi6" id="kpi-variable">
-        <div class="ex-kpi-label">Variable Spending</div>
+      <div class="ex-card ex-kpi ex-span3" id="kpi-everyday">
+        <div class="ex-kpi-label">Everyday Spending</div>
         <div class="ex-delta" data-draw="dVar" data-source="summary"></div>
         <div class="ex-kpi-value" data-draw="vVar" data-source="summary">—</div>
-        <div class="ex-kpi-cap"><span data-draw="cVarPct" data-source="summary" data-field="pct_variable">—</span> of total · <span data-draw="cVarN" data-source="summary" data-field="n_variable">—</span> purchases</div>
+        <div class="ex-kpi-cap"><span data-draw="cVarN" data-source="summary" data-field="n_variable">—</span> purchases</div>
       </div>
-      <div class="ex-card ex-kpi ex-kpi6" id="kpi-fixed">
-        <div class="ex-kpi-label">Fixed &amp; Recurring</div>
+      <div class="ex-card ex-kpi ex-span3" id="kpi-recurring">
+        <div class="ex-kpi-label">Recurring</div>
         <div class="ex-delta" data-draw="dFixed" data-source="summary"></div>
         <div class="ex-kpi-value" data-draw="vFixed" data-source="summary">—</div>
-        <div class="ex-kpi-cap"><span data-draw="cFixedN" data-source="summary" data-field="n_fixed">—</span> recurring bills</div>
+        <div class="ex-kpi-cap"><span data-draw="cFixedN" data-source="summary" data-field="n_fixed">—</span> repeating expenses</div>
       </div>
-      <div class="ex-card ex-kpi ex-kpi6" id="kpi-income">
-        <div class="ex-kpi-label">Income</div>
-        <div class="ex-delta" data-draw="dIncome" data-source="summary"></div>
-        <div class="ex-kpi-value" data-draw="vIncome" data-source="summary">—</div>
-        <div class="ex-kpi-cap" data-draw="cIncome" data-source="summary">—</div>
-      </div>
-      <div class="ex-card ex-kpi ex-kpi6" id="kpi-balance">
-        <div class="ex-kpi-label">Balance</div>
-        <div class="ex-delta" data-draw="dBalance" data-source="summary"></div>
-        <div class="ex-kpi-value" data-draw="vBalance" data-source="summary">—</div>
-        <div class="ex-kpi-cap" data-draw="cBalance" data-source="summary">—</div>
-      </div>
-      <div class="ex-card ex-kpi ex-kpi6" id="kpi-top">
-        <div class="ex-kpi-label">Top Variable Category</div>
+      <div class="ex-card ex-kpi ex-span3" id="kpi-top">
+        <div class="ex-kpi-label">Top Category</div>
         <div class="ex-delta" data-draw="dTop" data-source="summary"></div>
         <div class="ex-kpi-value ex-word" data-draw="vTop" data-source="summary" data-field="top_category">—</div>
         <div class="ex-kpi-cap" data-draw="cTop" data-source="summary">—</div>
+      </div>
+    </section>
+
+    <section class="ex-grid" id="savings">
+      <div class="ex-card ex-span5" id="savings-total">
+        <h2 data-draw="savTitle">Cozy House Savings</h2>
+        <div class="ex-sav-total" data-draw="savTotal" data-source="savings"></div>
+        <div class="ex-who" data-draw="savPeople" data-source="savings"></div>
+      </div>
+      <div class="ex-card ex-span7" id="savings-growth">
+        <h2>Savings Growth</h2>
+        <div class="ex-chart" data-draw="savChart" data-source="savings"></div>
+        <div class="ex-legend" data-draw="savLegend"></div>
       </div>
     </section>
 
@@ -194,7 +197,7 @@ html, body { margin: 0; padding: 0; background: #F1F2F4; }
         <div class="ex-legend" data-draw="monthlyLegend"></div>
       </div>
       <div class="ex-card ex-span4" id="by-category">
-        <h2>Variable Spending by Category</h2>
+        <h2>Spending by Category</h2>
         <div class="ex-chart ex-pie" data-draw="pie" data-source="categories"></div>
       </div>
     </section>
@@ -213,13 +216,13 @@ html, body { margin: 0; padding: 0; background: #F1F2F4; }
 
     <section class="ex-card" id="category-heatmap">
       <h2>Category by Month</h2>
-      <p class="ex-sub">Variable spending per category. Darker cells mean more spending.</p>
+      <p class="ex-sub">Everyday spending per category. Darker cells mean more spending.</p>
       <div class="ex-tablewrap"><table class="ex-table ex-heat" data-draw="heat" data-source="categories"></table></div>
     </section>
 
     <section class="ex-grid">
       <div class="ex-card ex-span6" id="fixed-bills">
-        <h2>Fixed &amp; Recurring Bills</h2>
+        <h2>Recurring Expenses</h2>
         <div class="ex-tablewrap">
           <table class="ex-table" data-source="expenses" data-row-key="id">
             <thead><tr><th data-field="person">Who</th><th data-field="item">Item</th><th data-field="category">Category</th><th data-field="amount_usd" class="ex-r">Amount</th></tr></thead>
@@ -227,7 +230,7 @@ html, body { margin: 0; padding: 0; background: #F1F2F4; }
           </table>
         </div>
       </div>
-      <div class="ex-card ex-span6" id="income">
+      <div class="ex-card ex-span6" id="income" hidden>
         <h2>Income</h2>
         <div class="ex-tablewrap">
           <table class="ex-table" data-source="expenses" data-row-key="id">
@@ -237,7 +240,7 @@ html, body { margin: 0; padding: 0; background: #F1F2F4; }
         </div>
       </div>
       <div class="ex-card ex-span12" id="variable-purchases">
-        <h2>Variable Purchases</h2>
+        <h2>Everyday Purchases</h2>
         <div class="ex-tablewrap">
           <table class="ex-table" data-source="expenses" data-row-key="id">
             <thead><tr><th data-field="person">Who</th><th data-field="item">Item</th><th data-field="category">Category</th><th data-field="amount_usd" class="ex-r">Amount</th></tr></thead>
@@ -263,11 +266,12 @@ window.dash = (function () {
     onData(fn) { onDatas.push(fn); },
     _load(d) {
       src.expenses = d.expenses || []; src.analysis = d.analysis || [];
+      const sv = d.savings || {}; src.savings_entries = sv.entries || []; src.savings_plan = sv.plan || [];
       for (const [id, o] of calcs) src[id] = o.fn(...o.inputs.map((i) => src[i] || []));
       onDatas.forEach((f) => f());
       Object.keys(draws).forEach(run);
     },
-    _redrawCharts() { ['monthly', 'pie'].forEach(run); }
+    _redrawCharts() { ['monthly', 'pie', 'savChart'].forEach(run); }
   };
 })();
 </script>
@@ -363,6 +367,39 @@ dash.calc('categories', {
     }).sort((x, y) => x.month.localeCompare(y.month) || x.person.localeCompare(y.person) || y.total_usd - x.total_usd);
   }
 });
+
+dash.calc('savings', {
+  title: 'Savings balance by month, year and person',
+  description: 'Running savings balance (USD and COP) and money saved in each period for Household, Gabby and Jorgie.',
+  inputs: ['savings_entries', 'expenses'],
+  fn: (es, ex) => {
+    if (!es.length) return [];
+    const r2 = (x) => Math.round(x * 100) / 100;
+    const ms = [...new Set(es.map((e) => e.month))].sort();
+    let last = ms[ms.length - 1];
+    for (const e of ex) if (e.month > last) last = e.month;
+    const range = []; let [y, m] = ms[0].split('-').map(Number);
+    while (true) { const k = y + '-' + String(m).padStart(2, '0'); range.push(k); if (k >= last) break; m += 1; if (m > 12) { m = 1; y += 1; } }
+    const out = [];
+    for (const person of ['Household', 'Gabby', 'Jorgie']) {
+      const mine = es.filter((e) => person === 'Household' || e.person === person);
+      let bu = 0, bc = 0; const byYear = {};
+      for (const month of range) {
+        const cur = mine.filter((e) => e.month === month);
+        const contrib = cur.filter((e) => e.kind !== 'Starting balance');
+        const su = contrib.reduce((a, e) => a + Number(e.amount_usd), 0), sc = contrib.reduce((a, e) => a + Number(e.amount_cop), 0);
+        bu += cur.reduce((a, e) => a + Number(e.amount_usd), 0); bc += cur.reduce((a, e) => a + Number(e.amount_cop), 0);
+        const has_start = cur.some((e) => e.kind === 'Starting balance');
+        out.push({ month, person, balance_usd: r2(bu), balance_cop: Math.round(bc), saved_usd: r2(su), saved_cop: Math.round(sc), n_contrib: contrib.length, has_start });
+        const yr = month.slice(0, 4);
+        const Y = byYear[yr] || (byYear[yr] = { saved_usd: 0, saved_cop: 0, n_contrib: 0, has_start: false });
+        Y.saved_usd += su; Y.saved_cop += sc; Y.n_contrib += contrib.length; Y.has_start = Y.has_start || has_start; Y.balance_usd = r2(bu); Y.balance_cop = Math.round(bc);
+      }
+      for (const [yr, Y] of Object.entries(byYear)) out.push({ month: yr, person, balance_usd: Y.balance_usd, balance_cop: Y.balance_cop, saved_usd: r2(Y.saved_usd), saved_cop: Math.round(Y.saved_cop), n_contrib: Y.n_contrib, has_start: Y.has_start });
+    }
+    return out;
+  }
+});
 </script>
 
 <script>
@@ -387,7 +424,7 @@ window.exU = (function () {
   function suf() { return isCop() ? '_cop' : '_usd'; }
   function money(v) { return isCop() ? cop(v) : usd(v); }
   function rows(id) { const d = dash.data(id); return d.status === 'ok' && Array.isArray(d.data) ? d.data : []; }
-  function periods() { return [...new Set(rows('summary').map((r) => r.month))]; }
+  function periods() { return [...new Set(rows('summary').map((r) => r.month).concat(rows('savings').map((r) => r.month)))]; }
   function months() { return periods().filter((p) => p.length === 7).sort(); }
   function years() { return periods().filter((p) => p.length === 4).sort(); }
   function month() { const ps = periods(), ms = months(); if (!ms.length) return null; return (window.exMonth && ps.includes(window.exMonth)) ? window.exMonth : ms[ms.length - 1]; }
@@ -398,7 +435,7 @@ window.exU = (function () {
     const m = month();
     const r = rows('summary').find((x) => x.month === m && x.person === (person || per()));
     if (r) return r;
-    if (dash.data('expenses').status === 'ok' && !rows('expenses').length) return Object.assign({ month: '', person: person || per(), empty: true }, ZERO);
+    if (dash.data('expenses').status === 'ok') return Object.assign({ month: m || '', person: person || per(), empty: true }, ZERO);
     return null;
   }
   function where(r) { return 'month=' + enc(r.month) + '&person=' + enc(r.person); }
@@ -408,7 +445,7 @@ window.exU = (function () {
     tip.style.left = Math.max(0, Math.min(e.clientX - b.left + 12, el.clientWidth - tip.offsetWidth)) + 'px';
     tip.style.top = (e.clientY - b.top + 14) + 'px';
   }
-  const ALL = ['pageTitle','selMonth','dTotal','vTotal','cTotal','dVar','vVar','cVarPct','cVarN','dFixed','vFixed','cFixedN','dTop','vTop','cTop','dIncome','vIncome','cIncome','dBalance','vBalance','cBalance','tIncome','monthly','monthlyLegend','pie','anTitle','anText','who','heat','tFixed','tVar'];
+  const ALL = ['pageTitle','selMonth','dTotal','vTotal','cTotal','dVar','vVar','cVarN','dFixed','vFixed','cFixedN','dTop','vTop','cTop','savTitle','savTotal','savPeople','savChart','savLegend','tIncome','monthly','monthlyLegend','pie','anTitle','anText','who','heat','tFixed','tVar'];
   function redraw() { ALL.forEach((n) => dash.draw(n)); }
   function pickMonth(m) { window.exMonth = m; redraw(); }
   return { monthName, usd, usd0, cop, copK, usdK, pct, enc, PERSON, PIE, LINE, per, isCop, suf, money, rows, months, years, month, isYear, inPeriod, sumRow, where, catColors, tipAt, redraw, pickMonth };
@@ -471,36 +508,16 @@ window.exU = (function () {
   value('vTotal', 'total'); value('vVar', 'variable'); value('vFixed', 'fixed');
   dash.draw('cTotal', (el) => {
     const r = U.sumRow(); if (!r) { el.textContent = '—'; return; }
-    if (U.per() === 'Jorgie') { mark(el, r, 'n_variable'); el.textContent = (r.n_variable + r.n_fixed) + ' expenses'; }
+    if (U.per() === 'Jorgie') { mark(el, r, 'n_variable'); el.textContent = (r.n_variable + r.n_fixed) + (r.n_variable + r.n_fixed === 1 ? ' expense' : ' expenses'); }
     else { mark(el, r, 'total_cop'); el.textContent = '≈ ' + U.cop(r.total_cop); }
   });
-  dash.draw('cVarPct', (el) => { const r = U.sumRow(); if (!r) { el.textContent = '—'; return; } mark(el, r); el.textContent = U.pct(r.pct_variable); });
-  dash.draw('cVarN', (el) => { const r = U.sumRow(); if (!r) { el.textContent = '—'; return; } mark(el, r); el.textContent = String(r.n_variable); });
+    dash.draw('cVarN', (el) => { const r = U.sumRow(); if (!r) { el.textContent = '—'; return; } mark(el, r); el.textContent = String(r.n_variable); });
   dash.draw('cFixedN', (el) => { const r = U.sumRow(); if (!r) { el.textContent = '—'; return; } mark(el, r); el.textContent = String(r.n_fixed); });
   dash.draw('vTop', (el) => { const r = U.sumRow(); if (!r || !r.top_category) { el.textContent = '—'; return; } mark(el, r); el.textContent = r.top_category; });
   dash.draw('cTop', (el) => {
     const r = U.sumRow(); if (!r || !r.top_category) { el.textContent = '—'; return; }
     mark(el, r, 'top_category' + U.suf()); el.textContent = U.money(r['top_category' + U.suf()]) + (U.isYear(r.month) ? ' this year' : ' this month');
   });
-
-  dash.draw('dIncome', (el) => {
-    const r = U.sumRow(); el.classList.remove('ex-isup', 'ex-isdown');
-    if (!r || !r.n_income || !r.change_income) { el.textContent = ''; return; }
-    mark(el, r, 'change_income');
-    const v = r.change_income; el.textContent = (v >= 0 ? '▲ ' : '▼ ') + U.usdK(Math.abs(v));
-    el.classList.add(v >= 0 ? 'ex-isdown' : 'ex-isup');
-  });
-  dash.draw('vIncome', (el) => { const r = U.sumRow(); if (!r) { el.textContent = '—'; return; } mark(el, r, 'income_usd'); el.textContent = U.usd(r.income_usd); });
-  dash.draw('cIncome', (el) => { const r = U.sumRow(); if (!r) { el.textContent = '—'; return; } mark(el, r, 'n_income'); el.textContent = r.n_income ? r.n_income + (r.n_income === 1 ? ' entry logged' : ' entries logged') : 'Nothing logged'; });
-  dash.draw('dBalance', (el) => { el.textContent = ''; });
-  dash.draw('vBalance', (el) => {
-    const r = U.sumRow(); el.style.color = '';
-    if (!r) { el.textContent = '—'; return; }
-    if (!r.n_income) { el.textContent = '—'; delete el.dataset.where; return; }
-    mark(el, r, 'balance_usd'); el.textContent = U.usd(r.balance_usd);
-    el.style.color = r.balance_usd >= 0 ? 'var(--ex-down)' : 'var(--ex-up)';
-  });
-  dash.draw('cBalance', (el) => { const r = U.sumRow(); el.textContent = !r ? '—' : (r.n_income ? 'Income minus spending' : 'Shows once income is logged'); });
 
   // analysis
   const an = () => { const m = U.month(), p = U.per(); return U.rows('analysis').find((a) => a.month === m && a.person === p) || null; };
@@ -541,11 +558,11 @@ window.exU = (function () {
   function series() {
     const p = U.per();
     if (p === 'Household') return [{ k: 'Gabby', label: 'Gabby', col: U.PERSON.Gabby }, { k: 'Jorgie', label: 'Jorgie', col: U.PERSON.Jorgie }];
-    return [{ k: 'fixed', label: 'Fixed', col: '#C7CDD6' }, { k: 'variable', label: 'Variable', col: U.PERSON[p] }];
+    return [{ k: 'fixed', label: 'Recurring', col: '#C7CDD6' }, { k: 'variable', label: 'Everyday', col: U.PERSON[p] }];
   }
   dash.draw('monthlyLegend', (el) => {
     el.replaceChildren();
-    const items = series().map((s) => [s.label, s.col]).concat([['Variable trend', U.LINE]]);
+    const items = series().map((s) => [s.label, s.col]).concat([['Everyday trend', U.LINE]]);
     for (const [t, c] of items) { const s = document.createElement('span'); const d = document.createElement('span'); d.className = 'ex-dot'; d.style.background = c; const x = document.createElement('span'); x.textContent = t; s.append(d, x); el.append(s); }
   });
   dash.draw('monthly', (el) => {
@@ -569,7 +586,7 @@ window.exU = (function () {
     const fmtAxis = cop ? (v) => U.copK(v) : (v) => U.usdK(v);
     const y = d3.scaleLinear().domain([0, (d3.max(data, (r) => r.total) || 1) * 1.15]).nice().range([H - 26, 14]);
     const ticks = y.ticks(4);
-    const svg = d3.select(el).append('svg').attr('class', 'ex-svg').attr('width', '100%').attr('viewBox', `0 0 ${W} ${H}`).attr('role', 'img').attr('aria-label', 'Spending by month, stacked bars with a variable spending trend line');
+    const svg = d3.select(el).append('svg').attr('class', 'ex-svg').attr('width', '100%').attr('viewBox', `0 0 ${W} ${H}`).attr('role', 'img').attr('aria-label', 'Spending by month, stacked bars with an everyday spending trend line');
     const tmp = svg.append('g'); let ml = 0;
     ticks.forEach((t) => { const tx = tmp.append('text').text(fmtAxis(t)); ml = Math.max(ml, tx.node().getComputedTextLength()); }); tmp.remove();
     const left = ml + 10, right = 8;
@@ -599,7 +616,7 @@ window.exU = (function () {
         const t = tip.node(); tip.property('hidden', false).selectAll('*').remove();
         tip.append('div').append('b').text(U.monthName(r.month));
         r.parts.forEach((pt) => { const row = tip.append('div').attr('class', 'ex-tip-row'); row.append('span').attr('class', 'ex-dot').style('background', colOf[pt.k]); row.append('span').text(labOf[pt.k] + ': ' + U.money(pt.v)); });
-        const lr = tip.append('div').attr('class', 'ex-tip-row'); lr.append('span').attr('class', 'ex-dot').style('background', U.LINE); lr.append('span').text('Variable: ' + U.money(r.variable));
+        const lr = tip.append('div').attr('class', 'ex-tip-row'); lr.append('span').attr('class', 'ex-dot').style('background', U.LINE); lr.append('span').text('Everyday: ' + U.money(r.variable));
         tip.append('div').text('Total: ' + U.money(r.total));
         U.tipAt(el, t, e);
       })
@@ -620,11 +637,11 @@ window.exU = (function () {
     const m = U.month(), p = U.per(), cop = U.isCop();
     const key = cop ? 'total_cop' : 'total_usd';
     const rs = d.data.filter((r) => r.month === m && r.person === p);
-    if (!rs.length) { const e = document.createElement('div'); e.className = 'ex-empty'; e.textContent = 'No variable spending this month'; el.append(e); return; }
+    if (!rs.length) { const e = document.createElement('div'); e.className = 'ex-empty'; e.textContent = 'No everyday spending this month'; el.append(e); return; }
     const colors = U.catColors();
     const size = Math.min(190, Math.max(140, (el.clientWidth || 300) * 0.5));
     const R = size / 2;
-    const svg = d3.select(el).append('svg').attr('class', 'ex-svg').attr('width', size).attr('height', size).attr('viewBox', `0 0 ${size} ${size}`).attr('role', 'img').attr('aria-label', 'Variable spending by category');
+    const svg = d3.select(el).append('svg').attr('class', 'ex-svg').attr('width', size).attr('height', size).attr('viewBox', `0 0 ${size} ${size}`).attr('role', 'img').attr('aria-label', 'Everyday spending by category');
     const gr = svg.append('g').attr('transform', `translate(${R},${R})`);
     const arcs = d3.pie().sort(null).value((r) => r[key])(rs);
     const arc = d3.arc().innerRadius(0).outerRadius(R - 2);
@@ -665,7 +682,7 @@ window.exU = (function () {
     const p = U.per(), cop = U.isCop(), key = cop ? 'total_cop' : 'total_usd';
     const cur = U.month(); const ms = U.isYear(cur) ? U.months().filter((m) => m.slice(0, 4) === cur) : U.months().slice(-6);
     const rs = d.data.filter((r) => r.person === p && ms.includes(r.month));
-    if (!rs.length) { const tr = tbl.insertRow(); const td = tr.insertCell(); td.className = 'ex-empty'; td.textContent = 'No variable spending yet'; return; }
+    if (!rs.length) { const tr = tbl.insertRow(); const td = tr.insertCell(); td.className = 'ex-empty'; td.textContent = 'No everyday spending yet'; return; }
     const cats = d3.rollups(rs, (v) => d3.sum(v, (r) => r[key]), (r) => r.category).sort((a, b) => b[1] - a[1]).map((c) => c[0]);
     const max = d3.max(rs, (r) => r[key]) || 1;
     const scale = d3.scaleLinear().domain([0, max]).range([0.08, 1]);
@@ -693,6 +710,129 @@ window.exU = (function () {
 </script>
 
 <script>
+// ---------- savings ----------
+(function () {
+  const U = window.exU;
+  const row = (person, m) => U.rows('savings').find((r) => r.month === (m || U.month()) && r.person === person) || null;
+  const plan = (person) => { const d = dash.data('savings_plan'); return (d.status === 'ok' ? d.data : []).find((x) => x.person === person) || null; };
+  const native = (person, r, f) => person === 'Gabby' ? U.cop(r[f + '_cop']) : U.usd(r[f + '_usd']);
+  dash.draw('savTitle', (el) => { const p = U.per(); el.textContent = p === 'Household' ? 'Cozy House Savings' : p + '’s Savings'; });
+  dash.draw('savTotal', (el) => {
+    el.replaceChildren();
+    const p = U.per(), r = row(p);
+    const big = document.createElement('div'); big.className = 'ex-sav-big';
+    const cap = document.createElement('div'); cap.className = 'ex-sav-cap';
+    if (!r) { big.textContent = '$0.00'; big.style.color = 'var(--ex-text)'; cap.textContent = 'No savings recorded for this period'; el.append(big, cap); return; }
+    big.dataset.source = 'savings'; big.dataset.where = U.where(r); big.dataset.field = 'balance_usd';
+    big.textContent = U.usd(r.balance_usd);
+    const when = U.isYear(r.month) ? 'end of ' + r.month : U.monthName(r.month);
+    cap.textContent = (p === 'Jorgie' ? '' : '≈ ' + U.cop(r.balance_cop) + ' · ') + 'Saved as of ' + when;
+    el.append(big, cap);
+  });
+  dash.draw('savPeople', (el) => {
+    el.replaceChildren();
+    const p = U.per(), people = p === 'Household' ? ['Gabby', 'Jorgie'] : [p];
+    for (const name of people) {
+      const r = row(name), pl = plan(name), yr = U.isYear();
+      const rowEl = document.createElement('div'); rowEl.className = 'ex-who-row';
+      const n = document.createElement('div'); n.className = 'ex-who-name';
+      const d = document.createElement('span'); d.className = 'ex-dot'; d.style.background = U.PERSON[name];
+      const t = document.createElement('span'); t.textContent = people.length > 1 ? name : (yr ? 'This year' : 'This month'); n.append(d, t);
+      const v = document.createElement('div'); v.className = 'ex-who-val';
+      const s = document.createElement('div'); s.className = 'ex-who-sub';
+      const planEl = document.createElement('div'); planEl.className = 'ex-sav-plan';
+      const bar = document.createElement('div'); bar.className = 'ex-who-bar'; const fill = document.createElement('div'); fill.style.background = U.PERSON[name]; bar.append(fill);
+      if (people.length > 1) {
+        v.textContent = r ? U.usd(r.balance_usd) : '$0.00';
+        if (r) { v.dataset.source = 'savings'; v.dataset.where = U.where(r); v.dataset.field = 'balance_usd'; }
+        s.textContent = name === 'Gabby' ? (r ? '≈ ' + U.cop(r.balance_cop) + ' saved' : 'Nothing saved yet') : 'Saved in US dollars';
+      } else {
+        v.textContent = r ? '+' + native(name, r, 'saved') : '—';
+        s.textContent = r && name === 'Gabby' ? '≈ +' + U.usd(r.saved_usd) : '';
+      }
+      let pct = null;
+      if (!r) planEl.textContent = pl ? 'Plan: ' + (pl.currency === 'COP' ? U.cop(pl.monthly) : U.usd(pl.monthly)) + ' a month' + (pl.automatic ? ', automatic' : '') : '';
+      else if (people.length === 1) {
+        if (!yr && r.has_start && !r.n_contrib) planEl.textContent = 'Starting balance recorded this month';
+        else if (!yr && pl) {
+          planEl.textContent = 'Plan: ' + (pl.currency === 'COP' ? U.cop(pl.monthly) : U.usd(pl.monthly)) + ' a month' + (pl.automatic ? ', saved automatically' : '');
+          const got = pl.currency === 'COP' ? r.saved_cop : r.saved_usd;
+          pct = pl.monthly ? Math.max(0, Math.min(100, got / pl.monthly * 100)) : null;
+        }
+      } else if (yr) {
+        planEl.innerHTML = '';
+        planEl.append('Saved this year: ');
+        const b = document.createElement('b'); b.textContent = '+' + native(name, r, 'saved'); planEl.append(b);
+      } else if (r.has_start && !r.n_contrib) {
+        planEl.textContent = 'Starting balance recorded this month' + (pl ? ' · plan ' + (pl.currency === 'COP' ? U.cop(pl.monthly) : U.usd(pl.monthly)) + ' a month' : '');
+      } else {
+        planEl.append('This month: ');
+        const b = document.createElement('b'); b.textContent = '+' + native(name, r, 'saved'); planEl.append(b);
+        if (pl) {
+          const got = pl.currency === 'COP' ? r.saved_cop : r.saved_usd;
+          planEl.append(' of ' + (pl.currency === 'COP' ? U.cop(pl.monthly) : U.usd(pl.monthly)) + (pl.automatic ? ' · automatic' : ' plan'));
+          pct = pl.monthly ? Math.max(0, Math.min(100, got / pl.monthly * 100)) : null;
+        }
+      }
+      rowEl.append(n, v);
+      if (s.textContent) rowEl.append(s);
+      if (planEl.textContent) rowEl.append(planEl);
+      if (pct !== null) { fill.style.width = pct + '%'; rowEl.append(bar); }
+      el.append(rowEl);
+    }
+  });
+  dash.draw('savLegend', (el) => {
+    el.replaceChildren();
+    const p = U.per(), people = p === 'Household' ? ['Gabby', 'Jorgie'] : [p];
+    for (const name of people) { const s = document.createElement('span'); const d = document.createElement('span'); d.className = 'ex-dot'; d.style.background = U.PERSON[name]; const x = document.createElement('span'); x.textContent = name; s.append(d, x); el.append(s); }
+  });
+  dash.draw('savChart', (el) => {
+    el.replaceChildren();
+    const all = U.rows('savings'); const p = U.per(), sel = U.month();
+    let ms = [...new Set(all.filter((r) => r.month.length === 7).map((r) => r.month))].sort();
+    ms = U.isYear(sel) ? ms.filter((m) => m.slice(0, 4) === sel) : ms.filter((m) => !sel || m <= sel).slice(-12);
+    if (!ms.length) { const e = document.createElement('div'); e.className = 'ex-empty'; e.textContent = 'No savings recorded yet'; el.append(e); return; }
+    const people = p === 'Household' ? ['Gabby', 'Jorgie'] : [p];
+    const get = (m, who) => all.find((r) => r.month === m && r.person === who) || { balance_usd: 0 };
+    const data = ms.map((m) => ({ month: m, parts: people.map((k) => ({ k, v: get(m, k).balance_usd })), total: get(m, p).balance_usd }));
+    const W = Math.max(260, el.clientWidth || 500), H = 250;
+    const y = d3.scaleLinear().domain([0, (d3.max(data, (r) => r.total) || 1) * 1.15]).nice().range([H - 26, 14]);
+    const ticks = y.ticks(4);
+    const svg = d3.select(el).append('svg').attr('class', 'ex-svg').attr('width', '100%').attr('viewBox', `0 0 ${W} ${H}`).attr('role', 'img').attr('aria-label', 'Savings balance by month');
+    const tmp = svg.append('g'); let ml = 0;
+    ticks.forEach((t) => { const tx = tmp.append('text').text(U.usdK(t)); ml = Math.max(ml, tx.node().getComputedTextLength()); }); tmp.remove();
+    const left = ml + 10, right = 8;
+    const x = d3.scaleBand().domain(ms).range([left, W - right]).padding(ms.length < 5 ? 0.55 : 0.35);
+    ticks.forEach((t) => {
+      svg.append('line').attr('class', 'ex-gridline').attr('x1', left).attr('x2', W - right).attr('y1', y(t)).attr('y2', y(t));
+      svg.append('text').attr('x', left - 6).attr('y', y(t) + 4).attr('text-anchor', 'end').text(U.usdK(t));
+    });
+    const tip = d3.select(el).append('div').attr('class', 'ex-tip').property('hidden', true);
+    const g = svg.selectAll('g.b').data(data).join('g').attr('class', 'b').style('cursor', 'pointer').style('opacity', (r) => (r.month === sel || U.isYear(sel)) ? 1 : 0.6);
+    g.each(function (r) {
+      let acc = 0; const gg = d3.select(this);
+      r.parts.forEach((pt) => { gg.append('rect').attr('x', x(r.month)).attr('width', x.bandwidth()).attr('y', y(acc + pt.v)).attr('height', Math.max(0, y(acc) - y(acc + pt.v))).style('fill', U.PERSON[pt.k]); acc += pt.v; });
+    });
+    if (x.bandwidth() > 36) {
+      g.append('text').attr('class', 'ex-vlabel').attr('text-anchor', 'middle').attr('x', (r) => x(r.month) + x.bandwidth() / 2).attr('y', (r) => y(r.total) - 6)
+        .attr('data-source', 'savings').attr('data-field', 'balance_usd').attr('data-where', (r) => 'month=' + U.enc(r.month) + '&person=' + U.enc(p))
+        .text((r) => U.usdK(r.total));
+    }
+    g.append('text').attr('text-anchor', 'middle').attr('x', (r) => x(r.month) + x.bandwidth() / 2).attr('y', H - 8).text((r) => U.monthName(r.month, true));
+    g.on('click', (e, r) => U.pickMonth(r.month))
+      .on('pointermove', (e, r) => {
+        tip.property('hidden', false).selectAll('*').remove();
+        tip.append('div').append('b').text(U.monthName(r.month));
+        r.parts.forEach((pt) => { const rw = tip.append('div').attr('class', 'ex-tip-row'); rw.append('span').attr('class', 'ex-dot').style('background', U.PERSON[pt.k]); rw.append('span').text(pt.k + ': ' + U.usd(pt.v)); });
+        if (r.parts.length > 1) tip.append('div').text('Total: ' + U.usd(r.total));
+        U.tipAt(el, tip.node(), e);
+      })
+      .on('pointerleave', () => tip.property('hidden', true));
+  });
+})();
+</script>
+
+<script>
 // ---------- tables ----------
 (function () {
   const U = window.exU;
@@ -704,7 +844,11 @@ window.exU = (function () {
       const rs = U.rows('expenses').filter((r) => U.inPeriod(r.month, m) && r.type === type && (p === 'Household' || r.person === p))
         .sort((a, b) => Number(b.amount_usd) - Number(a.amount_usd));
       const cols = 4;
-      if (!rs.length) { const tr = tb.insertRow(); const td = tr.insertCell(); td.colSpan = cols; td.className = 'ex-empty'; td.textContent = 'Nothing this month'; return; }
+      if (type === 'Income') {
+        const card = tb.closest('.ex-card'); if (card) card.hidden = !rs.length;
+        const fx = document.getElementById('fixed-bills'); if (fx) fx.classList.toggle('ex-span12', !rs.length);
+      }
+      if (!rs.length) { const tr = tb.insertRow(); const td = tr.insertCell(); td.colSpan = cols; td.className = 'ex-empty'; td.textContent = type === 'Fixed' ? 'No recurring expenses this month' : 'Nothing this month'; return; }
       rs.forEach((r) => {
         const tr = tb.insertRow(); tr.dataset.key = U.enc(r.id);
         const a = tr.insertCell(); const tag = document.createElement('span'); tag.className = 'ex-tag';

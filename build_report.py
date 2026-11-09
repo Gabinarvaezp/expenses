@@ -2,10 +2,10 @@
 """Build the monthly expense report email (HTML + inline chart images).
 
 Usage:
-  python3 build_report.py expenses.json analysis.json 2026-10 household OUTDIR [dashboard_url]
-  python3 build_report.py expenses.json analysis.json 2026-10 jorgie    OUTDIR [dashboard_url]
-  python3 build_report.py expenses.json analysis.json 2026-10 gabby     OUTDIR [dashboard_url]
-  python3 build_report.py expenses.json analysis.json 2026    household OUTDIR [dashboard_url]   (year in review)
+  python3 build_report.py expenses.json analysis.json savings.json 2026-10 household OUTDIR [dashboard_url]
+  python3 build_report.py expenses.json analysis.json savings.json 2026-10 jorgie    OUTDIR [dashboard_url]
+  python3 build_report.py expenses.json analysis.json savings.json 2026-10 gabby     OUTDIR [dashboard_url]
+  python3 build_report.py expenses.json analysis.json savings.json 2026    household OUTDIR [dashboard_url]   (year in review)
 
 Writes OUTDIR/report.html, OUTDIR/chart_month.png, OUTDIR/chart_category.png.
 In the HTML, chart_month.png is cid:att0 and chart_category.png is cid:att1, so attach them
@@ -63,8 +63,9 @@ def card(title, body, sub=''):
 def dot(c, size=9): return f'<span style="display:inline-block;width:{size}px;height:{size}px;border-radius:50%;background:{c};margin-right:6px;vertical-align:middle;"></span>'
 
 def main():
-    fe, fa, month, mode, outdir = sys.argv[1:6]
-    url = sys.argv[6] if len(sys.argv) > 6 else ''
+    fe, fa, fs, month, mode, outdir = sys.argv[1:7]
+    url = sys.argv[7] if len(sys.argv) > 7 else ''
+    sav = json.load(open(fs, encoding='utf-8')) if fs != '-' else {'plan': [], 'entries': []}
     os.makedirs(outdir, exist_ok=True)
     rows = json.load(open(fe, encoding='utf-8'))
     for r in rows:
@@ -101,8 +102,8 @@ def main():
         series = [('Gabby', [summarize(rows, m, 'Gabby', cur)['total'] for m in ms], PERSON['Gabby']),
                   ('Jorgie', [summarize(rows, m, 'Jorgie', cur)['total'] for m in ms], PERSON['Jorgie'])]
     else:
-        series = [('Fixed', [summarize(rows, m, person, cur)['fixed'] for m in ms], '#C7CDD6'),
-                  ('Variable', [summarize(rows, m, person, cur)['variable'] for m in ms], PERSON[person])]
+        series = [('Recurring', [summarize(rows, m, person, cur)['fixed'] for m in ms], '#C7CDD6'),
+                  ('Everyday', [summarize(rows, m, person, cur)['variable'] for m in ms], PERSON[person])]
     totals = [summarize(rows, m, person, cur)['total'] for m in ms]
     varline = [summarize(rows, m, person, cur)['variable'] for m in ms]
     bottom = [0] * len(ms)
@@ -111,7 +112,7 @@ def main():
         ax.bar(xs, vals, w, bottom=bottom, color=col, label=name, zorder=2,
                alpha=1)
         bottom = [b + v for b, v in zip(bottom, vals)]
-    ax.plot(list(xs), varline, color=TREND, lw=2.2, marker='o', ms=6, mec='white', mew=1.4, zorder=3, label='Variable trend')
+    ax.plot(list(xs), varline, color=TREND, lw=2.2, marker='o', ms=6, mec='white', mew=1.4, zorder=3, label='Everyday trend')
     for x, t, m in zip(xs, totals, ms):
         ax.text(x, t * 1.03, usd0(t), ha='center', va='bottom', fontsize=7.5, color=TEXT, fontweight='semibold')
     ax.set_xticks(list(xs)); ax.set_xticklabels([mname(m, True) for m in ms], fontsize=7.5, color='#6B717C')
@@ -151,13 +152,9 @@ def main():
     tiles = [
         ('Total Spent', delta(S['total'], P['total'] if P else None), money(S['total']),
          ('&asymp; ' + cop(S['cop'])) if person != 'Jorgie' else f"{S['n_var'] + S['n_fixed']} expenses"),
-        ('Variable Spending', delta(S['variable'], P['variable'] if P else None), money(S['variable']),
-         f"{pct(S['variable'] / S['total'] * 100 if S['total'] else 0)} of total &middot; {S['n_var']} purchases"),
-        ('Fixed &amp; Recurring', delta(S['fixed'], P['fixed'] if P else None), money(S['fixed']), f"{S['n_fixed']} recurring bills"),
-        ('Income', '&nbsp;', money(S['income']), f"{len(S['income_rows'])} {'entry' if len(S['income_rows']) == 1 else 'entries'} logged" if S['income_rows'] else 'Nothing logged'),
-        ('Balance', '&nbsp;', (f'<span style="color:{DOWN if S["income"] - S["total"] >= 0 else UP};">{money(S["income"] - S["total"])}</span>') if S['income_rows'] else '&mdash;',
-         'Income minus spending' if S['income_rows'] else 'Shows once income is logged'),
-        ('Top Variable Category', '&nbsp;', e(top[0]) if top else '&mdash;', (money(top[1]['v']) + (' this year' if year_mode else ' this month')) if top else ''),
+        ('Everyday Spending', delta(S['variable'], P['variable'] if P else None), money(S['variable']), f"{S['n_var']} purchases"),
+        ('Recurring', delta(S['fixed'], P['fixed'] if P else None), money(S['fixed']), f"{S['n_fixed']} repeating expenses"),
+        ('Top Category', '&nbsp;', e(top[0]) if top else '&mdash;', (money(top[1]['v']) + (' this year' if year_mode else ' this month')) if top else ''),
     ]
     def tile(t):
         label, d, v, cap = t
@@ -170,8 +167,7 @@ def main():
                 f'<div style="text-align:center;font-size:12px;color:{MUTED};margin-top:2px;">{cap}</div></td></tr></table></td>')
     kpis = (f'<tr><td style="padding:0 24px 14px;"><table role="presentation" width="100%" cellpadding="0" cellspacing="0">'
             f'<tr>{tile(tiles[0])}<td width="12"></td>{tile(tiles[1])}</tr><tr><td colspan="3" height="12"></td></tr>'
-            f'<tr>{tile(tiles[2])}<td width="12"></td>{tile(tiles[3])}</tr><tr><td colspan="3" height="12"></td></tr>'
-            f'<tr>{tile(tiles[4])}<td width="12"></td>{tile(tiles[5])}</tr></table></td></tr>')
+            f'<tr>{tile(tiles[2])}<td width="12"></td>{tile(tiles[3])}</tr></table></td></tr>')
 
     # ---------- sections ----------
     monthly = f'<img src="cid:att0" width="514" alt="Spending by month" style="display:block;width:100%;max-width:514px;height:auto;border:0;">'
@@ -182,7 +178,7 @@ def main():
         f'<td align="right" style="padding:4px 0 4px 8px;font-size:12px;color:{MUTED};white-space:nowrap;">{pct(d["v"] / S["variable"] * 100 if S["variable"] else 0)}</td></tr>'
         for c, d in cats)
     pie = (f'<table role="presentation" width="100%" cellpadding="0" cellspacing="0"><tr>'
-           f'<td width="170" valign="middle"><img src="cid:att1" width="160" alt="Variable spending by category" style="display:block;width:160px;height:auto;border:0;"></td>'
+           f'<td width="170" valign="middle"><img src="cid:att1" width="160" alt="Spending by category" style="display:block;width:160px;height:auto;border:0;"></td>'
            f'<td valign="middle" style="padding-left:14px;"><table role="presentation" width="100%" cellpadding="0" cellspacing="0">{legend_rows}</table></td></tr></table>')
 
     analysis_html = ''
@@ -212,6 +208,40 @@ def main():
                       f'<tr><td width="{max(1, round(share))}%" style="background:{PERSON[name]};height:8px;line-height:8px;font-size:0;border-radius:4px;">&nbsp;</td>'
                       f'<td style="height:8px;line-height:8px;font-size:0;">&nbsp;</td></tr></table></td></tr></table>')
         who_html = card('Who Spent What', parts, 'All amounts in USD; Gabby\u2019s pesos shown small as a reference')
+
+    # savings
+    savings_html = ''
+    ents = [x for x in sav.get('entries', []) if person == 'Household' or x['person'] == person]
+    end = month + '-12' if year_mode else month
+    upto = [x for x in ents if x['month'] <= end]
+    if upto:
+        inper = [x for x in upto if inp(x['month'], month) and x['kind'] != 'Starting balance']
+        bal_u = sum(float(x['amount_usd']) for x in upto); bal_c = sum(float(x['amount_cop']) for x in upto)
+        span_word = 'this year' if year_mode else 'this month'
+        head = (f'<div style="font-size:28px;font-weight:800;color:{DOWN};">{usd(bal_u)}</div>'
+                f'<div style="font-size:12px;color:{MUTED};margin-top:2px;">'
+                + ('' if person == 'Jorgie' else f'&asymp; {cop(bal_c)} &middot; ') + f'saved as of {"the end of " + month if year_mode else mname(month)}</div>')
+        lines = ''
+        for name in (['Gabby', 'Jorgie'] if person == 'Household' else [person]):
+            mine = [x for x in upto if x['person'] == name]
+            if not mine: continue
+            pl = next((x for x in sav.get('plan', []) if x['person'] == name), None)
+            got = [x for x in inper if x['person'] == name]
+            started = any(x['kind'] == 'Starting balance' and inp(x['month'], month) for x in mine)
+            if name == 'Gabby':
+                saved = cop(sum(float(x['amount_cop']) for x in got)); bal = usd(sum(float(x['amount_usd']) for x in mine)) + f' <span style="font-weight:400;color:{MUTED};font-size:12px;">&asymp; {cop(sum(float(x["amount_cop"]) for x in mine))}</span>'
+            else:
+                saved = usd(sum(float(x['amount_usd']) for x in got)); bal = usd(sum(float(x['amount_usd']) for x in mine))
+            if got: note = f'Saved {span_word}: <b style="color:{DOWN};">+{saved}</b>'
+            elif started: note = 'Starting balance recorded'
+            else: note = f'Nothing saved {span_word}'
+            if pl and not year_mode:
+                note += f' &middot; plan {cop(pl["monthly"]) if pl["currency"] == "COP" else usd(pl["monthly"])} a month' + (', automatic' if pl.get('automatic') else '')
+            lines += (f'<tr><td style="padding:10px 0 0;font-size:14px;font-weight:700;color:{TEXT};">{dot(PERSON[name], 10)}{name}</td>'
+                      f'<td align="right" style="padding:10px 0 0;font-size:16px;font-weight:800;color:{TEXT};white-space:nowrap;">{bal}</td></tr>'
+                      f'<tr><td colspan="2" style="font-size:12px;color:#5D6470;padding:2px 0 10px;border-bottom:1px solid #EEF0F3;">{note}</td></tr>')
+        title_s = 'Cozy House Savings' if person == 'Household' else f'{person}’s Savings'
+        savings_html = card(title_s, head + f'<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin-top:8px;">{lines}</table>')
 
     # heatmap
     hm = [m for m in months if m[:4] == month][-6:] if year_mode else months[-4:]
@@ -289,14 +319,15 @@ def main():
   </td></tr>
   <tr><td height="14"></td></tr>
   {kpis}
+  {savings_html}
   {card('Spending by Month', monthly)}
-  {card('Variable Spending by Category', pie)}
+  {card('Spending by Category', pie)}
   {analysis_html}
   {who_html}
-  {card('Category by Month', heatmap, 'Variable spending in US dollars. Darker cells mean more spending.')}
+  {card('Category by Month', heatmap, 'Everyday spending in US dollars. Darker cells mean more spending.')}
   {card(top_title, rows_html(topbuy, who))}
   {card('Income', rows_html(sorted(S['income_rows'], key=lambda r: (r['month'], r['person'], -r['amount_usd'])), who)) if S['income_rows'] else ''}
-  {card('Fixed &amp; Recurring Bills', rows_html(fixed, who) if fixed else f'<div style="font-size:13px;color:{MUTED};">No fixed bills this month</div>')}
+  {card('Recurring Expenses', rows_html(fixed, who) if fixed else f'<div style="font-size:13px;color:{MUTED};">No recurring expenses this month</div>')}
   {button}
   <tr><td style="padding:0 24px 20px;font-size:11px;color:{MUTED};line-height:1.5;text-align:center;">Built from your iPhone expense notes.{rate_note}</td></tr>
 </table></td></tr></table></body></html>'''

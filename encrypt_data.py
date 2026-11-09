@@ -1,7 +1,9 @@
 #!/usr/bin/env python3
 """Encrypt the dashboard data for the GitHub Pages site.
 
-Usage: python3 encrypt_data.py expenses.json analysis.json PASSWORD data.enc.json
+Usage: python3 encrypt_data.py expenses.json analysis.json savings.json PASSWORD data.enc.json
+
+savings.json is {"plan": [...], "entries": [...]}.
 
 The page (index.html) asks for the same password and decrypts in the browser
 (PBKDF2-SHA256, 250,000 iterations -> AES-256-GCM). Nothing readable is stored in the repo.
@@ -14,10 +16,16 @@ from cryptography.hazmat.primitives import hashes
 ITER = 250_000
 
 def main():
-    fe, fa, password, out = sys.argv[1:5]
+    if len(sys.argv) != 6:
+        sys.exit('Usage: encrypt_data.py expenses.json analysis.json savings.json PASSWORD out.json')
+    fe, fa, fs, password, out = sys.argv[1:6]
+    savings = json.load(open(fs, encoding='utf-8'))
+    if not isinstance(savings, dict) or 'entries' not in savings or 'plan' not in savings:
+        sys.exit('savings.json must be {"plan": [...], "entries": [...]}')
     payload = {
         'expenses': json.load(open(fe, encoding='utf-8')),
         'analysis': json.load(open(fa, encoding='utf-8')),
+        'savings': savings,
     }
     salt = os.urandom(16); iv = os.urandom(12)
     key = PBKDF2HMAC(algorithm=hashes.SHA256(), length=32, salt=salt, iterations=ITER).derive(password.encode('utf-8'))
