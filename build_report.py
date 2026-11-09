@@ -198,7 +198,7 @@ def main():
             G = summarize(rows, month, name, 'usd')
             share = G['usd'] / S['usd'] * 100 if S['usd'] else 0
             main = usd(G['total'])
-            sub = f'{pct(share)} of household spending' + (f' &middot; &asymp; {cop(G["cop"])}' if name == 'Gabby' else '')
+            sub = f'{pct(share)} of Cozy House spending' + (f' &middot; &asymp; {cop(G["cop"])}' if name == 'Gabby' else '')
             Gp = summarize(rows, prev, name, 'usd') if prev else None
             chg = ''
             if Gp and Gp['total']:
@@ -259,10 +259,10 @@ def main():
         topbuy = sorted(var, key=lambda r: -r['amount_usd'])[:5]
         top_title = 'Top 5 Purchases'
 
-    title = ((f'{month} Year in Review' if who else f'{person}’s {month} in Review') if year_mode
-             else ('Household Report' if who else f'{person}’s Report'))
+    title = ((f'Cozy House {month} Wrapped' if who else f'{person}’s {month} Wrapped') if year_mode
+             else ('Cozy House' if who else f'{person}’s Report'))
     span = 'this year' if year_mode else 'this month'
-    greeting = f'Hi Gabby and Jorgie, here is how the household spent {span}.' if who else f'Hi {person}, here is how you spent {span}.'
+    greeting = f'Hi Gabby and Jorgie, here is how Cozy House spent {span}.' if who else f'Hi {person}, here is how you spent {span}.'
     button = (f'<tr><td align="center" style="padding:6px 24px 26px;"><a href="{e(url)}" style="display:inline-block;background:{PURPLE};color:#ffffff;'
               f'text-decoration:none;font-size:14px;font-weight:700;padding:12px 26px;border-radius:4px;">Open Dashboard</a></td></tr>') if url else ''
     rate_note = f' Gabby’s pesos converted at {cop(rate)} per US dollar (TRM).' if (rate and person != 'Jorgie') else ''

@@ -135,7 +135,7 @@ html, body { margin: 0; padding: 0; background: #F1F2F4; }
   <aside class="ex-side" id="menu">
     <div class="ex-brand"><div class="ex-logo">G&amp;J</div><div><div class="ex-brand-name">Expenses</div><div class="ex-brand-sub">Gabby &amp; Jorgie</div></div></div>
     <nav class="ex-nav" aria-label="View">
-      <button type="button" data-per="Household" aria-pressed="true"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M3 17V9M8 17V4M13 17v-6M18 17V7"/></svg>Household</button>
+      <button type="button" data-per="Household" aria-pressed="true"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M3 17V9M8 17V4M13 17v-6M18 17V7"/></svg>Cozy House</button>
       <button type="button" data-per="Gabby" aria-pressed="false"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="10" cy="7" r="3.2"/><path d="M3.5 17c1.2-3.2 3.6-4.6 6.5-4.6s5.3 1.4 6.5 4.6"/></svg>Gabby</button>
       <button type="button" data-per="Jorgie" aria-pressed="false"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="10" cy="7" r="3.2"/><path d="M3.5 17c1.2-3.2 3.6-4.6 6.5-4.6s5.3 1.4 6.5 4.6"/></svg>Jorgie</button>
     </nav>
@@ -448,7 +448,7 @@ window.exU = (function () {
 (function () {
   const U = window.exU;
   const mark = (el, r, field) => { el.dataset.where = U.where(r); if (field) el.dataset.field = field; };
-  dash.draw('pageTitle', (el) => { const p = U.per(); el.textContent = p === 'Household' ? 'Household Dashboard' : p + '’s Dashboard'; });
+  dash.draw('pageTitle', (el) => { const p = U.per(); el.textContent = p === 'Household' ? 'Cozy House' : p + '’s Dashboard'; });
   dash.draw('selMonth', (sel) => {
     const opts = U.years().slice().reverse().concat(U.months().slice().reverse());
     sel.replaceChildren(...opts.map((m) => new Option(U.monthName(m), m)));
@@ -528,8 +528,8 @@ window.exU = (function () {
       else {
         v.dataset.source = 'summary'; v.dataset.where = U.where(r);
         s.dataset.source = 'summary'; s.dataset.where = U.where(r); s.dataset.field = 'share_pct';
-        if (name === 'Gabby') { v.dataset.field = 'total_usd'; v.textContent = U.usd(r.total_usd); s.textContent = U.pct(r.share_pct) + ' of household spending · ≈ ' + U.cop(r.total_cop); }
-        else { v.dataset.field = 'total_usd'; v.textContent = U.usd(r.total_usd); s.textContent = U.pct(r.share_pct) + ' of household spending'; }
+        if (name === 'Gabby') { v.dataset.field = 'total_usd'; v.textContent = U.usd(r.total_usd); s.textContent = U.pct(r.share_pct) + ' of Cozy House spending · ≈ ' + U.cop(r.total_cop); }
+        else { v.dataset.field = 'total_usd'; v.textContent = U.usd(r.total_usd); s.textContent = U.pct(r.share_pct) + ' of Cozy House spending'; }
         fill.style.width = (r.share_pct || 0) + '%';
       }
       row.append(n, v, s, bar); el.append(row);
