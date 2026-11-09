@@ -4,6 +4,7 @@
 Usage:
   python3 build_report.py expenses.json analysis.json 2026-10 household OUTDIR [dashboard_url]
   python3 build_report.py expenses.json analysis.json 2026-10 jorgie    OUTDIR [dashboard_url]
+  python3 build_report.py expenses.json analysis.json 2026-10 gabby     OUTDIR [dashboard_url]
   python3 build_report.py expenses.json analysis.json 2026    household OUTDIR [dashboard_url]   (year in review)
 
 Writes OUTDIR/report.html, OUTDIR/chart_month.png, OUTDIR/chart_category.png.
@@ -69,7 +70,7 @@ def main():
     for r in rows:
         for k in ('amount', 'amount_usd', 'amount_cop', 'rate'): r[k] = float(r[k])
     analysis = json.load(open(fa, encoding='utf-8')) if fa != '-' else []
-    person = 'Jorgie' if mode == 'jorgie' else 'Household'
+    person = {'jorgie': 'Jorgie', 'gabby': 'Gabby'}.get(mode, 'Household')
     cur = 'usd'
     money = usd
     year_mode = len(month) == 4
@@ -149,7 +150,7 @@ def main():
     top = cats[0] if cats else None
     tiles = [
         ('Total Spent', delta(S['total'], P['total'] if P else None), money(S['total']),
-         ('&asymp; ' + cop(S['cop'])) if person == 'Household' else f"{S['n_var'] + S['n_fixed']} expenses"),
+         ('&asymp; ' + cop(S['cop'])) if person != 'Jorgie' else f"{S['n_var'] + S['n_fixed']} expenses"),
         ('Variable Spending', delta(S['variable'], P['variable'] if P else None), money(S['variable']),
          f"{pct(S['variable'] / S['total'] * 100 if S['total'] else 0)} of total &middot; {S['n_var']} purchases"),
         ('Fixed &amp; Recurring', delta(S['fixed'], P['fixed'] if P else None), money(S['fixed']), f"{S['n_fixed']} recurring bills"),
@@ -258,13 +259,13 @@ def main():
         topbuy = sorted(var, key=lambda r: -r['amount_usd'])[:5]
         top_title = 'Top 5 Purchases'
 
-    title = ((f'{month} Year in Review' if who else f'Jorgie’s {month} in Review') if year_mode
-             else ('Household Report' if who else 'Jorgie’s Report'))
+    title = ((f'{month} Year in Review' if who else f'{person}’s {month} in Review') if year_mode
+             else ('Household Report' if who else f'{person}’s Report'))
     span = 'this year' if year_mode else 'this month'
-    greeting = f'Hi Gabby and Jorgie, here is how the household spent {span}.' if who else f'Hi Jorgie, here is how you spent {span}.'
+    greeting = f'Hi Gabby and Jorgie, here is how the household spent {span}.' if who else f'Hi {person}, here is how you spent {span}.'
     button = (f'<tr><td align="center" style="padding:6px 24px 26px;"><a href="{e(url)}" style="display:inline-block;background:{PURPLE};color:#ffffff;'
               f'text-decoration:none;font-size:14px;font-weight:700;padding:12px 26px;border-radius:4px;">Open Dashboard</a></td></tr>') if url else ''
-    rate_note = f' Gabby’s pesos converted at {cop(rate)} per US dollar (TRM).' if (rate and who) else ''
+    rate_note = f' Gabby’s pesos converted at {cop(rate)} per US dollar (TRM).' if (rate and person != 'Jorgie') else ''
     pre = f'{"The household" if who else "You"} spent {usd(S["total"])} in {mname(month)}.'
 
     out = f'''<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>{title} &middot; {mname(month)}</title></head>
