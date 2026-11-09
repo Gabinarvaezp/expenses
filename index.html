@@ -584,7 +584,7 @@ window.exU = (function () {
     const ser = series(); const colOf = Object.fromEntries(ser.map((s) => [s.k, s.col])); const labOf = Object.fromEntries(ser.map((s) => [s.k, s.label]));
     const W = Math.max(260, el.clientWidth || 500), H = 260;
     const fmtAxis = cop ? (v) => U.copK(v) : (v) => U.usdK(v);
-    const y = d3.scaleLinear().domain([0, (d3.max(data, (r) => r.total) || 1) * 1.15]).nice().range([H - 26, 14]);
+    const y = d3.scaleLinear().domain([0, (d3.max(data, (r) => r.total) || 100) * 1.15]).nice().range([H - 26, 14]);
     const ticks = y.ticks(4);
     const svg = d3.select(el).append('svg').attr('class', 'ex-svg').attr('width', '100%').attr('viewBox', `0 0 ${W} ${H}`).attr('role', 'img').attr('aria-label', 'Spending by month, stacked bars with an everyday spending trend line');
     const tmp = svg.append('g'); let ml = 0;
@@ -796,7 +796,7 @@ window.exU = (function () {
     const get = (m, who) => all.find((r) => r.month === m && r.person === who) || { balance_usd: 0 };
     const data = ms.map((m) => ({ month: m, parts: people.map((k) => ({ k, v: get(m, k).balance_usd })), total: get(m, p).balance_usd }));
     const W = Math.max(260, el.clientWidth || 500), H = 250;
-    const y = d3.scaleLinear().domain([0, (d3.max(data, (r) => r.total) || 1) * 1.15]).nice().range([H - 26, 14]);
+    const y = d3.scaleLinear().domain([0, (d3.max(data, (r) => r.total) || 100) * 1.15]).nice().range([H - 26, 14]);
     const ticks = y.ticks(4);
     const svg = d3.select(el).append('svg').attr('class', 'ex-svg').attr('width', '100%').attr('viewBox', `0 0 ${W} ${H}`).attr('role', 'img').attr('aria-label', 'Savings balance by month');
     const tmp = svg.append('g'); let ml = 0;
