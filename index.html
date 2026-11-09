@@ -562,7 +562,7 @@ window.exU = (function () {
   }
   dash.draw('monthlyLegend', (el) => {
     el.replaceChildren();
-    const items = series().map((s) => [s.label, s.col]).concat([['Everyday trend', U.LINE]]);
+    const items = series().map((s) => [s.label, s.col]);
     for (const [t, c] of items) { const s = document.createElement('span'); const d = document.createElement('span'); d.className = 'ex-dot'; d.style.background = c; const x = document.createElement('span'); x.textContent = t; s.append(d, x); el.append(s); }
   });
   dash.draw('monthly', (el) => {
@@ -608,15 +608,11 @@ window.exU = (function () {
     }
     g.append('text').attr('text-anchor', 'middle').attr('x', (r) => x(r.month) + x.bandwidth() / 2).attr('y', H - 8).text((r) => U.monthName(r.month, true));
     const line = d3.line().x((r) => x(r.month) + x.bandwidth() / 2).y((r) => y(r.variable));
-    svg.append('path').datum(data).attr('d', line).style('fill', 'none').style('stroke', U.LINE).style('stroke-width', 2.5);
-    svg.selectAll('circle.v').data(data).join('circle').attr('class', 'v').attr('cx', (r) => x(r.month) + x.bandwidth() / 2).attr('cy', (r) => y(r.variable)).attr('r', 4.5)
-      .style('fill', U.LINE).style('stroke', '#fff').style('stroke-width', 1.5).style('pointer-events', 'none');
     g.on('click', (e, r) => U.pickMonth(r.month))
       .on('pointermove', (e, r) => {
         const t = tip.node(); tip.property('hidden', false).selectAll('*').remove();
         tip.append('div').append('b').text(U.monthName(r.month));
         r.parts.forEach((pt) => { const row = tip.append('div').attr('class', 'ex-tip-row'); row.append('span').attr('class', 'ex-dot').style('background', colOf[pt.k]); row.append('span').text(labOf[pt.k] + ': ' + U.money(pt.v)); });
-        const lr = tip.append('div').attr('class', 'ex-tip-row'); lr.append('span').attr('class', 'ex-dot').style('background', U.LINE); lr.append('span').text('Everyday: ' + U.money(r.variable));
         tip.append('div').text('Total: ' + U.money(r.total));
         U.tipAt(el, t, e);
       })

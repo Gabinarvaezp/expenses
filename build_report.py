@@ -112,7 +112,6 @@ def main():
         ax.bar(xs, vals, w, bottom=bottom, color=col, label=name, zorder=2,
                alpha=1)
         bottom = [b + v for b, v in zip(bottom, vals)]
-    ax.plot(list(xs), varline, color=TREND, lw=2.2, marker='o', ms=6, mec='white', mew=1.4, zorder=3, label='Everyday trend')
     for x, t, m in zip(xs, totals, ms):
         ax.text(x, t * 1.03, usd0(t), ha='center', va='bottom', fontsize=7.5, color=TEXT, fontweight='semibold')
     ax.set_xticks(list(xs)); ax.set_xticklabels([mname(m, True) for m in ms], fontsize=7.5, color='#6B717C')
@@ -122,7 +121,7 @@ def main():
     ax.yaxis.set_major_locator(matplotlib.ticker.MaxNLocator(4))
     ax.grid(axis='y', color='#ECEEF1', lw=0.8, zorder=0)
     for s in ax.spines.values(): s.set_visible(False)
-    leg = ax.legend(loc='upper center', bbox_to_anchor=(0.5, -0.12), ncol=3, frameon=False, fontsize=7.5, handlelength=1, handleheight=0.8)
+    leg = ax.legend(loc='upper center', bbox_to_anchor=(0.5, -0.12), ncol=2, frameon=False, fontsize=7.5, handlelength=1, handleheight=0.8)
     for t in leg.get_texts(): t.set_color(TEXT); t.set_fontweight('semibold')
     fig.tight_layout()
     fig.savefig(os.path.join(outdir, 'chart_month.png'), facecolor='white'); plt.close(fig)
