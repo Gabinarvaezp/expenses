@@ -84,6 +84,9 @@
 .ex-foot p { line-height: 1.6; max-width: 80ch; }
 [data-dash-source-state=refreshing] { opacity: .5; }
 .ex-shell { container-type: inline-size; }
+.ex-single table[data-row-key] th:first-child, .ex-single table[data-row-key] td:first-child { display: none; }
+.ex-card[hidden] { display: none; }
+.ex-card.ex-span12 { grid-column: span 12; }
 @container (max-width: 1050px) { .ex-span3, .ex-kpi6 { grid-column: span 6; } .ex-span4, .ex-span5, .ex-span7, .ex-span8 { grid-column: span 12; } }
 @container (max-width: 760px) {
   .ex-app { grid-template-columns: 1fr; }
@@ -144,8 +147,6 @@ html, body { margin: 0; padding: 0; background: #F1F2F4; }
       <h1 class="ex-title"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M2 18h16M4 15V9M8 15V5M12 15v-4M16 15V7"/></svg><span data-draw="pageTitle">—</span></h1>
       <label class="ex-range"><strong>Month:</strong> <select class="dash-select" data-draw="selMonth" aria-label="Month" data-source="summary"></select></label>
     </header>
-
-    <div class="ex-sample" id="empty-notice" hidden>No expenses yet. Keep logging in your iPhone notes: they sync on the 1st of every month, and the first update arrives on December 1, 2026.</div>
 
     <section class="ex-grid" id="kpis">
       <div class="ex-card ex-kpi ex-kpi6" id="kpi-total">
@@ -426,13 +427,18 @@ window.exU = (function () {
     b.addEventListener('click', () => {
       window.exPer = b.getAttribute('data-per');
       document.querySelectorAll('.ex-nav button').forEach((x) => x.setAttribute('aria-pressed', x === b ? 'true' : 'false'));
+      const single = U.per() !== 'Household';
+      document.querySelectorAll('.ex-app').forEach((el) => el.classList.toggle('ex-single', single));
+      document.querySelectorAll('#who-spent-what').forEach((el) => { el.hidden = single; });
+      document.querySelectorAll('#analysis').forEach((el) => el.classList.toggle('ex-span12', single));
       U.redraw();
     });
   });
   dash.onData(() => {
-    const d = dash.data('expenses');
-    const empty = d.status === 'ok' && !U.rows('expenses').length;
-    document.querySelectorAll('#empty-notice').forEach((el) => { el.hidden = !empty; });
+    const single = U.per() !== 'Household';
+    document.querySelectorAll('.ex-app').forEach((el) => el.classList.toggle('ex-single', single));
+    document.querySelectorAll('#who-spent-what').forEach((el) => { el.hidden = single; });
+    document.querySelectorAll('#analysis').forEach((el) => el.classList.toggle('ex-span12', single));
   });
 })();
 </script>
@@ -469,7 +475,7 @@ window.exU = (function () {
   value('vTotal', 'total'); value('vVar', 'variable'); value('vFixed', 'fixed');
   dash.draw('cTotal', (el) => {
     const r = U.sumRow(); if (!r) { el.textContent = '—'; return; }
-    if (U.isCop()) { mark(el, r, 'total_usd'); el.textContent = '≈ ' + U.usd(r.total_usd); }
+    if (U.per() === 'Jorgie') { mark(el, r, 'n_variable'); el.textContent = (r.n_variable + r.n_fixed) + ' expenses'; }
     else { mark(el, r, 'total_cop'); el.textContent = '≈ ' + U.cop(r.total_cop); }
   });
   dash.draw('cVarPct', (el) => { const r = U.sumRow(); if (!r) { el.textContent = '—'; return; } mark(el, r); el.textContent = U.pct(r.pct_variable); });
@@ -483,7 +489,7 @@ window.exU = (function () {
 
   dash.draw('dIncome', (el) => {
     const r = U.sumRow(); el.classList.remove('ex-isup', 'ex-isdown');
-    if (!r || !r.n_income || r.change_income === null) { el.textContent = ''; return; }
+    if (!r || !r.n_income || !r.change_income) { el.textContent = ''; return; }
     mark(el, r, 'change_income');
     const v = r.change_income; el.textContent = (v >= 0 ? '▲ ' : '▼ ') + U.usdK(Math.abs(v));
     el.classList.add(v >= 0 ? 'ex-isdown' : 'ex-isup');
