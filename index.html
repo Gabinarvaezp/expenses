@@ -34,7 +34,7 @@
 .ex-card { background: var(--ex-card); border: 1px solid var(--ex-line); border-radius: 4px; padding: 16px 18px; min-width: 0; display: flex; flex-direction: column; }
 .ex-card h2 { font-size: 13px; font-weight: 600; margin: 0 0 12px; color: var(--ex-text); }
 .ex-card .ex-sub { font-size: 12px; color: var(--ex-muted); margin: -8px 0 12px; }
-.ex-span3 { grid-column: span 3; } .ex-span4 { grid-column: span 4; } .ex-span5 { grid-column: span 5; } .ex-span6 { grid-column: span 6; } .ex-span7 { grid-column: span 7; } .ex-span8 { grid-column: span 8; } .ex-span12 { grid-column: span 12; }
+.ex-span3 { grid-column: span 3; } .ex-kpi6 { grid-column: span 4; } .ex-span4 { grid-column: span 4; } .ex-span5 { grid-column: span 5; } .ex-span6 { grid-column: span 6; } .ex-span7 { grid-column: span 7; } .ex-span8 { grid-column: span 8; } .ex-span12 { grid-column: span 12; }
 .ex-kpi { align-items: center; text-align: center; justify-content: center; gap: 4px; padding: 16px 12px; }
 .ex-kpi .ex-kpi-label { font-size: 13px; font-weight: 600; align-self: stretch; text-align: left; margin-bottom: 4px; }
 .ex-delta { font-size: 12px; font-weight: 600; min-height: 16px; font-variant-numeric: tabular-nums; }
@@ -84,7 +84,7 @@
 .ex-foot p { line-height: 1.6; max-width: 80ch; }
 [data-dash-source-state=refreshing] { opacity: .5; }
 .ex-shell { container-type: inline-size; }
-@container (max-width: 1050px) { .ex-span3 { grid-column: span 6; } .ex-span4, .ex-span5, .ex-span7, .ex-span8 { grid-column: span 12; } }
+@container (max-width: 1050px) { .ex-span3, .ex-kpi6 { grid-column: span 6; } .ex-span4, .ex-span5, .ex-span7, .ex-span8 { grid-column: span 12; } }
 @container (max-width: 760px) {
   .ex-app { grid-template-columns: 1fr; }
   .ex-side { border-right: 0; border-bottom: 1px solid var(--ex-line); }
@@ -95,7 +95,7 @@
   .ex-main { padding: 16px 14px 24px; }
   .ex-span6 { grid-column: span 12; }
 }
-@container (max-width: 460px) { .ex-span3 { grid-column: span 12; } .ex-title { font-size: 20px; } }
+@container (max-width: 460px) { .ex-kpi { padding: 12px 10px; } .ex-kpi-value { font-size: 22px; } .ex-kpi-value.ex-word { font-size: 17px; } .ex-kpi .ex-kpi-label { font-size: 12px; } .ex-title { font-size: 20px; } }
 </style>
 <style>
 html, body { margin: 0; padding: 0; background: #F1F2F4; }
@@ -145,28 +145,40 @@ html, body { margin: 0; padding: 0; background: #F1F2F4; }
       <label class="ex-range"><strong>Month:</strong> <select class="dash-select" data-draw="selMonth" aria-label="Month" data-source="summary"></select></label>
     </header>
 
-    <div class="ex-sample" id="sample-notice" hidden>Sample data. These expenses are placeholders to show the design and will be replaced by your iPhone notes on the first sync.</div>
+    <div class="ex-sample" id="empty-notice" hidden>No expenses yet. Keep logging in your iPhone notes: they sync on the 1st of every month, and the first update arrives on December 1, 2026.</div>
 
     <section class="ex-grid" id="kpis">
-      <div class="ex-card ex-kpi ex-span3" id="kpi-total">
+      <div class="ex-card ex-kpi ex-kpi6" id="kpi-total">
         <div class="ex-kpi-label">Total Spent</div>
         <div class="ex-delta" data-draw="dTotal" data-source="summary"></div>
         <div class="ex-kpi-value" data-draw="vTotal" data-source="summary">—</div>
         <div class="ex-kpi-cap" data-draw="cTotal" data-source="summary">—</div>
       </div>
-      <div class="ex-card ex-kpi ex-span3" id="kpi-variable">
+      <div class="ex-card ex-kpi ex-kpi6" id="kpi-variable">
         <div class="ex-kpi-label">Variable Spending</div>
         <div class="ex-delta" data-draw="dVar" data-source="summary"></div>
         <div class="ex-kpi-value" data-draw="vVar" data-source="summary">—</div>
         <div class="ex-kpi-cap"><span data-draw="cVarPct" data-source="summary" data-field="pct_variable">—</span> of total · <span data-draw="cVarN" data-source="summary" data-field="n_variable">—</span> purchases</div>
       </div>
-      <div class="ex-card ex-kpi ex-span3" id="kpi-fixed">
+      <div class="ex-card ex-kpi ex-kpi6" id="kpi-fixed">
         <div class="ex-kpi-label">Fixed &amp; Recurring</div>
         <div class="ex-delta" data-draw="dFixed" data-source="summary"></div>
         <div class="ex-kpi-value" data-draw="vFixed" data-source="summary">—</div>
-        <div class="ex-kpi-cap"><span data-draw="cFixedN" data-source="summary" data-field="n_fixed">—</span> bills every month</div>
+        <div class="ex-kpi-cap"><span data-draw="cFixedN" data-source="summary" data-field="n_fixed">—</span> recurring bills</div>
       </div>
-      <div class="ex-card ex-kpi ex-span3" id="kpi-top">
+      <div class="ex-card ex-kpi ex-kpi6" id="kpi-income">
+        <div class="ex-kpi-label">Income</div>
+        <div class="ex-delta" data-draw="dIncome" data-source="summary"></div>
+        <div class="ex-kpi-value" data-draw="vIncome" data-source="summary">—</div>
+        <div class="ex-kpi-cap" data-draw="cIncome" data-source="summary">—</div>
+      </div>
+      <div class="ex-card ex-kpi ex-kpi6" id="kpi-balance">
+        <div class="ex-kpi-label">Balance</div>
+        <div class="ex-delta" data-draw="dBalance" data-source="summary"></div>
+        <div class="ex-kpi-value" data-draw="vBalance" data-source="summary">—</div>
+        <div class="ex-kpi-cap" data-draw="cBalance" data-source="summary">—</div>
+      </div>
+      <div class="ex-card ex-kpi ex-kpi6" id="kpi-top">
         <div class="ex-kpi-label">Top Variable Category</div>
         <div class="ex-delta" data-draw="dTop" data-source="summary"></div>
         <div class="ex-kpi-value ex-word" data-draw="vTop" data-source="summary" data-field="top_category">—</div>
@@ -214,7 +226,16 @@ html, body { margin: 0; padding: 0; background: #F1F2F4; }
           </table>
         </div>
       </div>
-      <div class="ex-card ex-span6" id="variable-purchases">
+      <div class="ex-card ex-span6" id="income">
+        <h2>Income</h2>
+        <div class="ex-tablewrap">
+          <table class="ex-table" data-source="expenses" data-row-key="id">
+            <thead><tr><th data-field="person">Who</th><th data-field="item">Item</th><th data-field="category">Category</th><th data-field="amount_usd" class="ex-r">Amount</th></tr></thead>
+            <tbody data-draw="tIncome"></tbody>
+          </table>
+        </div>
+      </div>
+      <div class="ex-card ex-span12" id="variable-purchases">
         <h2>Variable Purchases</h2>
         <div class="ex-tablewrap">
           <table class="ex-table" data-source="expenses" data-row-key="id">
@@ -227,7 +248,7 @@ html, body { margin: 0; padding: 0; background: #F1F2F4; }
 
     <details class="ex-foot" id="how-it-works">
       <summary>How this dashboard updates</summary>
-      <p>Gabby and Jorgie each keep a note on their iPhone. On the 1st of every month a Shortcut emails both notes; new lines are categorized, fixed and recurring bills are detected, Gabby's pesos are converted at that day's official COP/USD rate (TRM), and a written analysis is added for the month.</p>
+      <p>Gabby and Jorgie each keep a note on their iPhone, organized by month with Expenses, Fixed and Income sections. On the 1st of every month a Shortcut emails both notes; new lines are categorized, fixed and recurring bills are detected, Gabby's pesos are converted to US dollars at that day's official rate (TRM), and a written analysis is added. Pick "Full year" in the Month menu for the yearly summary.</p>
     </details>
   </main>
 </div></div>
@@ -256,16 +277,17 @@ window.dash = (function () {
 <script>
 // ---------- calculations ----------
 dash.calc('summary', {
-  title: 'Monthly summary by person',
-  description: 'Totals, fixed vs variable, change vs previous month and top variable category for Household, Gabby and Jorgie.',
+  title: 'Summary by month, year and person',
+  description: 'Spending (fixed and variable), income, balance, change vs the previous period and top variable category, for Household, Gabby and Jorgie. Periods are months (YYYY-MM) and full years (YYYY).',
   inputs: ['expenses'],
   fn: (expenses) => {
     const r2 = (x) => Math.round(x * 100) / 100;
     const acc = {};
     const add = (month, person, e) => {
       const k = month + '|' + person;
-      if (!acc[k]) acc[k] = { month, person, total_usd: 0, total_cop: 0, variable_usd: 0, variable_cop: 0, fixed_usd: 0, fixed_cop: 0, n_variable: 0, n_fixed: 0, cats: {} };
+      if (!acc[k]) acc[k] = { month, person, total_usd: 0, total_cop: 0, variable_usd: 0, variable_cop: 0, fixed_usd: 0, fixed_cop: 0, income_usd: 0, income_cop: 0, n_variable: 0, n_fixed: 0, n_income: 0, cats: {} };
       const a = acc[k], u = Number(e.amount_usd) || 0, c = Number(e.amount_cop) || 0;
+      if (e.type === 'Income') { a.income_usd += u; a.income_cop += c; a.n_income += 1; return; }
       a.total_usd += u; a.total_cop += c;
       if (e.type === 'Fixed') { a.fixed_usd += u; a.fixed_cop += c; a.n_fixed += 1; }
       else {
@@ -274,36 +296,41 @@ dash.calc('summary', {
         a.cats[e.category].u += u; a.cats[e.category].c += c;
       }
     };
-    for (const e of expenses) { add(e.month, e.person, e); add(e.month, 'Household', e); }
-    const months = [...new Set(expenses.map((e) => e.month))].sort();
+    for (const e of expenses) for (const p of [e.month, String(e.month).slice(0, 4)]) { add(p, e.person, e); add(p, 'Household', e); }
+    const all = [...new Set(Object.values(acc).map((a) => a.month))];
+    const groups = [all.filter((p) => p.length === 7).sort(), all.filter((p) => p.length === 4).sort()];
     const out = [];
     for (const person of ['Household', 'Gabby', 'Jorgie']) {
-      let prev = null;
-      for (const month of months) {
-        const a = acc[month + '|' + person];
-        if (!a) continue;
-        const cur = '_usd';
-        const top = Object.entries(a.cats).sort((x, y) => y[1].u - x[1].u)[0];
-        const hh = acc[month + '|Household'];
-        const ch = (f) => prev && prev[f + cur] ? Math.round((a[f + cur] - prev[f + cur]) / prev[f + cur] * 1000) / 10 : null;
-        const df = (f) => prev ? (cur === '_cop' ? Math.round(a[f + cur] - prev[f + cur]) : r2(a[f + cur] - prev[f + cur])) : null;
-        out.push({
-          month, person,
-          total_usd: r2(a.total_usd), total_cop: Math.round(a.total_cop),
-          variable_usd: r2(a.variable_usd), variable_cop: Math.round(a.variable_cop),
-          fixed_usd: r2(a.fixed_usd), fixed_cop: Math.round(a.fixed_cop),
-          n_variable: a.n_variable, n_fixed: a.n_fixed,
-          pct_variable: a.total_usd ? Math.round(a.variable_usd / a.total_usd * 1000) / 10 : 0,
-          change_total_pct: ch('total'), change_total: df('total'),
-          change_variable_pct: ch('variable'), change_variable: df('variable'),
-          change_fixed_pct: ch('fixed'), change_fixed: df('fixed'),
-          prev_month: prev ? prev.month : null,
-          top_category: top ? top[0] : null,
-          top_category_usd: top ? r2(top[1].u) : null,
-          top_category_cop: top ? Math.round(top[1].c) : null,
-          share_pct: hh && hh.total_usd ? Math.round(a.total_usd / hh.total_usd * 1000) / 10 : null
-        });
-        prev = a;
+      for (const periods of groups) {
+        let prev = null;
+        for (const month of periods) {
+          const a = acc[month + '|' + person];
+          if (!a) continue;
+          const top = Object.entries(a.cats).sort((x, y) => y[1].u - x[1].u)[0];
+          const hh = acc[month + '|Household'];
+          const ch = (f) => prev && prev[f + '_usd'] ? Math.round((a[f + '_usd'] - prev[f + '_usd']) / prev[f + '_usd'] * 1000) / 10 : null;
+          const df = (f) => prev ? r2(a[f + '_usd'] - prev[f + '_usd']) : null;
+          out.push({
+            month, person,
+            total_usd: r2(a.total_usd), total_cop: Math.round(a.total_cop),
+            variable_usd: r2(a.variable_usd), variable_cop: Math.round(a.variable_cop),
+            fixed_usd: r2(a.fixed_usd), fixed_cop: Math.round(a.fixed_cop),
+            income_usd: r2(a.income_usd), income_cop: Math.round(a.income_cop), n_income: a.n_income,
+            balance_usd: r2(a.income_usd - a.total_usd),
+            n_variable: a.n_variable, n_fixed: a.n_fixed,
+            pct_variable: a.total_usd ? Math.round(a.variable_usd / a.total_usd * 1000) / 10 : 0,
+            change_total_pct: ch('total'), change_total: df('total'),
+            change_variable_pct: ch('variable'), change_variable: df('variable'),
+            change_fixed_pct: ch('fixed'), change_fixed: df('fixed'),
+            change_income: df('income'), change_income_pct: ch('income'),
+            prev_month: prev ? prev.month : null,
+            top_category: top ? top[0] : null,
+            top_category_usd: top ? r2(top[1].u) : null,
+            top_category_cop: top ? Math.round(top[1].c) : null,
+            share_pct: hh && hh.total_usd ? Math.round(a.total_usd / hh.total_usd * 1000) / 10 : null
+          });
+          prev = a;
+        }
       }
     }
     return out;
@@ -312,21 +339,21 @@ dash.calc('summary', {
 
 dash.calc('categories', {
   title: 'Variable spending by category',
-  description: 'Variable spending per category, month and person, with each person\'s share and the category\'s percent of variable spending.',
+  description: 'Variable spending per category, period (month or full year) and person, with each person\'s share and the category\'s percent of variable spending.',
   inputs: ['expenses'],
   fn: (expenses) => {
     const r2 = (x) => Math.round(x * 100) / 100;
     const acc = {}, tot = {};
     for (const e of expenses) {
-      if (e.type === 'Fixed') continue;
+      if (e.type !== 'Variable') continue;
       const u = Number(e.amount_usd) || 0, c = Number(e.amount_cop) || 0;
-      for (const person of [e.person, 'Household']) {
-        const k = e.month + '|' + person + '|' + e.category;
-        if (!acc[k]) acc[k] = { month: e.month, person, category: e.category, total_usd: 0, total_cop: 0, gabby_usd: 0, jorgie_usd: 0, n: 0 };
+      for (const period of [e.month, String(e.month).slice(0, 4)]) for (const person of [e.person, 'Household']) {
+        const k = period + '|' + person + '|' + e.category;
+        if (!acc[k]) acc[k] = { month: period, person, category: e.category, total_usd: 0, total_cop: 0, gabby_usd: 0, jorgie_usd: 0, n: 0 };
         const a = acc[k];
         a.total_usd += u; a.total_cop += c; a.n += 1;
         if (e.person === 'Gabby') a.gabby_usd += u; else a.jorgie_usd += u;
-        const kt = e.month + '|' + person;
+        const kt = period + '|' + person;
         if (!tot[kt]) tot[kt] = { u: 0, c: 0 };
         tot[kt].u += u; tot[kt].c += c;
       }
@@ -357,15 +384,26 @@ window.exU = (function () {
   const PERSON = { Gabby: '#E8697D', Jorgie: '#4B9FD5' };
   const PIE = ['#E8697D', '#4B9FD5', '#6CC3A0', '#F3D46B', '#F59E5B', '#A685D9', '#8FD0E8', '#B9DE8A', '#F4A6B8', '#9AA5B1', '#5C7FB8'];
   const LINE = '#E9C94A';
-  function monthName(m, short) { if (!m) return '—'; const [y, mm] = m.split('-').map(Number); return short ? SHORT[mm - 1] + ' ' + y : MONTHS[mm - 1] + ' ' + y; }
+  function monthName(m, short) { if (!m) return '—'; if (String(m).length === 4) return short ? m : 'Full year ' + m; const [y, mm] = m.split('-').map(Number); return short ? SHORT[mm - 1] + ' ' + y : MONTHS[mm - 1] + ' ' + y; }
   function per() { return window.exPer || 'Household'; }
   function isCop() { return false; }
   function suf() { return isCop() ? '_cop' : '_usd'; }
   function money(v) { return isCop() ? cop(v) : usd(v); }
   function rows(id) { const d = dash.data(id); return d.status === 'ok' && Array.isArray(d.data) ? d.data : []; }
-  function months() { return [...new Set(rows('summary').map((r) => r.month))].sort(); }
-  function month() { const ms = months(); if (!ms.length) return null; return (window.exMonth && ms.includes(window.exMonth)) ? window.exMonth : ms[ms.length - 1]; }
-  function sumRow(person) { const m = month(); return rows('summary').find((r) => r.month === m && r.person === (person || per())) || null; }
+  function periods() { return [...new Set(rows('summary').map((r) => r.month))]; }
+  function months() { return periods().filter((p) => p.length === 7).sort(); }
+  function years() { return periods().filter((p) => p.length === 4).sort(); }
+  function month() { const ps = periods(), ms = months(); if (!ms.length) return null; return (window.exMonth && ps.includes(window.exMonth)) ? window.exMonth : ms[ms.length - 1]; }
+  function isYear(p) { return String(p || month()).length === 4; }
+  function inPeriod(m, p) { return p.length === 4 ? String(m).slice(0, 4) === p : m === p; }
+  const ZERO = { total_usd: 0, total_cop: 0, variable_usd: 0, variable_cop: 0, fixed_usd: 0, fixed_cop: 0, income_usd: 0, income_cop: 0, n_income: 0, balance_usd: 0, n_variable: 0, n_fixed: 0, pct_variable: 0, change_total: null, change_variable: null, change_fixed: null, change_income: null, top_category: null, share_pct: 0 };
+  function sumRow(person) {
+    const m = month();
+    const r = rows('summary').find((x) => x.month === m && x.person === (person || per()));
+    if (r) return r;
+    if (dash.data('expenses').status === 'ok' && !rows('expenses').length) return Object.assign({ month: '', person: person || per(), empty: true }, ZERO);
+    return null;
+  }
   function where(r) { return 'month=' + enc(r.month) + '&person=' + enc(r.person); }
   function catColors(cats) { const all = [...new Set(rows('categories').map((r) => r.category))].sort(); const map = {}; all.forEach((c, i) => { map[c] = PIE[i % PIE.length]; }); return map; }
   function tipAt(el, tip, e) {
@@ -373,10 +411,10 @@ window.exU = (function () {
     tip.style.left = Math.max(0, Math.min(e.clientX - b.left + 12, el.clientWidth - tip.offsetWidth)) + 'px';
     tip.style.top = (e.clientY - b.top + 14) + 'px';
   }
-  const ALL = ['pageTitle','selMonth','dTotal','vTotal','cTotal','dVar','vVar','cVarPct','cVarN','dFixed','vFixed','cFixedN','dTop','vTop','cTop','monthly','monthlyLegend','pie','anTitle','anText','who','heat','tFixed','tVar'];
+  const ALL = ['pageTitle','selMonth','dTotal','vTotal','cTotal','dVar','vVar','cVarPct','cVarN','dFixed','vFixed','cFixedN','dTop','vTop','cTop','dIncome','vIncome','cIncome','dBalance','vBalance','cBalance','tIncome','monthly','monthlyLegend','pie','anTitle','anText','who','heat','tFixed','tVar'];
   function redraw() { ALL.forEach((n) => dash.draw(n)); }
   function pickMonth(m) { window.exMonth = m; redraw(); }
-  return { monthName, usd, usd0, cop, copK, usdK, pct, enc, PERSON, PIE, LINE, per, isCop, suf, money, rows, months, month, sumRow, where, catColors, tipAt, redraw, pickMonth };
+  return { monthName, usd, usd0, cop, copK, usdK, pct, enc, PERSON, PIE, LINE, per, isCop, suf, money, rows, months, years, month, isYear, inPeriod, sumRow, where, catColors, tipAt, redraw, pickMonth };
 })();
 </script>
 
@@ -392,8 +430,9 @@ window.exU = (function () {
     });
   });
   dash.onData(() => {
-    const has = U.rows('expenses').some((r) => r.origin === 'sample');
-    document.querySelectorAll('#sample-notice').forEach((el) => { el.hidden = !has; });
+    const d = dash.data('expenses');
+    const empty = d.status === 'ok' && !U.rows('expenses').length;
+    document.querySelectorAll('#empty-notice').forEach((el) => { el.hidden = !empty; });
   });
 })();
 </script>
@@ -405,15 +444,16 @@ window.exU = (function () {
   const mark = (el, r, field) => { el.dataset.where = U.where(r); if (field) el.dataset.field = field; };
   dash.draw('pageTitle', (el) => { const p = U.per(); el.textContent = p === 'Household' ? 'Household Dashboard' : p + '’s Dashboard'; });
   dash.draw('selMonth', (sel) => {
-    const ms = U.months().slice().reverse();
-    sel.replaceChildren(...ms.map((m) => new Option(U.monthName(m), m)));
+    const opts = U.years().slice().reverse().concat(U.months().slice().reverse());
+    sel.replaceChildren(...opts.map((m) => new Option(U.monthName(m), m)));
+    sel.disabled = !opts.length;
     const m = U.month(); if (m) sel.value = m;
     sel.onchange = () => U.pickMonth(sel.value);
   });
   function delta(name, base) {
     dash.draw(name, (el) => {
       const r = U.sumRow(); el.classList.remove('ex-isup', 'ex-isdown');
-      if (!r || r['change_' + base] === null) { el.textContent = r ? 'First month' : ''; return; }
+      if (!r || r['change_' + base] === null) { el.textContent = (r && !r.empty) ? (U.isYear(r.month) ? 'First year' : 'First month') : ''; return; }
       const v = r['change_' + base], p = r['change_' + base + '_pct'];
       mark(el, r, 'change_' + base);
       const amt = U.isCop() ? U.copK(Math.abs(v)) : U.usdK(Math.abs(v));
@@ -438,12 +478,31 @@ window.exU = (function () {
   dash.draw('vTop', (el) => { const r = U.sumRow(); if (!r || !r.top_category) { el.textContent = '—'; return; } mark(el, r); el.textContent = r.top_category; });
   dash.draw('cTop', (el) => {
     const r = U.sumRow(); if (!r || !r.top_category) { el.textContent = '—'; return; }
-    mark(el, r, 'top_category' + U.suf()); el.textContent = U.money(r['top_category' + U.suf()]) + ' this month';
+    mark(el, r, 'top_category' + U.suf()); el.textContent = U.money(r['top_category' + U.suf()]) + (U.isYear(r.month) ? ' this year' : ' this month');
   });
+
+  dash.draw('dIncome', (el) => {
+    const r = U.sumRow(); el.classList.remove('ex-isup', 'ex-isdown');
+    if (!r || !r.n_income || r.change_income === null) { el.textContent = ''; return; }
+    mark(el, r, 'change_income');
+    const v = r.change_income; el.textContent = (v >= 0 ? '▲ ' : '▼ ') + U.usdK(Math.abs(v));
+    el.classList.add(v >= 0 ? 'ex-isdown' : 'ex-isup');
+  });
+  dash.draw('vIncome', (el) => { const r = U.sumRow(); if (!r) { el.textContent = '—'; return; } mark(el, r, 'income_usd'); el.textContent = U.usd(r.income_usd); });
+  dash.draw('cIncome', (el) => { const r = U.sumRow(); if (!r) { el.textContent = '—'; return; } mark(el, r, 'n_income'); el.textContent = r.n_income ? r.n_income + (r.n_income === 1 ? ' entry logged' : ' entries logged') : 'Nothing logged'; });
+  dash.draw('dBalance', (el) => { el.textContent = ''; });
+  dash.draw('vBalance', (el) => {
+    const r = U.sumRow(); el.style.color = '';
+    if (!r) { el.textContent = '—'; return; }
+    if (!r.n_income) { el.textContent = '—'; delete el.dataset.where; return; }
+    mark(el, r, 'balance_usd'); el.textContent = U.usd(r.balance_usd);
+    el.style.color = r.balance_usd >= 0 ? 'var(--ex-down)' : 'var(--ex-up)';
+  });
+  dash.draw('cBalance', (el) => { const r = U.sumRow(); el.textContent = !r ? '—' : (r.n_income ? 'Income minus spending' : 'Shows once income is logged'); });
 
   // analysis
   const an = () => { const m = U.month(), p = U.per(); return U.rows('analysis').find((a) => a.month === m && a.person === p) || null; };
-  dash.draw('anTitle', (el) => { const a = an(); if (!a) { el.textContent = 'No analysis for this month yet'; delete el.dataset.where; return; } el.dataset.where = U.where(a); el.textContent = a.title; });
+  dash.draw('anTitle', (el) => { const a = an(); if (!a) { el.textContent = 'No analysis for this period yet'; delete el.dataset.where; return; } el.dataset.where = U.where(a); el.textContent = a.title; });
   dash.draw('anText', (el) => { const a = an(); if (!a) { el.textContent = 'The analysis is written when the month’s notes are processed.'; delete el.dataset.where; return; } el.dataset.where = U.where(a); el.textContent = a.text; });
 
   // who spent what
@@ -493,7 +552,8 @@ window.exU = (function () {
     if (d.status === 'error') { el.textContent = 'Failed to load'; return; }
     if (d.status !== 'ok') { el.textContent = '—'; return; }
     const p = U.per(), cop = U.isCop(), sel = U.month(), sf = U.suf();
-    const ms = U.months().slice(-12);
+    const ms = U.isYear(sel) ? U.months().filter((m) => m.slice(0, 4) === sel) : U.months().slice(-12);
+    if (!ms.length) { el.textContent = 'No data yet'; return; }
     const get = (m, who) => d.data.find((r) => r.month === m && r.person === who);
     const data = ms.map((m) => {
       const r = get(m, p) || {};
@@ -517,7 +577,7 @@ window.exU = (function () {
       svg.append('text').attr('x', left - 6).attr('y', y(t) + 4).attr('text-anchor', 'end').text(fmtAxis(t));
     });
     const tip = d3.select(el).append('div').attr('class', 'ex-tip').property('hidden', true);
-    const g = svg.selectAll('g.b').data(data).join('g').attr('class', 'b').style('cursor', 'pointer').style('opacity', (r) => r.month === sel ? 1 : 0.6);
+    const g = svg.selectAll('g.b').data(data).join('g').attr('class', 'b').style('cursor', 'pointer').style('opacity', (r) => (r.month === sel || U.isYear(sel)) ? 1 : 0.6);
     g.each(function (r) {
       let acc = 0; const gg = d3.select(this);
       r.parts.forEach((pt) => { gg.append('rect').attr('x', x(r.month)).attr('width', x.bandwidth()).attr('y', y(acc + pt.v)).attr('height', Math.max(0, y(acc) - y(acc + pt.v))).style('fill', colOf[pt.k]); acc += pt.v; });
@@ -601,7 +661,7 @@ window.exU = (function () {
     tbl.replaceChildren();
     if (d.status !== 'ok') return;
     const p = U.per(), cop = U.isCop(), key = cop ? 'total_cop' : 'total_usd';
-    const ms = U.months().slice(-6);
+    const cur = U.month(); const ms = U.isYear(cur) ? U.months().filter((m) => m.slice(0, 4) === cur) : U.months().slice(-6);
     const rs = d.data.filter((r) => r.person === p && ms.includes(r.month));
     if (!rs.length) { const tr = tbl.insertRow(); const td = tr.insertCell(); td.className = 'ex-empty'; td.textContent = 'No variable spending yet'; return; }
     const cats = d3.rollups(rs, (v) => d3.sum(v, (r) => r[key]), (r) => r.category).sort((a, b) => b[1] - a[1]).map((c) => c[0]);
@@ -639,7 +699,7 @@ window.exU = (function () {
       tb.replaceChildren();
       const m = U.month(), p = U.per();
       if (!m) return;
-      const rs = U.rows('expenses').filter((r) => r.month === m && r.type === type && (p === 'Household' || r.person === p))
+      const rs = U.rows('expenses').filter((r) => U.inPeriod(r.month, m) && r.type === type && (p === 'Household' || r.person === p))
         .sort((a, b) => Number(b.amount_usd) - Number(a.amount_usd));
       const cols = 4;
       if (!rs.length) { const tr = tb.insertRow(); const td = tr.insertCell(); td.colSpan = cols; td.className = 'ex-empty'; td.textContent = 'Nothing this month'; return; }
@@ -657,6 +717,7 @@ window.exU = (function () {
   }
   dash.draw('tFixed', table('Fixed', false));
   dash.draw('tVar', table('Variable', true));
+  dash.draw('tIncome', table('Income', false));
 })();
 </script>
 <script>
