@@ -874,7 +874,7 @@ window.exU = (function () {
     const debts = p ? [...(p.debts || [])].sort((a, b) => (a.payoff_month || '9999').localeCompare(b.payoff_month || '9999')) : [];
     const goals = p ? (p.goals || []) : [];
     const fund = p && p.fund;
-    if (!p || (!debts.length && !goals.length && !fund && !p.budget && !(p.pots || []).length)) {
+    if (!p || (!debts.length && !goals.length && !fund && !p.budget && !(p.pots || []).length && !((p.free || {}).months || []).length)) {
       const c = card('ex-span12 ex-dp-empty'); const ic = el('div', 'ic'); ic.innerHTML = ICON;
       c.append(ic, el('h3', '', 'Nothing here yet')); grid.append(c); return;
     }
@@ -909,7 +909,7 @@ window.exU = (function () {
       if (bg) {
         const bc = card('ex-span12', 'Money In vs Out');
         const sub = 'average of ' + bg.months_used.map((m) => short(m)).join(', ');
-        const lines = [['Expected income', bg.income_avg, sub + (bg.income_avg_cop ? ' · ≈ ' + U.cop(bg.income_avg_cop) : '')], ['Everyday + recurring spending', -bg.spend_avg]];
+        const lines = [['Expected income', bg.income_avg, sub + (bg.income_avg_cop ? ' · ≈ ' + U.cop(bg.income_avg_cop) : '')], ['Recurring expenses', -(bg.fixed_avg ?? 0)], ['Everyday spending', -(bg.variable_avg ?? bg.spend_avg)]];
         if (bg.savings_monthly) lines.push(['Cozy House saving', -bg.savings_monthly]);
         if (bg.pots_monthly) lines.push(['Other savings', -bg.pots_monthly]);
         if (bg.debts_monthly) lines.push(['Debts', -bg.debts_monthly]);
@@ -952,6 +952,20 @@ window.exU = (function () {
           r.append(top, meta); pc2.append(r);
         });
         grid.append(pc2);
+      }
+      const fr = p.free;
+      if (fr && (fr.months.length || fr.this_month || fr.spent)) {
+        const fc = card('ex-span12', 'Free Money');
+        const head = el('div', 'ex-dp-debt'); const top = el('div', 'top'); const nm = el('span', '', 'Ready to use'); nm.style.fontWeight = '600';
+        top.append(nm, el('b', '', usd0(fr.balance))); const meta = el('div', 'meta');
+        meta.append(el('span', '', 'what was left each month · trips & fun'), el('span', '', fr.balance_cop != null ? '≈ ' + U.cop(fr.balance_cop) : ''));
+        head.append(top, meta); fc.append(head);
+        const t = el('div', 'ex-dp-budget');
+        const line = (k, v, note, cls) => { const r = el('div', 'ex-dp-bline' + (cls ? ' ' + cls : '')); const l = el('span', '', k); if (note) l.append(el('small', '', note)); r.append(l, el('b', '', v)); t.append(r); };
+        fr.months.forEach((x) => line(short(x.month), x.left > 0 ? '+' + usd0(x.left) : usd0(0), 'in ' + usd0(x.income) + ' · recurring ' + usd0(x.fixed) + ' · everyday ' + usd0(x.variable) + (x.saved ? ' · saved ' + usd0(x.saved) : '') + (x.debts ? ' · debts ' + usd0(x.debts) : '')));
+        if (fr.this_month) line(short(fr.this_month.month) + ' so far', (fr.this_month.left < 0 ? '−' : '') + usd0(Math.abs(fr.this_month.left)), 'adds when the month closes');
+        if (fr.spent) line('Used', '−' + usd0(fr.spent), fr.spent_items.map((x) => x.item).join(', '));
+        fc.append(t); grid.append(fc);
       }
       if (who === 'Together' && fund) {
         const house = goals.find((g) => g.uses_cozy_fund);

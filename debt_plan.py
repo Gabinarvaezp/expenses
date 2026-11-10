@@ -29,6 +29,9 @@ debts.json:
   last_payment_id_at_set are subtracted from it.
 - apr = yearly interest % (0 if unknown/none); monthly = required monthly payment or minimum (0 if none).
 - paid_from = "Valet" (the watch) or "Target" (everything else).
+Free money: whatever is left over in a finished month (income logged that month minus recurring + everyday
+spending, the Cozy House saving, personal pots and debt payments) rolls into a personal "Free money" pot.
+Expenses with "from_free": true are paid out of it (they do not count against that month).
 Money from the Cozy House savings and Jorgie's automatic USD 1,300 are never used.
 Paychecks should be what lands in his account (after the automatic saving).
 """
@@ -310,21 +313,66 @@ def compute_pots(debts, who, cur, rate):
     return out
 
 
+def compute_free(expenses, savings, debts, who, cur, rate):
+    """Free money: what was left over in each finished month (income logged that month minus
+    recurring + everyday spending, the Cozy House saving, personal pots and debt payments).
+    It rolls into a personal pot for trips and fun. Expenses marked "from_free" are paid out of it."""
+    mine = [e for e in expenses if e['person'] == who]
+    inc, fix, var, spent_free = {}, {}, {}, {}
+    for e in mine:
+        m, v = e['month'], float(e['amount_usd'])
+        if e['type'] == 'Income': inc[m] = inc.get(m, 0) + v
+        elif e.get('from_free'): spent_free[m] = spent_free.get(m, 0) + v
+        elif e['type'] == 'Fixed': fix[m] = fix.get(m, 0) + v
+        else: var[m] = var.get(m, 0) + v
+    sav = {}
+    if who == 'Gabby':  # Jorgie's paychecks already arrive after his automatic saving
+        for x in savings.get('entries', []):
+            if x['person'] == who and x.get('kind') in ('Monthly saving', 'Extra saving'):
+                sav[x['month']] = sav.get(x['month'], 0) + float(x.get('amount_usd') or 0)
+    def pots_in(m):
+        t = 0.0
+        for pt in debts.get('pots', []):
+            if pt.get('person') == who and pt['start_month'] <= m and (not pt.get('end_month') or m <= pt['end_month']):
+                t += float(pt['monthly']) / rate if pt.get('currency') == 'COP' else float(pt['monthly'])
+        return t
+    mine_debts = {a['id'] for a in debts.get('accounts', []) if a.get('owner', 'Jorgie') == who}
+    pay = {}
+    for x in debts.get('payments', []):
+        if x['debt_id'] in mine_debts: pay[x['month']] = pay.get(x['month'], 0) + float(x['amount'])
+    def month_row(m):
+        out = fix.get(m, 0) + var.get(m, 0) + sav.get(m, 0) + pots_in(m) + pay.get(m, 0)
+        return {'month': m, 'income': round(inc[m], 2), 'fixed': round(fix.get(m, 0), 2), 'variable': round(var.get(m, 0), 2),
+                'saved': round(sav.get(m, 0) + pots_in(m), 2), 'debts': round(pay.get(m, 0), 2), 'left': round(inc[m] - out, 2)}
+    months = [month_row(m) for m in sorted(inc) if m < cur]
+    added = round(sum(max(0.0, x['left']) for x in months), 2)
+    spent = round(sum(spent_free.values()), 2)
+    now = month_row(cur) if cur in inc else None
+    to_cop = (lambda v: round(v * rate)) if who == 'Gabby' else (lambda v: None)
+    return {'months': months, 'added': added, 'spent': spent, 'balance': round(added - spent, 2), 'balance_cop': to_cop(added - spent),
+            'this_month': now, 'spent_items': [{'month': e['month'], 'item': e['item'], 'amount': e['amount_usd']} for e in mine if e.get('from_free')]}
+
+
 def budget(expenses, savings, who, cur, rate, debts_monthly, goals_monthly, pots_monthly=0.0):
     """Money in vs out for one person: income = average of the last 3 months they logged income."""
     mine = [e for e in expenses if e['person'] == who]
-    inc_m, sp_m, inc_c = {}, {}, {}
+    inc_m, inc_c, fx_m, vr_m = {}, {}, {}, {}
     for e in mine:
         if e['type'] == 'Income':
             inc_m[e['month']] = inc_m.get(e['month'], 0) + float(e['amount_usd'])
             inc_c[e['month']] = inc_c.get(e['month'], 0) + float(e.get('amount_cop') or 0)
-        else: sp_m[e['month']] = sp_m.get(e['month'], 0) + float(e['amount_usd'])
+        elif e.get('from_free'): continue  # paid out of free money, not the monthly budget
+        elif e['type'] == 'Fixed': fx_m[e['month']] = fx_m.get(e['month'], 0) + float(e['amount_usd'])
+        else: vr_m[e['month']] = vr_m.get(e['month'], 0) + float(e['amount_usd'])
     months = sorted(inc_m)[-3:]
     if not months:
         return None
     income = sum(inc_m[m] for m in months) / len(months)
-    past = sorted(m for m in sp_m if m < cur)[-3:]
-    spend = sum(sp_m[m] for m in past) / len(past) if past else sp_m.get(cur, 0)
+    def avg(d):
+        past = sorted(m for m in d if m < cur)[-3:]
+        return sum(d[m] for m in past) / len(past) if past else d.get(cur, 0)
+    fixed, variable = avg(fx_m), avg(vr_m)
+    spend = fixed + variable
     sav = 0.0
     if who == 'Gabby':  # Jorgie's saving leaves his pay before it reaches him; Gabby's comes out of her income
         for pl in savings.get('plan', []):
@@ -332,7 +380,7 @@ def budget(expenses, savings, who, cur, rate, debts_monthly, goals_monthly, pots
                 sav = float(pl['monthly']) / rate if pl.get('currency') == 'COP' else float(pl['monthly'])
     free = income - spend - sav - pots_monthly - debts_monthly - goals_monthly
     return {'income_avg': round(income, 2), 'income_avg_cop': round(sum(inc_c[m] for m in months) / len(months)) if who == 'Gabby' else None, 'months_used': months,
-            'spend_avg': round(spend, 2), 'savings_monthly': round(sav, 2), 'pots_monthly': round(pots_monthly, 2), 'debts_monthly': round(debts_monthly, 2),
+            'spend_avg': round(spend, 2), 'fixed_avg': round(fixed, 2), 'variable_avg': round(variable, 2), 'savings_monthly': round(sav, 2), 'pots_monthly': round(pots_monthly, 2), 'debts_monthly': round(debts_monthly, 2),
             'goals_monthly': round(goals_monthly, 2), 'free': round(free, 2)}
 
 
@@ -351,6 +399,7 @@ def compute_all(expenses, debts, savings, today):
         else:
             p['pots'] = compute_pots(debts, who, cur, rate)
             p['pots_monthly'] = round(sum(x['monthly'] for x in p['pots'] if x['active']), 2)
+            p['free'] = compute_free(expenses, savings, debts, who, cur, rate)
             p['budget'] = budget(expenses, savings, who, cur, rate, p['available_monthly'] if p['debts'] else 0, p['goals_monthly'], p['pots_monthly'])
         people[who] = p
     return {'generated': today.isoformat(), 'month': cur, 'goal_month': st['goal_month'], 'rate': rate, 'people': people}
@@ -399,11 +448,15 @@ def email_html(plan, who, url):
         body += card('Goals', tbl(goals_rows(p)))
     if p.get('pots'):
         body += card('Savings', tbl(''.join(row(x['name'], usd0(x['monthly']) + ' a month', usd0(x['saved']), 'saved', 100) for x in p['pots'])))
+    fr = p.get('free') or {}
+    if fr.get('months') or fr.get('spent'):
+        rows = ''.join(row(mname(x['month']), 'left over', usd0(max(0, x['left'])), 'added' if x['left'] > 0 else 'nothing left', 100 if x['left'] > 0 else 0) for x in fr['months'])
+        body += card('Free money · ' + usd0(fr['balance']), tbl(rows) + (f'<div style="font-size:11px;color:{MUTED};margin-top:6px;">{usd0(fr["spent"])} used so far</div>' if fr['spent'] else ''))
     bg = p.get('budget')
     if bg:
         body += card('Money in vs out', '<table role="presentation" width="100%" cellpadding="0" cellspacing="0"><tr>'
                      + kpi('Expected income', usd0(bg['income_avg']), 'avg of ' + str(len(bg['months_used'])) + ' mo')
-                     + kpi('Plan + spending', usd0(bg['income_avg'] - bg['free'])) + kpi('Left over', usd0(bg['free'])) + '</tr></table>')
+                     + kpi('Recurring + everyday', usd0(bg['fixed_avg']) + ' + ' + usd0(bg['variable_avg'])) + kpi('Left over', usd0(bg['free'])) + '</tr></table>')
     f = t.get('fund') or {}
     together = (f'<table role="presentation" width="100%" cellpadding="0" cellspacing="0"><tr>'
                 + kpi('Cozy House fund', usd0(f.get('balance', 0))) + kpi('Going in a month', usd0(f.get('monthly_in', 0)))
