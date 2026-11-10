@@ -113,8 +113,15 @@ def compute(expenses, debts, today):
         need = float(a.get('monthly') or 0)
         if promo and b > 0:  # 0% deal: must be fully paid by the end of that month
             need = max(need, -(-b // max(1, months_between(cur, promo) + 1)))
+        mg = max(1, months_between(cur, goal) + 1)
+        # monthly payment that finishes this debt by the goal month (long loans like a car keep their own monthly payment)
+        long_loan = a.get('kind') in ('Car', 'Loan', 'Mortgage') and float(a.get('monthly') or 0) > 0
+        r = float(a.get('apr') or 0) / 1200
+        by_goal = (b * r / (1 - (1 + r) ** -mg)) if r else b / mg  # equal payments incl. interest
+        goal_m = (max(need, float(a['monthly'])) if long_loan else max(need, by_goal)) if b > 0 else 0
         debts_now.append({'id': a['id'], 'name': a['name'], 'kind': a.get('kind', 'Other'), 'apr': float(a.get('apr') or 0),
-                          'monthly': float(a.get('monthly') or 0), 'needed_monthly': round(need, 2), 'interest_free_until': promo,
+                          'monthly': float(a.get('monthly') or 0), 'needed_monthly': round(need, 2), 'goal_monthly': round(goal_m, 2),
+                          'interest_free_until': promo,
                           'paid_from': a.get('paid_from', 'Target'),
                           'balance': b, 'original': max(orig, b),
                           'paid_so_far': round(sum(p['amount'] for p in payments if p['debt_id'] == a['id']), 2)})
@@ -122,9 +129,9 @@ def compute(expenses, debts, today):
     # a job with no paycheck logged yet: assume it covers just the minimum of its own debts (estimated plan)
     estimated = income['Target']['n_logged'] == 0 or income['Valet']['n_logged'] == 0
     if income['Valet']['n_logged'] == 0:
-        valet_free = sum(d['needed_monthly'] for d in debts_now if d['paid_from'] == 'Valet' and d['balance'] > 0)
+        valet_free = sum(d['goal_monthly'] for d in debts_now if d['paid_from'] == 'Valet' and d['balance'] > 0)
     if income['Target']['n_logged'] == 0:
-        target_free = sum(d['needed_monthly'] for d in debts_now if d['paid_from'] != 'Valet' and d['balance'] > 0)
+        target_free = sum(d['goal_monthly'] for d in debts_now if d['paid_from'] != 'Valet' and d['balance'] > 0)
     # until a full month of his spending is logged, only use up to half of the Target pay (living costs are not known yet)
     half_rule = bool(income['Target']['n_logged']) and not past
     if half_rule:
@@ -168,7 +175,7 @@ def compute(expenses, debts, today):
                 pt = min(bal[i], tpool); pays[i] += pt; src_t[i] += pt; bal[i] -= pt; tpool -= pt
         for i in bal:
             if bal[i] <= 0.005 and i not in payoff and (pays[i] > 0 or info[i]['balance'] == 0): payoff[i] = m
-        timeline.append({'month': m, 'payments': {i: round(v, 2) for i, v in pays.items() if v > 0},
+        timeline.append({'month': m, 'payments': {i: round(v, 2) for i, v in pays.items() if v > 0}, 'by_debt': {i: round(max(0, v), 2) for i, v in bal.items()},
                          'left': round(sum(max(0, v) for v in bal.values()), 2)})
         if first is None: first = {i: round(v, 2) for i, v in pays.items()}; first_t = dict(src_t)
         m = add_month(m)
@@ -189,6 +196,8 @@ def compute(expenses, debts, today):
                 per_check[src].append({'debt': d['name'], 'amount': round(part / (income[src]['checks_per_month'] or 1), 2)})
     for d in debts_now:
         d['payoff_month'] = payoff.get(d['id'])
+        n_src = income['Valet' if d['paid_from'] == 'Valet' else 'Target']['checks_per_month'] or 1
+        d['per_check'] = round(first.get(d['id'], 0) / n_src, 2)
         d['this_month'] = round(first.get(d['id'], 0), 2)
         d['by_goal'] = bool(d['payoff_month'] and d['payoff_month'] <= goal)
         d['pct_paid'] = round((1 - d['balance'] / d['original']) * 100, 1) if d['original'] else 100.0
@@ -204,7 +213,7 @@ def compute(expenses, debts, today):
         'available_monthly': round(sum(first.values()) if first else 0, 2), 'target_free': round(target_free, 2), 'valet_free': round(valet_free, 2),
         'extra_this_month': round(extra_now, 2), 'interest_estimate': round(interest_total, 2),
         'shortfall': shortfall, 'debts': debts_now, 'per_check': per_check, 'steps': steps,
-        'timeline': [{'month': t['month'], 'left': t['left'], 'paid': round(sum(t['payments'].values()), 2)} for t in timeline[:24]],
+        'timeline': [{'month': t['month'], 'left': t['left'], 'paid': round(sum(t['payments'].values()), 2), 'by_debt': t['by_debt'], 'pay_by_debt': t['payments']} for t in timeline[:24]],
         'estimated': estimated,
         'ready': bool(debts_now) and (income['Target']['n_logged'] + income['Valet']['n_logged']) > 0,
     }
@@ -215,9 +224,6 @@ def make_steps(debts, income, per_check, spend, goal, debt_free, left_at_goal, s
     if not debts:
         return ['Write what you owe in your note (e.g. "Reloj 2890").']
     s = []
-    for job in ('Valet', 'Target'):
-        for x in per_check[job]:
-            s.append(f"Each {job} check: {usd0(x['amount'])} to {x['debt']}")
     for d in sorted([d for d in debts if d['balance'] > 0 and d['payoff_month']], key=lambda d: d['payoff_month']):
         s.append(f"{d['name']} paid off: {mname(d['payoff_month'], True)}")
     for d in debts:
