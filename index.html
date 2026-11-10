@@ -874,7 +874,7 @@ window.exU = (function () {
     const debts = p ? [...(p.debts || [])].sort((a, b) => (a.payoff_month || '9999').localeCompare(b.payoff_month || '9999')) : [];
     const goals = p ? (p.goals || []) : [];
     const fund = p && p.fund;
-    if (!p || (!debts.length && !goals.length && !fund && !p.budget)) {
+    if (!p || (!debts.length && !goals.length && !fund && !p.budget && !(p.pots || []).length)) {
       const c = card('ex-span12 ex-dp-empty'); const ic = el('div', 'ic'); ic.innerHTML = ICON;
       c.append(ic, el('h3', '', 'Nothing here yet')); grid.append(c); return;
     }
@@ -911,6 +911,7 @@ window.exU = (function () {
         const sub = 'average of ' + bg.months_used.map((m) => short(m)).join(', ');
         const lines = [['Expected income', bg.income_avg, sub + (bg.income_avg_cop ? ' · ≈ ' + U.cop(bg.income_avg_cop) : '')], ['Everyday + recurring spending', -bg.spend_avg]];
         if (bg.savings_monthly) lines.push(['Cozy House saving', -bg.savings_monthly]);
+        if (bg.pots_monthly) lines.push(['Other savings', -bg.pots_monthly]);
         if (bg.debts_monthly) lines.push(['Debts', -bg.debts_monthly]);
         if (bg.goals_monthly) lines.push(['Goals', -bg.goals_monthly]);
         const t = el('div', 'ex-dp-budget');
@@ -940,6 +941,17 @@ window.exU = (function () {
         const gc = card(hasChecks ? 'ex-span12' : span(lists), who === 'Together' ? 'Our Goals' : 'Goals');
         goals.forEach((g) => gc.append(row(g.name, usd0(g.target), g.pct, g.remaining > 0 ? usd0(g.monthly_needed) + ' a month' + (g.uses_cozy_fund ? ' · Cozy House fund' : '') : 'Saved', goalTag(g), () => select(g.id))));
         grid.append(gc);
+      }
+      const pots = (p.pots || []).filter((x) => x.active || x.saved);
+      if (pots.length) {
+        const pc2 = card('ex-span12', 'Savings');
+        pots.forEach((x) => {
+          const r = el('div', 'ex-dp-debt');
+          const top = el('div', 'top'); const nm = el('span', '', x.name); nm.style.fontWeight = '600'; top.append(nm, el('b', '', usd0(x.saved)));
+          const meta = el('div', 'meta'); meta.append(el('span', '', usd0(x.monthly) + ' a month' + (x.monthly_cop ? ' · ' + U.cop(x.monthly_cop) : '') + (x.active ? ' · automatic' : ' · stopped')), el('span', '', x.saved_cop ? '≈ ' + U.cop(x.saved_cop) + ' saved' : 'saved'));
+          r.append(top, meta); pc2.append(r);
+        });
+        grid.append(pc2);
       }
       if (who === 'Together' && fund) {
         const house = goals.find((g) => g.uses_cozy_fund);

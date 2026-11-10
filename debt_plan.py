@@ -293,7 +293,24 @@ def compute_goals(debts, owner, cur, fund):
     return out
 
 
-def budget(expenses, savings, who, cur, rate, debts_monthly, goals_monthly):
+def compute_pots(debts, who, cur, rate):
+    """Personal savings pots (money set aside automatically every month, e.g. a gifts fund)."""
+    out = []
+    for pt in debts.get('pots', []):
+        if pt.get('person') != who:
+            continue
+        end = pt.get('end_month') or cur
+        n = max(0, months_between(pt['start_month'], min(end, cur)) + 1) if pt['start_month'] <= cur else 0
+        native = float(pt['monthly']) * n + float(pt.get('adjust') or 0)
+        cop = pt.get('currency') == 'COP'
+        to_usd = (lambda v: v / rate) if cop else (lambda v: v)
+        out.append({'id': pt['id'], 'name': pt['name'], 'active': pt.get('active', True), 'start_month': pt['start_month'],
+                    'monthly': round(to_usd(float(pt['monthly'])), 2), 'monthly_cop': round(float(pt['monthly'])) if cop else None,
+                    'saved': round(to_usd(native), 2), 'saved_cop': round(native) if cop else None, 'months': n})
+    return out
+
+
+def budget(expenses, savings, who, cur, rate, debts_monthly, goals_monthly, pots_monthly=0.0):
     """Money in vs out for one person: income = average of the last 3 months they logged income."""
     mine = [e for e in expenses if e['person'] == who]
     inc_m, sp_m, inc_c = {}, {}, {}
@@ -313,9 +330,9 @@ def budget(expenses, savings, who, cur, rate, debts_monthly, goals_monthly):
         for pl in savings.get('plan', []):
             if pl['person'] == 'Gabby':
                 sav = float(pl['monthly']) / rate if pl.get('currency') == 'COP' else float(pl['monthly'])
-    free = income - spend - sav - debts_monthly - goals_monthly
+    free = income - spend - sav - pots_monthly - debts_monthly - goals_monthly
     return {'income_avg': round(income, 2), 'income_avg_cop': round(sum(inc_c[m] for m in months) / len(months)) if who == 'Gabby' else None, 'months_used': months,
-            'spend_avg': round(spend, 2), 'savings_monthly': round(sav, 2), 'debts_monthly': round(debts_monthly, 2),
+            'spend_avg': round(spend, 2), 'savings_monthly': round(sav, 2), 'pots_monthly': round(pots_monthly, 2), 'debts_monthly': round(debts_monthly, 2),
             'goals_monthly': round(goals_monthly, 2), 'free': round(free, 2)}
 
 
@@ -332,7 +349,9 @@ def compute_all(expenses, debts, savings, today):
         if who == 'Together':
             p['fund'] = fund
         else:
-            p['budget'] = budget(expenses, savings, who, cur, rate, p['available_monthly'] if p['debts'] else 0, p['goals_monthly'])
+            p['pots'] = compute_pots(debts, who, cur, rate)
+            p['pots_monthly'] = round(sum(x['monthly'] for x in p['pots'] if x['active']), 2)
+            p['budget'] = budget(expenses, savings, who, cur, rate, p['available_monthly'] if p['debts'] else 0, p['goals_monthly'], p['pots_monthly'])
         people[who] = p
     return {'generated': today.isoformat(), 'month': cur, 'goal_month': st['goal_month'], 'rate': rate, 'people': people}
 
@@ -378,6 +397,8 @@ def email_html(plan, who, url):
         body += card('Debts', tbl(debts_rows(p)))
     if p['goals']:
         body += card('Goals', tbl(goals_rows(p)))
+    if p.get('pots'):
+        body += card('Savings', tbl(''.join(row(x['name'], usd0(x['monthly']) + ' a month', usd0(x['saved']), 'saved', 100) for x in p['pots'])))
     bg = p.get('budget')
     if bg:
         body += card('Money in vs out', '<table role="presentation" width="100%" cellpadding="0" cellspacing="0"><tr>'
