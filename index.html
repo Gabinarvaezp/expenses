@@ -139,7 +139,7 @@
 .ex-dp-empty { align-items: center; text-align: center; padding: 40px 24px; }
 .ex-dp-empty .ic { width: 46px; height: 46px; border-radius: 12px; background: #F1E8FA; color: var(--ex-purple); display: grid; place-items: center; margin-bottom: 12px; }
 .ex-dp-empty .ic svg { width: 22px; height: 22px; }
-.ex-dp-empty h3 { font-size: 17px; margin: 0 0 6px; }
+.ex-dp-empty h3 { font-size: 16px; margin: 0; color: var(--ex-muted); font-weight: 600; }
 .ex-dp-empty p { margin: 0 0 18px; color: var(--ex-muted); max-width: 440px; line-height: 1.5; }
 .ex-dp-howto { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; width: 100%; max-width: 760px; text-align: left; }
 .ex-dp-howto div { background: #F7F8FA; border-radius: 8px; padding: 10px 12px; }
@@ -800,12 +800,6 @@ window.exU = (function () {
   const short = (m) => U.monthName(m, true);
   const card = (span, title) => { const c = el('div', 'ex-card ' + span); if (title) c.append(el('h2', '', title)); return c; };
   const ICON = '<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M4 18V3M4 3h10l-2 3.5L14 10H4"/></svg>';
-  const howto = () => {
-    const g = el('div', 'ex-dp-howto');
-    [['Money in (+)', ['Target + 1800', 'Valet + 399']], ['What you owe', ['Reloj 2890', 'Carro 18000']], ['A payment', ['Pagué reloj 400']], ['Get it by email', ['send plan']]]
-      .forEach(([t, xs]) => { const d = el('div'); d.append(el('b', '', t)); xs.forEach((x) => d.append(el('code', '', x))); g.append(d); });
-    return g;
-  };
   const kpi = (grid, label, value, cap, good) => {
     const c = card('ex-span3 ex-kpi ex-dp-kpi'); c.append(el('div', 'ex-kpi-label', label));
     c.append(el('div', 'ex-kpi-value' + (good ? ' good' : ''), value)); c.append(el('div', 'ex-kpi-cap', cap || '')); grid.append(c);
@@ -832,7 +826,7 @@ window.exU = (function () {
     if (!p || !p.debts || !p.debts.length) {
       const c = card('ex-span12 ex-dp-empty');
       const ic = el('div', 'ic'); ic.innerHTML = ICON;
-      c.append(ic, el('h3', '', 'No plan yet'), el('p', '', 'Write it in your note and the plan builds itself.'), howto());
+      c.append(ic, el('h3', '', 'No debts yet'));
       grid.append(c);
       return;
     }
