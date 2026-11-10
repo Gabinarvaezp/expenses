@@ -192,12 +192,12 @@ def compute(expenses, debts, today):
         if amt <= 0: continue
         t_part = first_t.get(d['id'], 0); v_part = amt - t_part
         for src, part in (('Valet', v_part), ('Target', t_part)):
-            if part > 0.5:
+            if part > 0.5 and income[src]['n_logged']:  # only when we know his checks for that job
                 per_check[src].append({'debt': d['name'], 'amount': round(part / (income[src]['checks_per_month'] or 1), 2)})
     for d in debts_now:
         d['payoff_month'] = payoff.get(d['id'])
         n_src = income['Valet' if d['paid_from'] == 'Valet' else 'Target']['checks_per_month'] or 1
-        d['per_check'] = round(first.get(d['id'], 0) / n_src, 2)
+        d['per_check'] = round(first.get(d['id'], 0) / n_src, 2) if income['Valet' if d['paid_from'] == 'Valet' else 'Target']['n_logged'] else None
         d['this_month'] = round(first.get(d['id'], 0), 2)
         d['by_goal'] = bool(d['payoff_month'] and d['payoff_month'] <= goal)
         d['pct_paid'] = round((1 - d['balance'] / d['original']) * 100, 1) if d['original'] else 100.0

@@ -845,23 +845,23 @@ window.exU = (function () {
     if (selId === 'all') {
       const onTime = p.debt_free_month && p.debt_free_month <= p.goal_month;
       kpi(grid, 'Total Owed', U.usd(p.total_debt), debts.length + (debts.length === 1 ? ' debt' : ' debts'));
-      kpi(grid, 'Pay Each Month', usd0(p.available_monthly), p.estimated ? 'to be done by ' + short(p.goal_month) : 'from Target + Valet');
+      kpi(grid, 'Pay Each Month', usd0(p.available_monthly), p.estimated ? 'to be done on time' : 'from Target + Valet');
       kpi(grid, 'Debt-Free By', p.debt_free_month ? short(p.debt_free_month) : '—', onTime ? 'on time' : 'goal ' + short(p.goal_month), onTime);
       kpi(grid, 'Left in ' + short(p.goal_month), usd0(p.left_at_goal), p.left_at_goal > 0 ? 'keep paying after' : 'all paid', p.left_at_goal <= 0);
 
+      const hasChecks = ['Valet', 'Target'].some((j) => (p.per_check[j] || []).length);
       const chk = card('ex-span5', 'Every Paycheck');
       let any = false;
       for (const job of ['Valet', 'Target']) {
         const xs = p.per_check[job] || []; if (!xs.length) continue; any = true;
         const b = el('div', 'ex-dp-check'); const hd = el('div', 'hd');
-        hd.append(el('b', '', job + ' check'), el('span', '', p.income[job].per_check ? 'about ' + usd0(p.income[job].per_check) : 'estimate'));
+        hd.append(el('b', '', job + ' check'), el('span', '', 'about ' + usd0(p.income[job].per_check)));
         b.append(hd); xs.forEach((x) => { const r = el('div', 'ex-dp-line'); r.append(el('span', '', 'To ' + x.debt), el('b', '', U.usd(x.amount))); b.append(r); });
         chk.append(b);
       }
-      if (!any) chk.append(el('div', 'ex-empty', 'Nothing to pay right now.'));
-      grid.append(chk);
+      if (hasChecks) grid.append(chk);
 
-      const dc = card('ex-span7', 'Debts');
+      const dc = card(hasChecks ? 'ex-span7' : 'ex-span12', 'Debts');
       debts.forEach((d) => {
         const r = el('div', 'ex-dp-debt ex-dp-click'); r.addEventListener('click', () => select(d.id));
         const top = el('div', 'top'); const nm = el('span', '', d.name); nm.style.fontWeight = '600';
@@ -878,7 +878,8 @@ window.exU = (function () {
       const job = d.paid_from;
       kpi(grid, 'Owe Now', U.usd(d.balance), d.paid_so_far ? usd0(d.paid_so_far) + ' paid so far' : 'nothing paid yet');
       kpi(grid, 'Pay Each Month', usd0(d.this_month || d.goal_monthly), d.interest_free_until ? 'before 0% ends ' + short(d.interest_free_until) : 'to be done on time');
-      kpi(grid, 'Each ' + job + ' Check', usd0(d.per_check || 0), p.income[job].per_check ? 'of about ' + usd0(p.income[job].per_check) : 'estimate');
+      if (d.per_check != null) kpi(grid, 'Each ' + job + ' Check', usd0(d.per_check), 'of about ' + usd0(p.income[job].per_check));
+      else { const ml = d.payoff_month ? (Number(d.payoff_month.slice(0, 4)) - Number(p.month.slice(0, 4))) * 12 + Number(d.payoff_month.slice(5)) - Number(p.month.slice(5)) + 1 : null; kpi(grid, 'Months Left', ml ? String(ml) : '—', ml === 1 ? 'payment' : 'payments'); }
       kpi(grid, 'Paid Off', d.payoff_month ? short(d.payoff_month) : '—', d.by_goal ? 'on time' : 'after ' + short(p.goal_month), d.by_goal);
 
       const pc = card('ex-span12', 'Progress');
