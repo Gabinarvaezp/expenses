@@ -54,9 +54,10 @@ def summarize(rows, month, person, cur):
     out['variable'] = out['total'] - out['fixed']
     return out
 
-def card(title, body, sub=''):
-    s = f'<div style="font-size:14px;font-weight:700;color:{TEXT};">{title}</div>'
-    if sub: s += f'<div style="font-size:12px;color:{MUTED};margin-top:2px;">{sub}</div>'
+def card(title, body, sub='', center=False):
+    al = 'text-align:center;' if center else ''
+    s = f'<div style="font-size:14px;font-weight:700;color:{TEXT};{al}">{title}</div>'
+    if sub: s += f'<div style="font-size:12px;color:{MUTED};margin-top:2px;{al}">{sub}</div>'
     return (f'<tr><td style="padding:0 24px 14px;"><table role="presentation" width="100%" cellpadding="0" cellspacing="0" '
             f'style="background:{CARD};border:1px solid {LINE};border-radius:4px;"><tr><td style="padding:16px 18px;">{s}'
             f'<div style="margin-top:12px;">{body}</div></td></tr></table></td></tr>')
@@ -103,27 +104,20 @@ def main():
     ms = [m for m in months if m[:4] == month] if year_mode else months[-6:]
     fig, ax = plt.subplots(figsize=(5.6, 2.6), dpi=200)
     xs = range(len(ms))
-    series = [('Recurring', [summarize(rows, m, person, cur)['fixed'] for m in ms], '#C7CDD6'),
-              ('Everyday', [summarize(rows, m, person, cur)['variable'] for m in ms], PERSON.get(person, PURPLE))]
     totals = [summarize(rows, m, person, cur)['total'] for m in ms]
-    varline = [summarize(rows, m, person, cur)['variable'] for m in ms]
-    bottom = [0] * len(ms)
-    w = 0.42 if len(ms) < 5 else 0.6
-    for name, vals, col in series:
-        ax.bar(xs, vals, w, bottom=bottom, color=col, label=name, zorder=2,
-               alpha=1)
-        bottom = [b + v for b, v in zip(bottom, vals)]
+    hi = PERSON.get(person, PURPLE)
+    cols = [hi if m == (ms[-1] if year_mode else month) else '#D9DDE3' for m in ms]
+    w = 0.5 if len(ms) < 5 else 0.62
+    ax.bar(xs, totals, w, color=cols, zorder=2)
     for x, t, m in zip(xs, totals, ms):
-        ax.text(x, t * 1.03, usd0(t), ha='center', va='bottom', fontsize=7.5, color=TEXT, fontweight='semibold')
+        cur_m = m == (ms[-1] if year_mode else month)
+        ax.text(x, t + max(totals) * 0.03, usd0(t), ha='center', va='bottom', fontsize=8.5 if cur_m else 7.5,
+                color=TEXT if cur_m else '#8A919C', fontweight='bold' if cur_m else 'normal')
     ax.set_xticks(list(xs)); ax.set_xticklabels([mname(m, True) for m in ms], fontsize=7.5, color='#6B717C')
-    ax.yaxis.set_major_formatter(matplotlib.ticker.FuncFormatter(lambda v, _: usdk(v)))
-    ax.tick_params(axis='y', labelsize=7, colors='#6B717C', length=0); ax.tick_params(axis='x', length=0)
-    ax.set_ylim(0, max(totals) * 1.22)
-    ax.yaxis.set_major_locator(matplotlib.ticker.MaxNLocator(4))
-    ax.grid(axis='y', color='#ECEEF1', lw=0.8, zorder=0)
-    for s in ax.spines.values(): s.set_visible(False)
-    leg = ax.legend(loc='upper center', bbox_to_anchor=(0.5, -0.12), ncol=2, frameon=False, fontsize=7.5, handlelength=1, handleheight=0.8)
-    for t in leg.get_texts(): t.set_color(TEXT); t.set_fontweight('semibold')
+    ax.set_yticks([]); ax.tick_params(axis='x', length=0)
+    ax.set_ylim(0, max(totals) * 1.25 if max(totals) else 1)
+    for sp in ax.spines.values(): sp.set_visible(False)
+    ax.spines['bottom'].set_visible(True); ax.spines['bottom'].set_color('#E3E6EA')
     fig.tight_layout()
     fig.savefig(os.path.join(outdir, 'chart_month.png'), facecolor='white'); plt.close(fig)
 
@@ -135,10 +129,13 @@ def main():
     cats = sorted(cats.items(), key=lambda kv: -kv[1]['v'])
     allcats = sorted({r['category'] for r in rows})
     ccol = {c: PIE[i % len(PIE)] for i, c in enumerate(allcats)}
-    fig, ax = plt.subplots(figsize=(2.4, 2.4), dpi=200)
+    fig, ax = plt.subplots(figsize=(2.6, 2.6), dpi=200)
     if cats:
         ax.pie([d['v'] for _, d in cats], colors=[ccol[c] for c, _ in cats], startangle=90, counterclock=False,
-               wedgeprops={'edgecolor': 'white', 'linewidth': 1})
+               wedgeprops={'edgecolor': 'white', 'linewidth': 1.5, 'width': 0.38})
+        tot_v = sum(d['v'] for _, d in cats)
+        ax.text(0, 0.1, usd0(tot_v), ha='center', va='center', fontsize=13, fontweight='bold', color=TEXT)
+        ax.text(0, -0.18, 'everyday', ha='center', va='center', fontsize=7.5, color='#8A919C')
     ax.set_aspect('equal'); fig.tight_layout(pad=0.1)
     fig.savefig(os.path.join(outdir, 'chart_category.png'), facecolor='white'); plt.close(fig)
 
@@ -173,13 +170,12 @@ def main():
     monthly = f'<img src="cid:att0" width="514" alt="Spending by month" style="display:block;width:100%;max-width:514px;height:auto;border:0;">'
 
     legend_rows = ''.join(
-        f'<tr><td style="padding:4px 0;font-size:12px;color:{TEXT};">{dot(ccol[c])}{e(c)}</td>'
-        f'<td align="right" style="padding:4px 0;font-size:12px;font-weight:700;color:{TEXT};white-space:nowrap;">{usd0(d["v"])}</td>'
-        f'<td align="right" style="padding:4px 0 4px 8px;font-size:12px;color:{MUTED};white-space:nowrap;">{pct(d["v"] / S["variable"] * 100 if S["variable"] else 0)}</td></tr>'
+        f'<tr><td style="padding:6px 0;font-size:13px;color:{TEXT};border-bottom:1px solid #F1F2F4;">{dot(ccol[c], 10)}{e(c)}</td>'
+        f'<td align="right" style="padding:6px 0;font-size:13px;font-weight:700;color:{TEXT};white-space:nowrap;border-bottom:1px solid #F1F2F4;">{usd0(d["v"])}</td>'
+        f'<td align="right" style="padding:6px 0 6px 10px;font-size:12px;color:{MUTED};white-space:nowrap;border-bottom:1px solid #F1F2F4;">{pct(d["v"] / S["variable"] * 100 if S["variable"] else 0)}</td></tr>'
         for c, d in cats)
-    pie = (f'<table role="presentation" width="100%" cellpadding="0" cellspacing="0"><tr>'
-           f'<td width="170" valign="middle"><img src="cid:att1" width="160" alt="Spending by category" style="display:block;width:160px;height:auto;border:0;"></td>'
-           f'<td valign="middle" style="padding-left:14px;"><table role="presentation" width="100%" cellpadding="0" cellspacing="0">{legend_rows}</table></td></tr></table>')
+    pie = (f'<div style="text-align:center;"><img src="cid:att1" width="200" alt="Spending by category" style="display:inline-block;width:200px;max-width:70%;height:auto;border:0;"></div>'
+           f'<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:360px;margin:14px auto 0;">{legend_rows}</table>')
 
     analysis_html = ''
     if an:
@@ -335,8 +331,8 @@ def main():
   </td></tr>
   <tr><td height="14"></td></tr>
   {kpis}
-  {card('Spending by Month', monthly)}
-  {card('Spending by Category', pie)}
+  {card('Spending by Category', pie, 'Everyday spending ' + span, center=True)}
+  {card('Month by Month', monthly, 'Total spent each month' + ('' if year_mode else ' · ' + mname(month) + ' in color'), center=True)}
   {analysis_html}
   {who_html}
   {card('Category by Month', heatmap, 'Everyday spending in US dollars. Darker cells mean more spending.')}
