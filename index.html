@@ -96,6 +96,40 @@
 .ex-single .ex-sav-bars { display: none; }
 .ex-sb-val { font-weight: 600; color: #5D6470; font-variant-numeric: tabular-nums; }
 @container (max-width: 760px) { .ex-sav-bars { justify-content: flex-start; } }
+.ex-dp-head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 4px 12px; margin-bottom: 14px; }
+.ex-dp-head h2 { margin: 0; font-size: 15px; }
+.ex-dp-sub { font-size: 12px; color: var(--ex-muted); }
+.ex-dp-stats { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; margin-bottom: 16px; }
+.ex-dp-stat { background: #F7F8FA; border-radius: 6px; padding: 12px 14px; }
+.ex-dp-stat .l { font-size: 12px; color: var(--ex-muted); font-weight: 600; }
+.ex-dp-stat .v { font-size: 22px; font-weight: 700; font-variant-numeric: tabular-nums; margin-top: 2px; }
+.ex-dp-stat .s { font-size: 11.5px; color: var(--ex-muted); margin-top: 2px; }
+.ex-dp-stat .v.good { color: var(--ex-down); }
+.ex-dp-cols { display: grid; grid-template-columns: minmax(0, 5fr) minmax(0, 7fr); gap: 18px; }
+.ex-dp-box { border: 1px solid var(--ex-line); border-radius: 6px; padding: 14px 16px; }
+.ex-dp-box h3 { font-size: 13px; margin: 0 0 10px; }
+.ex-dp-job { font-size: 11px; font-weight: 700; letter-spacing: .04em; color: #4B9FD5; margin: 10px 0 4px; text-transform: uppercase; }
+.ex-dp-job:first-of-type { margin-top: 0; }
+.ex-dp-job span { color: var(--ex-muted); font-weight: 500; letter-spacing: 0; text-transform: none; }
+.ex-dp-line { display: flex; justify-content: space-between; gap: 10px; padding: 7px 0; border-bottom: 1px solid #EEF0F3; font-size: 14px; }
+.ex-dp-line b { font-variant-numeric: tabular-nums; }
+.ex-dp-debt { padding: 9px 0; border-bottom: 1px solid #EEF0F3; }
+.ex-dp-debt:last-child { border-bottom: 0; }
+.ex-dp-debt .top { display: flex; justify-content: space-between; gap: 10px; font-size: 14px; }
+.ex-dp-debt .top b { font-variant-numeric: tabular-nums; }
+.ex-dp-debt .meta { font-size: 11.5px; color: var(--ex-muted); display: flex; justify-content: space-between; gap: 8px; flex-wrap: wrap; }
+.ex-dp-bar { height: 7px; background: #EEF0F3; border-radius: 4px; overflow: hidden; margin: 6px 0 4px; }
+.ex-dp-bar > div { height: 100%; background: #4B9FD5; border-radius: 4px; }
+.ex-dp-tag { font-weight: 600; } .ex-dp-tag.ok { color: var(--ex-down); } .ex-dp-tag.late { color: #B7791F; }
+.ex-dp-steps { margin: 16px 0 0; padding: 0; list-style: none; counter-reset: st; display: grid; gap: 8px; }
+.ex-dp-steps li { counter-increment: st; position: relative; padding-left: 30px; line-height: 1.45; color: #474E5A; }
+.ex-dp-steps li::before { content: counter(st); position: absolute; left: 0; top: 0; width: 20px; height: 20px; border-radius: 50%; background: #EAF3FA; color: #2F7DB5; font-size: 11.5px; font-weight: 700; display: grid; place-items: center; }
+.ex-dp-tl { margin-top: 16px; }
+.ex-dp-tl h3 { font-size: 13px; margin: 0 0 6px; }
+.ex-dp-help { margin-top: 14px; font-size: 12px; color: var(--ex-muted); line-height: 1.6; background: #F7F8FA; border-radius: 6px; padding: 10px 12px; }
+.ex-dp-help code { white-space: nowrap; background: #fff; border: 1px solid var(--ex-line); border-radius: 4px; padding: 0 5px; font-size: 11.5px; color: var(--ex-text); }
+.ex-dp-warn { margin-top: 12px; font-size: 12.5px; color: #8A5A00; background: #FFF6E0; border-radius: 6px; padding: 8px 12px; }
+@container (max-width: 900px) { .ex-dp-stats { grid-template-columns: repeat(2, minmax(0, 1fr)); } .ex-dp-cols { grid-template-columns: 1fr; } }
 [data-dash-source-state=refreshing] { opacity: .5; }
 .ex-shell { container-type: inline-size; }
 .ex-single table[data-row-key] th:first-child, .ex-single table[data-row-key] td:first-child { display: none; }
@@ -189,6 +223,13 @@ html, body { margin: 0; padding: 0; background: #F1F2F4; }
       </div>
     </section>
 
+    <section class="ex-grid" id="debt-plan" hidden>
+      <div class="ex-card ex-span12 ex-dp">
+        <div class="ex-dp-head"><h2>Debt Payoff Plan</h2><span class="ex-dp-sub" data-draw="dpSub"></span></div>
+        <div data-draw="dpBody"></div>
+      </div>
+    </section>
+
     <section class="ex-grid">
       <div class="ex-card ex-span8" id="spending-by-month">
         <h2>Spending by Month</h2>
@@ -275,7 +316,7 @@ window.dash = (function () {
     onData(fn) { onDatas.push(fn); },
     _load(d) {
       src.expenses = d.expenses || []; src.analysis = d.analysis || [];
-      const sv = d.savings || {}; src.savings_entries = sv.entries || []; src.savings_plan = sv.plan || [];
+      const sv = d.savings || {}; src.savings_entries = sv.entries || []; src.savings_plan = sv.plan || []; src.debts = d.debts || {};
       for (const [id, o] of calcs) src[id] = o.fn(...o.inputs.map((i) => src[i] || []));
       onDatas.forEach((f) => f());
       Object.keys(draws).forEach(run);
@@ -454,7 +495,7 @@ window.exU = (function () {
     tip.style.left = Math.max(0, Math.min(e.clientX - b.left + 12, el.clientWidth - tip.offsetWidth)) + 'px';
     tip.style.top = (e.clientY - b.top + 14) + 'px';
   }
-  const ALL = ['pageTitle','selMonth','dTotal','vTotal','cTotal','dVar','vVar','cVarN','dFixed','vFixed','cFixedN','dTop','vTop','cTop','savTitle','savTotal','savPeople','tIncome','monthly','monthlyLegend','pie','anTitle','anText','who','heat','tFixed','tVar'];
+  const ALL = ['pageTitle','selMonth','dTotal','vTotal','cTotal','dVar','vVar','cVarN','dFixed','vFixed','cFixedN','dTop','vTop','cTop','savTitle','savTotal','savPeople','dpSub','dpBody','tIncome','monthly','monthlyLegend','pie','anTitle','anText','who','heat','tFixed','tVar'];
   function redraw() { ALL.forEach((n) => dash.draw(n)); }
   function pickMonth(m) { window.exMonth = m; redraw(); }
   return { monthName, usd, usd0, cop, copK, usdK, pct, enc, PERSON, PIE, LINE, per, isCop, suf, money, rows, months, years, month, isYear, inPeriod, sumRow, where, catColors, tipAt, redraw, pickMonth };
@@ -472,6 +513,7 @@ window.exU = (function () {
       const single = U.per() !== 'Household';
       document.querySelectorAll('.ex-app').forEach((el) => el.classList.toggle('ex-single', single));
       document.querySelectorAll('#who-spent-what').forEach((el) => { el.hidden = single; });
+      document.querySelectorAll('#debt-plan').forEach((el) => { el.hidden = U.per() !== 'Jorgie'; });
       document.querySelectorAll('#analysis').forEach((el) => el.classList.toggle('ex-span12', single));
       U.redraw();
     });
@@ -727,6 +769,81 @@ window.exU = (function () {
 </script>
 
 <script>
+// ---------- Jorgie's debt payoff plan ----------
+(function () {
+  const U = window.exU;
+  const plan = () => { const d = dash.data('debts'); return d.status === 'ok' && d.data && d.data.plan ? d.data.plan : null; };
+  const el = (tag, cls, txt) => { const n = document.createElement(tag); if (cls) n.className = cls; if (txt !== undefined) n.textContent = txt; return n; };
+  const usd0 = (v) => '$' + d3.format(',.0f')(Math.round(v));
+  const help = () => {
+    const h = el('div', 'ex-dp-help');
+    h.innerHTML = 'How to write it in your note: paychecks with a <b>+</b> &nbsp;<code>+ Target 1050</code> <code>+ Valet 400</code> · extra money <code>+ Bonus 200</code><br>' +
+      'debts <code>Debt watch 2800</code> <code>Debt credit card 3200 min 120 24%</code> <code>Debt car 18000 monthly 450</code><br>' +
+      'payments <code>Paid watch 300</code> · new balance <code>Card balance 2900</code> · get it by email <code>send plan</code>';
+    return h;
+  };
+  dash.draw('dpSub', (n) => { const p = plan(); n.textContent = p ? 'Goal: ' + U.monthName(p.goal_month) + ' · updated ' + p.generated : ''; });
+  dash.draw('dpBody', (root) => {
+    root.replaceChildren();
+    const p = plan();
+    if (!p || !p.debts || !p.debts.length) {
+      root.append(el('div', 'ex-empty', 'No debts logged yet. Write them in your note and the plan builds itself overnight.'), help());
+      return;
+    }
+    const stats = el('div', 'ex-dp-stats');
+    const stat = (l, v, s, good) => { const b = el('div', 'ex-dp-stat'); b.append(el('div', 'l', l)); const vv = el('div', 'v' + (good ? ' good' : ''), v); b.append(vv); if (s) b.append(el('div', 's', s)); stats.append(b); };
+    const onTime = p.debt_free_month && p.debt_free_month <= p.goal_month;
+    stat('Total debt', U.usd(p.total_debt), p.debts.length + ' debts');
+    stat('Debt-free', p.debt_free_month ? U.monthName(p.debt_free_month, true) : '6+ years', onTime ? 'before the goal' : 'goal ' + U.monthName(p.goal_month, true), onTime);
+    stat('Left by ' + U.monthName(p.goal_month, true), usd0(p.left_at_goal), p.left_at_goal > 0 ? 'keep paying after' : 'all paid', p.left_at_goal <= 0);
+    stat('To debts / month', usd0(p.available_monthly), 'Target + Valet');
+    root.append(stats);
+
+    const cols = el('div', 'ex-dp-cols');
+    const left = el('div', 'ex-dp-box'); left.append(el('h3', '', 'Every paycheck'));
+    let any = false;
+    for (const job of ['Target', 'Valet']) {
+      const xs = p.per_check[job] || []; if (!xs.length) continue; any = true;
+      const t = el('div', 'ex-dp-job', job + ' check '); t.append(el('span', '', '(about ' + usd0(p.income[job].per_check) + ')')); left.append(t);
+      xs.forEach((x) => { const r = el('div', 'ex-dp-line'); r.append(el('span', '', x.debt), el('b', '', U.usd(x.amount))); left.append(r); });
+    }
+    if (!any) left.append(el('div', 'ex-empty', 'Log your paychecks with a + to see how much goes to each debt.'));
+    const right = el('div', 'ex-dp-box'); right.append(el('h3', '', 'Your debts'));
+    [...p.debts].sort((a, b) => (a.payoff_month || '9999').localeCompare(b.payoff_month || '9999')).forEach((d) => {
+      const r = el('div', 'ex-dp-debt');
+      const top = el('div', 'top'); const nm = el('span', '', d.name); nm.style.fontWeight = '600'; top.append(nm, el('b', '', U.usd(d.balance)));
+      const bar = el('div', 'ex-dp-bar'); const f = el('div'); f.style.width = Math.max(0, Math.min(100, d.pct_paid)) + '%'; bar.append(f);
+      const meta = el('div', 'meta');
+      meta.append(el('span', '', 'Paid by ' + d.paid_from + (d.apr ? ' · ' + d.apr + '% APR' : '') + ' · ' + usd0(d.this_month) + ' this month'));
+      const tag = d.balance <= 0 ? el('span', 'ex-dp-tag ok', 'Paid off') : el('span', 'ex-dp-tag ' + (d.by_goal ? 'ok' : 'late'), (d.payoff_month ? 'Done ' + U.monthName(d.payoff_month, true) : 'Long term') + (d.by_goal ? ' ✓' : ''));
+      meta.append(tag);
+      r.append(top, bar, meta); right.append(r);
+    });
+    cols.append(left, right); root.append(cols);
+
+    if (p.timeline && p.timeline.length > 1) {
+      const tl = el('div', 'ex-dp-tl'); tl.append(el('h3', '', 'Debt left at the end of each month'));
+      const box = el('div'); tl.append(box); root.append(tl);
+      const data = p.timeline.slice(0, 18);
+      const W = Math.max(280, root.clientWidth || 600), H = 150, left0 = 6, right0 = 6;
+      const x = d3.scaleBand().domain(data.map((d) => d.month)).range([left0, W - right0]).padding(0.25);
+      const y = d3.scaleLinear().domain([0, d3.max(data, (d) => d.left) || 1]).range([H - 22, 16]);
+      const svg = d3.select(box).append('svg').attr('class', 'ex-svg').attr('width', '100%').attr('viewBox', `0 0 ${W} ${H}`).attr('role', 'img').attr('aria-label', 'Debt left by month');
+      svg.selectAll('rect').data(data).join('rect').attr('x', (d) => x(d.month)).attr('width', x.bandwidth()).attr('y', (d) => y(d.left)).attr('height', (d) => Math.max(1, y(0) - y(d.left)))
+        .attr('rx', 2).style('fill', (d) => d.month === p.goal_month ? '#2F7DB5' : (d.month > p.goal_month ? '#D6E6F3' : '#8FC1E6'));
+      if (x.bandwidth() > 26) svg.selectAll('text.v').data(data).join('text').attr('class', 'ex-vlabel').attr('text-anchor', 'middle').attr('x', (d) => x(d.month) + x.bandwidth() / 2).attr('y', (d) => y(d.left) - 4).style('font-size', '10px').text((d) => U.usdK(d.left));
+      svg.selectAll('text.m').data(data).join('text').attr('text-anchor', 'middle').attr('x', (d) => x(d.month) + x.bandwidth() / 2).attr('y', H - 6).style('font-size', '10px')
+        .style('font-weight', (d) => d.month === p.goal_month ? 700 : 400).text((d, i) => (x.bandwidth() >= 30 || i % 2 === 0 || d.month === p.goal_month) ? U.monthName(d.month, true).replace(/ 20(\d\d)$/, " '$1") : '');
+    }
+
+    const ol = el('ol', 'ex-dp-steps'); (p.steps || []).forEach((t) => ol.append(el('li', '', t)));
+    const h3 = el('h3', '', 'The plan, step by step'); h3.style.cssText = 'font-size:13px;margin:18px 0 0;';
+    root.append(h3, ol);
+    if (p.shortfall) root.append(el('div', 'ex-dp-warn', 'Heads-up: after your spending, the Target money does not fully cover the monthly payments yet.'));
+    root.append(help());
+  });
+})();
+
 // ---------- savings ----------
 (function () {
   const U = window.exU;
