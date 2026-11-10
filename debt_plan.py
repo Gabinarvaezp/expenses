@@ -211,41 +211,20 @@ def compute(expenses, debts, today):
 
 
 def make_steps(debts, income, per_check, spend, goal, debt_free, left_at_goal, shortfall, estimated=False, half_rule=False):
-    s = []
+    """Very short lines (the app shows numbers; these are only for the email)."""
     if not debts:
-        return ['Write what you owe in your note, e.g. "Reloj 2890", "Carro 18000" or "Tarjeta 3200".']
-    missing = [j for j in ('Target', 'Valet') if not income[j]['n_logged']]
-    if missing:
-        s.append('No ' + ' or '.join(missing) + ' paycheck logged yet, so that part shows the minimum you need to pay. Write your checks in your note with a + (e.g. "Target + 1800", "Valet + 399") and the plan will speed up.')
-    if half_rule and any(d['paid_from'] != 'Valet' and d['balance'] > 0 for d in debts):
-        s.append('Your first month: until a full month of your spending is logged, the plan only uses up to half of your Target pay for debts, so you still have money to live on.')
-    for d in debts:
-        if d['interest_free_until'] and d['balance'] > 0:
-            n = income['Valet' if d['paid_from'] == 'Valet' else 'Target']['checks_per_month'] or 1
-            s.append(f"The {d['name']} has 0% interest until {mname(d['interest_free_until'])}: pay at least {usd0(d['needed_monthly'])} a month "
-                     f"(about {usd0(d['needed_monthly'] / n)} from each {d['paid_from']} check) so it is done in time. Faster is better.")
+        return ['Write what you owe in your note (e.g. "Reloj 2890").']
+    s = []
     for job in ('Valet', 'Target'):
-        if per_check[job]:
-            parts = ', '.join(f"{usd0(x['amount'])} to {x['debt']}" for x in per_check[job])
-            s.append(f'Every {job} check: send {parts} the same day you get paid.')
-    vd = [d for d in debts if d['paid_from'] == 'Valet' and d['balance'] > 0]
-    for d in vd:
-        if d['payoff_month']:
-            s.append(f"The {d['name']} is done in {mname(d['payoff_month'])}. After that, the money you were sending to it moves to the next debt.")
-    td = sorted([d for d in debts if d['paid_from'] != 'Valet' and d['balance'] > 0], key=lambda d: (-d['apr'], d['balance']))
-    if td:
-        s.append('Pay at least the monthly payment on ' + ', '.join(d['name'] for d in td) + '. Any extra goes to the ' + td[0]['name'] + ' first' + (' (highest interest).' if td[0]['apr'] else '.'))
-    s.append('Extra money (gifts, bonuses, tips) goes straight to the next debt in line. Log it with a + sign.')
-    s.append('Never use the Cozy House savings or the automatic $1,300 for debts.')
-    if debt_free and debt_free <= goal:
-        s.append(f'On this plan you are debt-free by {mname(debt_free)}, in time for the {mname(goal)} goal.')
-    elif left_at_goal > 0:
-        s.append(f'By {mname(goal)} about {usd0(left_at_goal)} would still be left (mostly long loans like the car). Keep the monthly payment going after that.')
+        for x in per_check[job]:
+            s.append(f"Each {job} check: {usd0(x['amount'])} to {x['debt']}")
+    for d in sorted([d for d in debts if d['balance'] > 0 and d['payoff_month']], key=lambda d: d['payoff_month']):
+        s.append(f"{d['name']} paid off: {mname(d['payoff_month'], True)}")
     for d in debts:
         if d.get('late_for_promo'):
-            s.append(f"Heads-up: at this pace the {d['name']} would not be done before its 0% deal ends ({mname(d['interest_free_until'])}). Put extra money there first.")
+            s.append(f"Pay the {d['name']} first: 0% ends {mname(d['interest_free_until'], True)}")
     if shortfall:
-        s.append('Heads-up: the money left after your spending does not fully cover the monthly payments. Trim spending or add Valet shifts.')
+        s.append('Money is short for the monthly payments')
     return s
 
 
@@ -298,14 +277,11 @@ def email_html(p, url):
 <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#F1F2F4;"><tr><td align="center" style="padding:20px 12px;">
 <table role="presentation" width="600" cellpadding="0" cellspacing="0" style="max-width:600px;width:100%;">
 <tr><td style="padding:4px 0 16px;"><div style="font-size:22px;font-weight:700;color:{TEXT};">Your Debt Payoff Plan</div>
-<div style="font-size:13px;color:{MUTED};">Hi Jorgie, here is your plan as of {e(mname(p["month"]))}. Simple version: follow the steps below every payday.</div></td></tr>
+<div style="font-size:13px;color:{MUTED};">{e(mname(p["month"]))}</div></td></tr>
 {card('Where you stand', kpis)}
 {card('What to do with every paycheck', checks)}
-{card('The plan, step by step', f'<table role="presentation" cellpadding="0" cellspacing="0">{steps}</table>')}
 {card('Your debts', debts_t or f'<div style="font-size:13px;color:{MUTED};">No debts logged yet.</div>')}
-{card('The money behind the plan', money)}
-<tr><td style="padding:4px 0 20px;font-size:12px;color:{MUTED};line-height:1.6;">Amounts are in US dollars and based on what you logged in your note. The Cozy House savings and your automatic $1,300 a month are never touched.
-Money in has a + ("Valet + 399"), what you owe is just the name and amount ("Reloj 2890"), payments say "Pagué reloj 400"; write "send plan" any time to get this email again.<br>
+<tr><td style="padding:4px 0 20px;font-size:12px;color:{MUTED};line-height:1.6;">
 <a href="{e(url)}" style="color:{ACCENT};">Open the dashboard</a></td></tr>
 </table></td></tr></table></body></html>'''
 

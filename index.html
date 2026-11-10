@@ -96,40 +96,44 @@
 .ex-single .ex-sav-bars { display: none; }
 .ex-sb-val { font-weight: 600; color: #5D6470; font-variant-numeric: tabular-nums; }
 @container (max-width: 760px) { .ex-sav-bars { justify-content: flex-start; } }
-.ex-dp-head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 4px 12px; margin-bottom: 14px; }
-.ex-dp-head h2 { margin: 0; font-size: 15px; }
-.ex-dp-sub { font-size: 12px; color: var(--ex-muted); }
-.ex-dp-stats { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; margin-bottom: 16px; }
-.ex-dp-stat { background: #F7F8FA; border-radius: 6px; padding: 12px 14px; }
-.ex-dp-stat .l { font-size: 12px; color: var(--ex-muted); font-weight: 600; }
-.ex-dp-stat .v { font-size: 22px; font-weight: 700; font-variant-numeric: tabular-nums; margin-top: 2px; }
-.ex-dp-stat .s { font-size: 11.5px; color: var(--ex-muted); margin-top: 2px; }
-.ex-dp-stat .v.good { color: var(--ex-down); }
-.ex-dp-cols { display: grid; grid-template-columns: minmax(0, 5fr) minmax(0, 7fr); gap: 18px; }
-.ex-dp-box { border: 1px solid var(--ex-line); border-radius: 6px; padding: 14px 16px; }
-.ex-dp-box h3 { font-size: 13px; margin: 0 0 10px; }
-.ex-dp-job { font-size: 11px; font-weight: 700; letter-spacing: .04em; color: #4B9FD5; margin: 10px 0 4px; text-transform: uppercase; }
-.ex-dp-job:first-of-type { margin-top: 0; }
-.ex-dp-job span { color: var(--ex-muted); font-weight: 500; letter-spacing: 0; text-transform: none; }
-.ex-dp-line { display: flex; justify-content: space-between; gap: 10px; padding: 7px 0; border-bottom: 1px solid #EEF0F3; font-size: 14px; }
+.ex-nav-sep { margin: 10px 20px 4px; padding-top: 12px; border-top: 1px solid var(--ex-line); font-size: 10.5px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--ex-muted); }
+.ex-app:not(.ex-planmode) #debt-plan { display: none; }
+.ex-planmode .ex-main > section:not(#debt-plan) { display: none; }
+.ex-planmode .ex-range { display: none; }
+.ex-dp-intro { font-size: 13px; color: var(--ex-muted); margin: -4px 0 2px; }
+.ex-dp-kpi .ex-kpi-value { font-size: 26px; }
+.ex-dp-kpi .ex-kpi-value.good { color: var(--ex-down); }
+.ex-dp-check { border-radius: 8px; background: #F7F8FA; padding: 12px 14px; margin-bottom: 10px; }
+.ex-dp-check:last-child { margin-bottom: 0; }
+.ex-dp-check .hd { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 6px; }
+.ex-dp-check .hd b { font-size: 13px; }
+.ex-dp-check .hd span { font-size: 12px; color: var(--ex-muted); font-variant-numeric: tabular-nums; }
+.ex-dp-line { display: flex; justify-content: space-between; gap: 10px; padding: 5px 0; font-size: 14px; }
 .ex-dp-line b { font-variant-numeric: tabular-nums; }
-.ex-dp-debt { padding: 9px 0; border-bottom: 1px solid #EEF0F3; }
-.ex-dp-debt:last-child { border-bottom: 0; }
+.ex-dp-debt { padding: 10px 0; border-bottom: 1px solid #EEF0F3; }
+.ex-dp-debt:first-child { padding-top: 0; }
+.ex-dp-debt:last-child { border-bottom: 0; padding-bottom: 0; }
 .ex-dp-debt .top { display: flex; justify-content: space-between; gap: 10px; font-size: 14px; }
 .ex-dp-debt .top b { font-variant-numeric: tabular-nums; }
 .ex-dp-debt .meta { font-size: 11.5px; color: var(--ex-muted); display: flex; justify-content: space-between; gap: 8px; flex-wrap: wrap; }
-.ex-dp-bar { height: 7px; background: #EEF0F3; border-radius: 4px; overflow: hidden; margin: 6px 0 4px; }
-.ex-dp-bar > div { height: 100%; background: #4B9FD5; border-radius: 4px; }
+.ex-dp-bar { height: 6px; background: #EEF0F3; border-radius: 3px; overflow: hidden; margin: 7px 0 5px; }
+.ex-dp-bar > div { height: 100%; background: var(--ex-purple); border-radius: 3px; }
 .ex-dp-tag { font-weight: 600; } .ex-dp-tag.ok { color: var(--ex-down); } .ex-dp-tag.late { color: #B7791F; }
-.ex-dp-steps { margin: 16px 0 0; padding: 0; list-style: none; counter-reset: st; display: grid; gap: 8px; }
-.ex-dp-steps li { counter-increment: st; position: relative; padding-left: 30px; line-height: 1.45; color: #474E5A; }
-.ex-dp-steps li::before { content: counter(st); position: absolute; left: 0; top: 0; width: 20px; height: 20px; border-radius: 50%; background: #EAF3FA; color: #2F7DB5; font-size: 11.5px; font-weight: 700; display: grid; place-items: center; }
-.ex-dp-tl { margin-top: 16px; }
-.ex-dp-tl h3 { font-size: 13px; margin: 0 0 6px; }
-.ex-dp-help { margin-top: 14px; font-size: 12px; color: var(--ex-muted); line-height: 1.6; background: #F7F8FA; border-radius: 6px; padding: 10px 12px; }
-.ex-dp-help code { white-space: nowrap; background: #fff; border: 1px solid var(--ex-line); border-radius: 4px; padding: 0 5px; font-size: 11.5px; color: var(--ex-text); }
-.ex-dp-warn { margin-top: 12px; font-size: 12.5px; color: #8A5A00; background: #FFF6E0; border-radius: 6px; padding: 8px 12px; }
-@container (max-width: 900px) { .ex-dp-stats { grid-template-columns: repeat(2, minmax(0, 1fr)); } .ex-dp-cols { grid-template-columns: 1fr; } }
+.ex-dp-steps { margin: 0; padding: 0; list-style: none; counter-reset: st; display: grid; gap: 10px; }
+.ex-dp-steps li { counter-increment: st; position: relative; padding-left: 30px; line-height: 1.45; color: #474E5A; font-size: 13.5px; }
+.ex-dp-steps li::before { content: counter(st); position: absolute; left: 0; top: 0; width: 20px; height: 20px; border-radius: 50%; background: #F1E8FA; color: var(--ex-purple); font-size: 11px; font-weight: 700; display: grid; place-items: center; }
+.ex-dp-foot { font-size: 12px; color: var(--ex-muted); text-align: center; padding: 4px 0 8px; }
+.ex-dp-warn { margin-top: 0; font-size: 12.5px; color: #8A5A00; background: #FFF6E0; border-radius: 6px; padding: 8px 12px; }
+.ex-dp-empty { align-items: center; text-align: center; padding: 40px 24px; }
+.ex-dp-empty .ic { width: 46px; height: 46px; border-radius: 12px; background: #F1E8FA; color: var(--ex-purple); display: grid; place-items: center; margin-bottom: 12px; }
+.ex-dp-empty .ic svg { width: 22px; height: 22px; }
+.ex-dp-empty h3 { font-size: 17px; margin: 0 0 6px; }
+.ex-dp-empty p { margin: 0 0 18px; color: var(--ex-muted); max-width: 440px; line-height: 1.5; }
+.ex-dp-howto { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; width: 100%; max-width: 760px; text-align: left; }
+.ex-dp-howto div { background: #F7F8FA; border-radius: 8px; padding: 10px 12px; }
+.ex-dp-howto b { display: block; font-size: 11px; color: var(--ex-muted); text-transform: uppercase; letter-spacing: .05em; margin-bottom: 4px; }
+.ex-dp-howto code { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 12.5px; color: var(--ex-text); display: block; line-height: 1.6; }
+@container (max-width: 900px) { .ex-dp-howto { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
 [data-dash-source-state=refreshing] { opacity: .5; }
 .ex-shell { container-type: inline-size; }
 .ex-single table[data-row-key] th:first-child, .ex-single table[data-row-key] td:first-child { display: none; }
@@ -142,6 +146,9 @@
   .ex-brand { border-bottom: 0; padding-bottom: 6px; }
   .ex-nav { flex-direction: row; padding: 0; }
   .ex-nav button { flex: 1; justify-content: center; padding: 11px 6px; }
+  .ex-nav-sep { display: none; }
+  .ex-nav button { gap: 6px; font-size: 13px; padding: 11px 4px; }
+  .ex-nav svg { width: 15px; height: 15px; }
   .ex-side-foot { display: none; }
   .ex-main { padding: 16px 14px 24px; }
   .ex-span6 { grid-column: span 12; }
@@ -186,6 +193,8 @@ html, body { margin: 0; padding: 0; background: #F1F2F4; }
       <button type="button" data-per="Household" aria-pressed="true"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M3 17V9M8 17V4M13 17v-6M18 17V7"/></svg>Cozy House</button>
       <button type="button" data-per="Gabby" aria-pressed="false"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="10" cy="7" r="3.2"/><path d="M3.5 17c1.2-3.2 3.6-4.6 6.5-4.6s5.3 1.4 6.5 4.6"/></svg>Gabby</button>
       <button type="button" data-per="Jorgie" aria-pressed="false"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="10" cy="7" r="3.2"/><path d="M3.5 17c1.2-3.2 3.6-4.6 6.5-4.6s5.3 1.4 6.5 4.6"/></svg>Jorgie</button>
+      <div class="ex-nav-sep">Plans</div>
+      <button type="button" data-view="plan" aria-pressed="false"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M4 18V3M4 3h10l-2 3.5L14 10H4"/></svg>Debt Plan</button>
     </nav>
     <div class="ex-side-foot">All amounts in USD. Gabby logs in pesos; they are converted at the TRM and shown small as a reference.</div>
   </aside>
@@ -223,11 +232,8 @@ html, body { margin: 0; padding: 0; background: #F1F2F4; }
       </div>
     </section>
 
-    <section class="ex-grid" id="debt-plan" hidden>
-      <div class="ex-card ex-span12 ex-dp">
-        <div class="ex-dp-head"><h2>Debt Payoff Plan</h2><span class="ex-dp-sub" data-draw="dpSub"></span></div>
-        <div data-draw="dpBody"></div>
-      </div>
+    <section class="ex-grid" id="debt-plan">
+      <div class="ex-span12" data-draw="dpBody"></div>
     </section>
 
     <section class="ex-grid">
@@ -495,7 +501,7 @@ window.exU = (function () {
     tip.style.left = Math.max(0, Math.min(e.clientX - b.left + 12, el.clientWidth - tip.offsetWidth)) + 'px';
     tip.style.top = (e.clientY - b.top + 14) + 'px';
   }
-  const ALL = ['pageTitle','selMonth','dTotal','vTotal','cTotal','dVar','vVar','cVarN','dFixed','vFixed','cFixedN','dTop','vTop','cTop','savTitle','savTotal','savPeople','dpSub','dpBody','tIncome','monthly','monthlyLegend','pie','anTitle','anText','who','heat','tFixed','tVar'];
+  const ALL = ['pageTitle','selMonth','dTotal','vTotal','cTotal','dVar','vVar','cVarN','dFixed','vFixed','cFixedN','dTop','vTop','cTop','savTitle','savTotal','savPeople','dpBody','tIncome','monthly','monthlyLegend','pie','anTitle','anText','who','heat','tFixed','tVar'];
   function redraw() { ALL.forEach((n) => dash.draw(n)); }
   function pickMonth(m) { window.exMonth = m; redraw(); }
   return { monthName, usd, usd0, cop, copK, usdK, pct, enc, PERSON, PIE, LINE, per, isCop, suf, money, rows, months, years, month, isYear, inPeriod, sumRow, where, catColors, tipAt, redraw, pickMonth };
@@ -506,16 +512,20 @@ window.exU = (function () {
 // ---------- navigation and sample notice ----------
 (function () {
   const U = window.exU;
+  const setPressed = (b) => document.querySelectorAll('.ex-nav button').forEach((x) => x.setAttribute('aria-pressed', x === b ? 'true' : 'false'));
   document.querySelectorAll('.ex-nav button').forEach((b) => {
     b.addEventListener('click', () => {
-      window.exPer = b.getAttribute('data-per');
-      document.querySelectorAll('.ex-nav button').forEach((x) => x.setAttribute('aria-pressed', x === b ? 'true' : 'false'));
+      setPressed(b);
+      const plan = b.getAttribute('data-view') === 'plan';
+      window.exView = plan ? 'plan' : 'dash';
+      document.querySelectorAll('.ex-app').forEach((el) => el.classList.toggle('ex-planmode', plan));
+      if (!plan) window.exPer = b.getAttribute('data-per');
       const single = U.per() !== 'Household';
       document.querySelectorAll('.ex-app').forEach((el) => el.classList.toggle('ex-single', single));
       document.querySelectorAll('#who-spent-what').forEach((el) => { el.hidden = single; });
-      document.querySelectorAll('#debt-plan').forEach((el) => { el.hidden = U.per() !== 'Jorgie'; });
       document.querySelectorAll('#analysis').forEach((el) => el.classList.toggle('ex-span12', single));
       U.redraw();
+      window.scrollTo(0, 0);
     });
   });
   dash.onData(() => {
@@ -532,7 +542,7 @@ window.exU = (function () {
 (function () {
   const U = window.exU;
   const mark = (el, r, field) => { el.dataset.where = U.where(r); if (field) el.dataset.field = field; };
-  dash.draw('pageTitle', (el) => { const p = U.per(); el.textContent = p === 'Household' ? 'Cozy House' : p + '’s Dashboard'; });
+  dash.draw('pageTitle', (el) => { const p = U.per(); el.textContent = window.exView === 'plan' ? 'Jorgie’s Debt Plan' : (p === 'Household' ? 'Cozy House' : p + '’s Dashboard'); });
   dash.draw('selMonth', (sel) => {
     const opts = U.years().slice().reverse().concat(U.months().slice().reverse());
     sel.replaceChildren(...opts.map((m) => new Option(U.monthName(m), m)));
@@ -769,78 +779,86 @@ window.exU = (function () {
 </script>
 
 <script>
-// ---------- Jorgie's debt payoff plan ----------
+// ---------- Jorgie's debt payoff plan (own page in the menu) ----------
 (function () {
   const U = window.exU;
   const plan = () => { const d = dash.data('debts'); return d.status === 'ok' && d.data && d.data.plan ? d.data.plan : null; };
   const el = (tag, cls, txt) => { const n = document.createElement(tag); if (cls) n.className = cls; if (txt !== undefined) n.textContent = txt; return n; };
   const usd0 = (v) => '$' + d3.format(',.0f')(Math.round(v));
-  const help = () => {
-    const h = el('div', 'ex-dp-help');
-    h.innerHTML = 'How to write it in your note: money in has a <b>+</b> &nbsp;<code>Target + 1800</code> <code>Valet + 399</code> <code>+ Bonus 200</code><br>' +
-      'what you owe <code>Reloj 2890</code> <code>Carro 18000</code> <code>Tarjeta 3200</code> · payments <code>Pagué reloj 400</code><br>' +
-      'spending <code>Gaseosa 5</code> · get this plan by email <code>send plan</code>';
-    return h;
+  const card = (span, title) => { const c = el('div', 'ex-card ' + span); if (title) c.append(el('h2', '', title)); return c; };
+  const ICON = '<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M4 18V3M4 3h10l-2 3.5L14 10H4"/></svg>';
+  const howto = () => {
+    const g = el('div', 'ex-dp-howto');
+    [['Money in (+)', ['Target + 1800', 'Valet + 399']], ['What you owe', ['Reloj 2890', 'Carro 18000']], ['A payment', ['Pagué reloj 400']], ['Get it by email', ['send plan']]]
+      .forEach(([t, xs]) => { const d = el('div'); d.append(el('b', '', t)); xs.forEach((x) => d.append(el('code', '', x))); g.append(d); });
+    return g;
   };
-  dash.draw('dpSub', (n) => { const p = plan(); n.textContent = p ? 'Goal: ' + U.monthName(p.goal_month) + ' · updated ' + p.generated : ''; });
   dash.draw('dpBody', (root) => {
     root.replaceChildren();
+    if (window.exView !== 'plan') return;
     const p = plan();
+    const grid = el('div', 'ex-grid'); root.append(grid);
     if (!p || !p.debts || !p.debts.length) {
-      root.append(el('div', 'ex-empty', 'No debts logged yet. Write them in your note and the plan builds itself overnight.'), help());
+      const c = card('ex-span12 ex-dp-empty');
+      const ic = el('div', 'ic'); ic.innerHTML = ICON;
+      c.append(ic, el('h3', '', 'No plan yet'),
+        el('p', '', 'Write it in your note and the plan builds itself.'),
+        howto());
+      grid.append(c);
       return;
     }
-    const stats = el('div', 'ex-dp-stats');
-    const stat = (l, v, s, good) => { const b = el('div', 'ex-dp-stat'); b.append(el('div', 'l', l)); const vv = el('div', 'v' + (good ? ' good' : ''), v); b.append(vv); if (s) b.append(el('div', 's', s)); stats.append(b); };
     const onTime = p.debt_free_month && p.debt_free_month <= p.goal_month;
-    stat('Total debt', U.usd(p.total_debt), p.debts.length + (p.debts.length === 1 ? ' debt' : ' debts'));
-    stat('Debt-free', p.debt_free_month ? U.monthName(p.debt_free_month, true) : '6+ years', onTime ? 'on time for the goal' : 'goal ' + U.monthName(p.goal_month, true), onTime);
-    stat('Left by ' + U.monthName(p.goal_month, true), usd0(p.left_at_goal), p.left_at_goal > 0 ? 'keep paying after' : 'all paid', p.left_at_goal <= 0);
-    stat('To debts / month', usd0(p.available_monthly), p.estimated ? 'minimum · log your checks' : 'Target + Valet');
-    root.append(stats);
+    const kpi = (label, value, cap, good) => {
+      const c = card('ex-span3 ex-kpi ex-dp-kpi'); c.append(el('div', 'ex-kpi-label', label));
+      c.append(el('div', 'ex-kpi-value' + (good ? ' good' : ''), value)); c.append(el('div', 'ex-kpi-cap', cap || '')); grid.append(c);
+    };
+    kpi('Total Owed', U.usd(p.total_debt), p.debts.length + (p.debts.length === 1 ? ' debt' : ' debts'));
+    kpi('Debt-Free By', p.debt_free_month ? U.monthName(p.debt_free_month, true) : '—', onTime ? 'on time for ' + U.monthName(p.goal_month, true) : 'goal ' + U.monthName(p.goal_month, true), onTime);
+    kpi('Left in ' + U.monthName(p.goal_month, true), usd0(p.left_at_goal), p.left_at_goal > 0 ? 'keep paying after' : 'all paid', p.left_at_goal <= 0);
+    kpi('To Debts a Month', usd0(p.available_monthly), p.estimated ? 'minimum until checks are logged' : 'from Target + Valet');
 
-    const cols = el('div', 'ex-dp-cols');
-    const left = el('div', 'ex-dp-box'); left.append(el('h3', '', 'Every paycheck'));
+    const chk = card('ex-span5', 'Every Paycheck');
     let any = false;
-    for (const job of ['Target', 'Valet']) {
+    for (const job of ['Valet', 'Target']) {
       const xs = p.per_check[job] || []; if (!xs.length) continue; any = true;
-      const t = el('div', 'ex-dp-job', job + ' check '); if (p.income[job].per_check) t.append(el('span', '', '(about ' + usd0(p.income[job].per_check) + ')')); left.append(t);
-      xs.forEach((x) => { const r = el('div', 'ex-dp-line'); r.append(el('span', '', x.debt), el('b', '', U.usd(x.amount))); left.append(r); });
+      const b = el('div', 'ex-dp-check'); const hd = el('div', 'hd'); hd.append(el('b', '', job + ' check'), el('span', '', p.income[job].per_check ? 'about ' + usd0(p.income[job].per_check) : 'not logged yet'));
+      b.append(hd); xs.forEach((x) => { const r = el('div', 'ex-dp-line'); r.append(el('span', '', 'To ' + x.debt), el('b', '', U.usd(x.amount))); b.append(r); });
+      chk.append(b);
     }
-    if (!any) left.append(el('div', 'ex-empty', 'Log your paychecks with a + to see how much goes to each debt.'));
-    const right = el('div', 'ex-dp-box'); right.append(el('h3', '', 'Your debts'));
+    if (!any) chk.append(el('div', 'ex-empty', 'Log your paychecks with a + to see how much goes to each debt.'));
+    grid.append(chk);
+
+    const dc = card('ex-span7', 'Debts');
+    const list = el('div');
     [...p.debts].sort((a, b) => (a.payoff_month || '9999').localeCompare(b.payoff_month || '9999')).forEach((d) => {
       const r = el('div', 'ex-dp-debt');
       const top = el('div', 'top'); const nm = el('span', '', d.name); nm.style.fontWeight = '600'; top.append(nm, el('b', '', U.usd(d.balance)));
       const bar = el('div', 'ex-dp-bar'); const f = el('div'); f.style.width = Math.max(0, Math.min(100, d.pct_paid)) + '%'; bar.append(f);
       const meta = el('div', 'meta');
-      meta.append(el('span', '', 'Paid by ' + d.paid_from + (d.apr ? ' · ' + d.apr + '% APR' : '') + (d.interest_free_until ? ' · 0% until ' + U.monthName(d.interest_free_until, true) : '') + ' · ' + usd0(d.this_month) + ' this month'));
-      const tag = d.balance <= 0 ? el('span', 'ex-dp-tag ok', 'Paid off') : el('span', 'ex-dp-tag ' + (d.by_goal ? 'ok' : 'late'), (d.payoff_month ? 'Done ' + U.monthName(d.payoff_month, true) : 'Long term') + (d.by_goal ? ' ✓' : ''));
-      meta.append(tag);
-      r.append(top, bar, meta); right.append(r);
+      meta.append(el('span', '', d.paid_from + (d.apr ? ' · ' + d.apr + '% APR' : '') + (d.interest_free_until ? ' · 0% until ' + U.monthName(d.interest_free_until, true) : '') + ' · ' + usd0(d.this_month) + ' this month'));
+      meta.append(d.balance <= 0 ? el('span', 'ex-dp-tag ok', 'Paid off') : el('span', 'ex-dp-tag ' + (d.by_goal ? 'ok' : 'late'), d.payoff_month ? 'Done ' + U.monthName(d.payoff_month, true) : 'Long term'));
+      r.append(top, bar, meta); list.append(r);
     });
-    cols.append(left, right); root.append(cols);
+    dc.append(list); grid.append(dc);
 
     if (p.timeline && p.timeline.length > 1) {
-      const tl = el('div', 'ex-dp-tl'); tl.append(el('h3', '', 'Debt left at the end of each month'));
-      const box = el('div'); tl.append(box); root.append(tl);
-      const data = p.timeline.slice(0, 18);
-      const W = Math.max(280, root.clientWidth || 600), H = 150, left0 = 6, right0 = 6;
-      const x = d3.scaleBand().domain(data.map((d) => d.month)).range([left0, W - right0]).padding(0.25);
-      const y = d3.scaleLinear().domain([0, d3.max(data, (d) => d.left) || 1]).range([H - 22, 16]);
-      const svg = d3.select(box).append('svg').attr('class', 'ex-svg').attr('width', '100%').attr('viewBox', `0 0 ${W} ${H}`).attr('role', 'img').attr('aria-label', 'Debt left by month');
-      svg.selectAll('rect').data(data).join('rect').attr('x', (d) => x(d.month)).attr('width', x.bandwidth()).attr('y', (d) => y(d.left)).attr('height', (d) => Math.max(1, y(0) - y(d.left)))
-        .attr('rx', 2).style('fill', (d) => d.month === p.goal_month ? '#2F7DB5' : (d.month > p.goal_month ? '#D6E6F3' : '#8FC1E6'));
-      if (x.bandwidth() > 26) svg.selectAll('text.v').data(data).join('text').attr('class', 'ex-vlabel').attr('text-anchor', 'middle').attr('x', (d) => x(d.month) + x.bandwidth() / 2).attr('y', (d) => y(d.left) - 4).style('font-size', '10px').text((d) => U.usdK(d.left));
-      svg.selectAll('text.m').data(data).join('text').attr('text-anchor', 'middle').attr('x', (d) => x(d.month) + x.bandwidth() / 2).attr('y', H - 6).style('font-size', '10px')
-        .style('font-weight', (d) => d.month === p.goal_month ? 700 : 400).text((d, i) => (x.bandwidth() >= 30 || i % 2 === 0 || d.month === p.goal_month) ? U.monthName(d.month, true).replace(/ 20(\d\d)$/, " '$1") : '');
+      const tc = card('ex-span12', 'What You Owe, Month by Month'); const box = el('div'); tc.append(box); grid.append(tc);
+      requestAnimationFrame(() => {
+        const data = p.timeline.slice(0, 18);
+        const W = Math.max(280, box.clientWidth || 560), H = 190;
+        const x = d3.scaleBand().domain(data.map((d) => d.month)).range([4, W - 4]).padding(0.3);
+        const y = d3.scaleLinear().domain([0, d3.max(data, (d) => d.left) || 1]).range([H - 22, 18]);
+        const svg = d3.select(box).append('svg').attr('class', 'ex-svg').attr('width', '100%').attr('viewBox', `0 0 ${W} ${H}`).attr('role', 'img').attr('aria-label', 'Debt left by month');
+        svg.selectAll('rect').data(data).join('rect').attr('x', (d) => x(d.month)).attr('width', x.bandwidth()).attr('y', (d) => y(d.left)).attr('height', (d) => Math.max(1, y(0) - y(d.left))).attr('rx', 3)
+          .style('fill', (d) => d.month === p.goal_month ? '#9B59D0' : (d.month > p.goal_month ? '#E6DAF2' : '#C9A9E6'));
+        if (x.bandwidth() > 26) svg.selectAll('text.v').data(data).join('text').attr('class', 'ex-vlabel').attr('text-anchor', 'middle').attr('x', (d) => x(d.month) + x.bandwidth() / 2).attr('y', (d) => y(d.left) - 5).style('font-size', '10px').text((d) => U.usdK(d.left));
+        svg.selectAll('text.m').data(data).join('text').attr('text-anchor', 'middle').attr('x', (d) => x(d.month) + x.bandwidth() / 2).attr('y', H - 6).style('font-size', '10px')
+          .style('font-weight', (d) => d.month === p.goal_month ? 700 : 400).text((d, i) => (x.bandwidth() >= 30 || i % 2 === 0 || d.month === p.goal_month) ? U.monthName(d.month, true).replace(/ 20(\d\d)$/, " '$1") : '');
+      });
     }
-
-    const ol = el('ol', 'ex-dp-steps'); (p.steps || []).forEach((t) => ol.append(el('li', '', t)));
-    const h3 = el('h3', '', 'The plan, step by step'); h3.style.cssText = 'font-size:13px;margin:18px 0 0;';
-    root.append(h3, ol);
-    if (p.shortfall) root.append(el('div', 'ex-dp-warn', 'Heads-up: after your spending, the Target money does not fully cover the monthly payments yet.'));
-    root.append(help());
+    const tip = el('div', 'ex-dp-foot', 'Updated ' + p.generated + ' · write “send plan” in your note to get it by email');
+    if (p.shortfall) grid.append(Object.assign(el('div', 'ex-span12 ex-dp-warn', 'Heads-up: the money left after spending does not cover the monthly payments yet.')));
+    const fc = el('div', 'ex-span12'); fc.append(tip); grid.append(fc);
   });
 })();
 
