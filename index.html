@@ -82,20 +82,20 @@
 .ex-tag { display: inline-flex; align-items: center; gap: 6px; }
 .ex-chip { display: inline-block; padding: 2px 8px; border-radius: 3px; background: #F1F2F5; font-size: 12px; color: #4D5562; }
 .ex-empty { color: var(--ex-muted); font-size: 13px; padding: 10px; }
-.ex-sav-card h2 { margin-bottom: 8px; }
-.ex-sav-wrap { display: grid; grid-template-columns: minmax(170px, 220px) 1fr; gap: 24px; align-items: center; }
-.ex-sav-total { display: flex; flex-direction: column; gap: 2px; }
-.ex-sav-big { font-size: 24px; font-weight: 700; letter-spacing: -.01em; font-variant-numeric: tabular-nums; line-height: 1.15; color: var(--ex-text); }
-.ex-sav-cap { font-size: 12px; color: var(--ex-muted); font-variant-numeric: tabular-nums; }
-.ex-sav-bars { display: flex; flex-direction: column; gap: 12px; min-width: 0; }
-.ex-sb-row { display: grid; grid-template-columns: 64px 1fr auto; align-items: center; gap: 4px 12px; font-size: 13px; }
-.ex-sb-name { display: flex; align-items: center; gap: 6px; font-weight: 600; }
-.ex-sb-track { height: 10px; background: #F1F2F4; border-radius: 5px; overflow: hidden; }
-.ex-sb-track > div { height: 100%; border-radius: 5px; opacity: .55; }
-.ex-sb-val { font-weight: 600; font-variant-numeric: tabular-nums; text-align: right; min-width: 6.5em; }
-.ex-sb-plan { grid-column: 2 / -1; font-size: 11.5px; color: var(--ex-muted); font-variant-numeric: tabular-nums; }
-.ex-sb-plan b { color: var(--ex-down); font-weight: 600; }
-@container (max-width: 760px) { .ex-sav-wrap { grid-template-columns: 1fr; gap: 14px; } }
+.ex-sav-card { padding: 10px 16px; background: transparent; border-style: dashed; }
+.ex-sav-wrap { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 22px; font-size: 12px; color: var(--ex-muted); }
+.ex-sav-label { font-weight: 600; color: var(--ex-muted); }
+.ex-sav-num { display: flex; align-items: baseline; gap: 8px; }
+.ex-sav-big { font-size: 14px; font-weight: 700; font-variant-numeric: tabular-nums; color: var(--ex-text); }
+.ex-sav-cap { display: none; }
+.ex-sav-bars { display: flex; flex-wrap: wrap; gap: 6px 22px; flex: 1; justify-content: flex-end; }
+.ex-sb-row { display: flex; align-items: center; gap: 6px; }
+.ex-sb-name { display: flex; align-items: center; gap: 5px; }
+.ex-sb-name .ex-dot { width: 7px; height: 7px; }
+.ex-sb-track, .ex-sb-plan { display: none; }
+.ex-single .ex-sav-bars { display: none; }
+.ex-sb-val { font-weight: 600; color: #5D6470; font-variant-numeric: tabular-nums; }
+@container (max-width: 760px) { .ex-sav-bars { justify-content: flex-start; } }
 [data-dash-source-state=refreshing] { opacity: .5; }
 .ex-shell { container-type: inline-size; }
 .ex-single table[data-row-key] th:first-child, .ex-single table[data-row-key] td:first-child { display: none; }
@@ -201,16 +201,6 @@ html, body { margin: 0; padding: 0; background: #F1F2F4; }
       </div>
     </section>
 
-    <section class="ex-grid" id="savings">
-      <div class="ex-card ex-span12 ex-sav-card" id="savings-total">
-        <h2 data-draw="savTitle">Cozy House Savings</h2>
-        <div class="ex-sav-wrap">
-          <div class="ex-sav-total" data-draw="savTotal" data-source="savings"></div>
-          <div class="ex-sav-bars" data-draw="savPeople" data-source="savings"></div>
-        </div>
-      </div>
-    </section>
-
     <section class="ex-grid">
       <div class="ex-card ex-span7" id="analysis">
         <h2>Monthly Analysis</h2>
@@ -255,6 +245,16 @@ html, body { margin: 0; padding: 0; background: #F1F2F4; }
             <thead><tr><th data-field="person">Who</th><th data-field="item">Item</th><th data-field="category">Category</th><th data-field="amount_usd" class="ex-r">Amount</th></tr></thead>
             <tbody data-draw="tVar"></tbody>
           </table>
+        </div>
+      </div>
+    </section>
+
+    <section class="ex-grid" id="savings">
+      <div class="ex-card ex-span12 ex-sav-card" id="savings-total">
+        <div class="ex-sav-wrap">
+          <div class="ex-sav-total"><span class="ex-sav-label" data-draw="savTitle">Cozy House Savings</span></div>
+          <div class="ex-sav-num" data-draw="savTotal" data-source="savings"></div>
+          <div class="ex-sav-bars" data-draw="savPeople" data-source="savings"></div>
         </div>
       </div>
     </section>
