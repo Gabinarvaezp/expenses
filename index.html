@@ -132,6 +132,8 @@
 .ex-dp-opt b { font-size: 18px; font-variant-numeric: tabular-nums; }
 .ex-dp-opt small { font-size: 11.5px; color: var(--ex-muted); }
 @container (max-width: 760px) { .ex-dp-opts { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+.ex-dp-read { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; background: #F7F8FA; border-radius: 8px; padding: 8px 12px; margin: -2px 0 8px; font-size: 13px; color: var(--ex-muted); }
+.ex-dp-read b { font-size: 17px; color: var(--ex-text); font-variant-numeric: tabular-nums; }
 .ex-dp-chips { display: flex; flex-wrap: wrap; gap: 8px; }
 .ex-dp-chip { all: unset; cursor: pointer; display: inline-flex; align-items: baseline; gap: 8px; padding: 8px 14px; border-radius: 999px; background: var(--ex-card); border: 1px solid var(--ex-line); font-size: 13px; color: var(--ex-text); }
 .ex-dp-chip b { font-weight: 600; color: var(--ex-muted); font-variant-numeric: tabular-nums; }
@@ -817,6 +819,8 @@ window.exU = (function () {
   };
   const redraw = () => { dash.draw('dpBody'); dash.draw('pageTitle'); };
   const bars = (box, data, val, goal, label, target) => requestAnimationFrame(() => {
+    // readout: shows the tapped month (starts on the goal month, or the last bar)
+    const read = el('div', 'ex-dp-read'); box.append(read);
     const W = Math.max(280, box.clientWidth || 560), H = 190;
     const x = d3.scaleBand().domain(data.map((d) => d.month)).range([4, W - 4]).padding(0.3);
     const y = d3.scaleLinear().domain([0, Math.max(d3.max(data, val) || 1, target || 0)]).range([H - 22, 18]);
@@ -825,11 +829,19 @@ window.exU = (function () {
       svg.append('line').attr('x1', 4).attr('x2', W - 4).attr('y1', y(target)).attr('y2', y(target)).style('stroke', '#2E9E6A').style('stroke-dasharray', '4 4');
       svg.append('text').attr('x', W - 6).attr('y', y(target) - 5).attr('text-anchor', 'end').style('fill', '#2E9E6A').style('font-weight', 600).text('Goal ' + U.usdK(target));
     }
-    svg.selectAll('rect').data(data).join('rect').attr('x', (d) => x(d.month)).attr('width', x.bandwidth()).attr('y', (d) => y(val(d))).attr('height', (d) => Math.max(1, y(0) - y(val(d)))).attr('rx', 3)
-      .style('fill', (d) => d.month === goal ? '#9B59D0' : (d.month > goal ? '#E6DAF2' : '#C9A9E6'));
+    const color = (d, sel) => d.month === sel ? '#7B3FB3' : (d.month === goal ? '#9B59D0' : (d.month > goal ? '#E6DAF2' : '#C9A9E6'));
+    const rects = svg.selectAll('rect.b').data(data).join('rect').attr('class', 'b').attr('x', (d) => x(d.month)).attr('width', x.bandwidth()).attr('y', (d) => y(val(d))).attr('height', (d) => Math.max(1, y(0) - y(val(d)))).attr('rx', 3);
     if (x.bandwidth() > 26) svg.selectAll('text.v').data(data).join('text').attr('class', 'ex-vlabel').attr('text-anchor', 'middle').attr('x', (d) => x(d.month) + x.bandwidth() / 2).attr('y', (d) => y(val(d)) - 5).style('font-size', '10px').text((d) => U.usdK(val(d)));
     svg.selectAll('text.m').data(data).join('text').attr('text-anchor', 'middle').attr('x', (d) => x(d.month) + x.bandwidth() / 2).attr('y', H - 6).style('font-size', '10px')
       .style('font-weight', (d) => d.month === goal ? 700 : 400).text((d, i) => (i % Math.max(1, Math.ceil(40 / x.step())) === 0) ? short(d.month).replace(/ 20(\d\d)$/, " '$1") : '');
+    const pick = (d) => {
+      rects.style('fill', (r) => color(r, d.month));
+      read.replaceChildren(el('span', '', U.monthName(d.month)), el('b', '', usd0(val(d))));
+    };
+    // full-height invisible tap areas, so every month is easy to tap on a phone
+    svg.selectAll('rect.hit').data(data).join('rect').attr('class', 'hit').attr('x', (d) => x(d.month) - x.step() * x.paddingInner() / 2).attr('width', x.step()).attr('y', 0).attr('height', H)
+      .style('fill', 'transparent').style('cursor', 'pointer').on('click', (e, d) => pick(d)).on('pointerenter', (e, d) => { if (e.pointerType === 'mouse') pick(d); });
+    pick(data.find((d) => d.month === goal) || data[data.length - 1]);
   });
   const doneTag = (d) => d.balance <= 0 ? el('span', 'ex-dp-tag ok', 'Paid off') : el('span', 'ex-dp-tag ' + (d.by_goal ? 'ok' : 'late'), d.payoff_month ? 'Done ' + short(d.payoff_month) : 'Long term');
   const row = (name, right, pct, metaL, metaR, onClick) => {
