@@ -32,7 +32,7 @@ import html, json, sys
 from datetime import date
 
 MONTHS = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December']
-DEFAULTS = {'goal_month': '2027-04', 'target_checks_per_month': 2.17, 'valet_checks_per_month': 4.33, 'cushion_pct': 10}
+DEFAULTS = {'goal_month': '2027-04', 'target_checks_per_month': 2.17, 'valet_checks_per_month': 4.33, 'cushion_pct': 20}
 
 
 def mname(m, short=False):
@@ -109,21 +109,38 @@ def compute(expenses, debts, today):
     for a in accounts:
         b = current_balance(a, payments)
         orig = float(a.get('original', a['balance']))
+        promo = a.get('interest_free_until') or ''
+        need = float(a.get('monthly') or 0)
+        if promo and b > 0:  # 0% deal: must be fully paid by the end of that month
+            need = max(need, -(-b // max(1, months_between(cur, promo) + 1)))
         debts_now.append({'id': a['id'], 'name': a['name'], 'kind': a.get('kind', 'Other'), 'apr': float(a.get('apr') or 0),
-                          'monthly': float(a.get('monthly') or 0), 'paid_from': a.get('paid_from', 'Target'),
+                          'monthly': float(a.get('monthly') or 0), 'needed_monthly': round(need, 2), 'interest_free_until': promo,
+                          'paid_from': a.get('paid_from', 'Target'),
                           'balance': b, 'original': max(orig, b),
                           'paid_so_far': round(sum(p['amount'] for p in payments if p['debt_id'] == a['id']), 2)})
+
+    # a job with no paycheck logged yet: assume it covers just the minimum of its own debts (estimated plan)
+    estimated = income['Target']['n_logged'] == 0 or income['Valet']['n_logged'] == 0
+    if income['Valet']['n_logged'] == 0:
+        valet_free = sum(d['needed_monthly'] for d in debts_now if d['paid_from'] == 'Valet' and d['balance'] > 0)
+    if income['Target']['n_logged'] == 0:
+        target_free = sum(d['needed_monthly'] for d in debts_now if d['paid_from'] != 'Valet' and d['balance'] > 0)
+    # until a full month of his spending is logged, only use up to half of the Target pay (living costs are not known yet)
+    half_rule = bool(income['Target']['n_logged']) and not past
+    if half_rule:
+        target_free = min(target_free, income['Target']['monthly'] * 0.5)
 
     # --- month-by-month simulation
     bal = {d['id']: d['balance'] for d in debts_now}
     info = {d['id']: d for d in debts_now}
     order_extra = lambda ids: sorted(ids, key=lambda i: (-info[i]['apr'], bal[i]))
-    timeline, payoff, shortfall, first = [], {}, False, None
+    timeline, payoff, shortfall, first, first_t = [], {}, False, None, {}
     interest_total = 0.0
     m = cur
     for step in range(72):
         if all(bal[i] <= 0.005 for i in bal): break
         pays = {i: 0.0 for i in bal}
+        src_t = {i: 0.0 for i in bal}  # part paid with Target money (the rest is Valet money)
         for i in bal:  # interest
             if bal[i] > 0 and info[i]['apr']:
                 it = bal[i] * info[i]['apr'] / 1200; bal[i] += it; interest_total += it
@@ -134,18 +151,26 @@ def compute(expenses, debts, today):
             p = min(bal[i], vpool); pays[i] += p; bal[i] -= p; vpool -= p
         # 2) minimums / monthly payments on Target debts
         for i in [i for i in bal if info[i]['paid_from'] != 'Valet' and bal[i] > 0]:
-            need = min(bal[i], info[i]['monthly'])
-            p = min(need, tpool); pays[i] += p; bal[i] -= p; tpool -= p
+            need = min(bal[i], info[i]['needed_monthly'])
+            p = min(need, tpool); pays[i] += p; src_t[i] += p; bal[i] -= p; tpool -= p
             if p + 0.005 < need: shortfall = True
+        # 2b) a Valet debt that did not get its minimum this month is topped up from Target money
+        for i in [i for i in bal if info[i]['paid_from'] == 'Valet' and bal[i] > 0]:
+            short = min(bal[i], info[i]['needed_monthly']) - pays[i]
+            if short > 0.005:
+                p = min(short, tpool); pays[i] += p; src_t[i] += p; bal[i] -= p; tpool -= p
+                if p + 0.005 < short: shortfall = True
         # 3) everything left goes to the next debt (highest interest first, then smallest)
-        pool = tpool + vpool
+        #    (Target money only helps Valet debts with their minimum, never with extra: Valet pays the watch)
         for i in order_extra([i for i in bal if bal[i] > 0]):
-            p = min(bal[i], pool); pays[i] += p; bal[i] -= p; pool -= p
+            pv = min(bal[i], vpool); pays[i] += pv; bal[i] -= pv; vpool -= pv
+            if info[i]['paid_from'] != 'Valet' or st.get('target_helps_valet'):
+                pt = min(bal[i], tpool); pays[i] += pt; src_t[i] += pt; bal[i] -= pt; tpool -= pt
         for i in bal:
             if bal[i] <= 0.005 and i not in payoff and (pays[i] > 0 or info[i]['balance'] == 0): payoff[i] = m
         timeline.append({'month': m, 'payments': {i: round(v, 2) for i, v in pays.items() if v > 0},
                          'left': round(sum(max(0, v) for v in bal.values()), 2)})
-        if first is None: first = {i: round(v, 2) for i, v in pays.items()}
+        if first is None: first = {i: round(v, 2) for i, v in pays.items()}; first_t = dict(src_t)
         m = add_month(m)
     for d in debts_now:
         if d['balance'] <= 0: payoff[d['id']] = payoff.get(d['id'], cur)
@@ -158,37 +183,47 @@ def compute(expenses, debts, today):
     for d in debts_now:
         amt = first.get(d['id'], 0)
         if amt <= 0: continue
-        # Valet money covers Valet debts first; anything else in month 1 comes from Target (or Valet leftovers)
-        src = 'Valet' if d['paid_from'] == 'Valet' else 'Target'
-        n = income[src]['checks_per_month'] or 1
-        per_check[src].append({'debt': d['name'], 'amount': round(amt / n, 2)})
+        t_part = first_t.get(d['id'], 0); v_part = amt - t_part
+        for src, part in (('Valet', v_part), ('Target', t_part)):
+            if part > 0.5:
+                per_check[src].append({'debt': d['name'], 'amount': round(part / (income[src]['checks_per_month'] or 1), 2)})
     for d in debts_now:
         d['payoff_month'] = payoff.get(d['id'])
         d['this_month'] = round(first.get(d['id'], 0), 2)
         d['by_goal'] = bool(d['payoff_month'] and d['payoff_month'] <= goal)
         d['pct_paid'] = round((1 - d['balance'] / d['original']) * 100, 1) if d['original'] else 100.0
+        d['late_for_promo'] = bool(d['interest_free_until'] and d['balance'] > 0 and (not d['payoff_month'] or d['payoff_month'] > d['interest_free_until']))
 
     total = round(sum(d['balance'] for d in debts_now), 2)
     months_left = max(1, months_between(cur, goal) + 1)
-    steps = make_steps(debts_now, income, per_check, spend, goal, debt_free, left_at_goal, shortfall)
+    steps = make_steps(debts_now, income, per_check, spend, goal, debt_free, left_at_goal, shortfall, estimated, half_rule)
     return {
         'generated': today.isoformat(), 'month': cur, 'goal_month': goal, 'months_to_goal': months_left,
         'total_debt': total, 'debt_free_month': debt_free, 'left_at_goal': round(left_at_goal, 2),
         'income': income, 'monthly_spending': spend, 'cushion_pct': st['cushion_pct'],
-        'available_monthly': round(target_free + valet_free, 2), 'target_free': round(target_free, 2), 'valet_free': round(valet_free, 2),
+        'available_monthly': round(sum(first.values()) if first else 0, 2), 'target_free': round(target_free, 2), 'valet_free': round(valet_free, 2),
         'extra_this_month': round(extra_now, 2), 'interest_estimate': round(interest_total, 2),
         'shortfall': shortfall, 'debts': debts_now, 'per_check': per_check, 'steps': steps,
         'timeline': [{'month': t['month'], 'left': t['left'], 'paid': round(sum(t['payments'].values()), 2)} for t in timeline[:24]],
+        'estimated': estimated,
         'ready': bool(debts_now) and (income['Target']['n_logged'] + income['Valet']['n_logged']) > 0,
     }
 
 
-def make_steps(debts, income, per_check, spend, goal, debt_free, left_at_goal, shortfall):
+def make_steps(debts, income, per_check, spend, goal, debt_free, left_at_goal, shortfall, estimated=False, half_rule=False):
     s = []
     if not debts:
         return ['Write each debt in your note, e.g. "Debt watch 2800" or "Debt credit card 3200 min 120 24%".']
-    if not (income['Target']['n_logged'] or income['Valet']['n_logged']):
-        s.append('Log your paychecks with a + sign, e.g. "+ Target 1050" and "+ Valet 400", so the plan knows what you earn.')
+    missing = [j for j in ('Target', 'Valet') if not income[j]['n_logged']]
+    if missing:
+        s.append('No ' + ' or '.join(missing) + ' paycheck logged yet, so that part shows the minimum you need to pay. Write your checks in your note (e.g. "Target 1800", "Valet 400") and the plan will speed up.')
+    if half_rule and any(d['paid_from'] != 'Valet' and d['balance'] > 0 for d in debts):
+        s.append('Your first month: until a full month of your spending is logged, the plan only uses up to half of your Target pay for debts, so you still have money to live on.')
+    for d in debts:
+        if d['interest_free_until'] and d['balance'] > 0:
+            n = income['Valet' if d['paid_from'] == 'Valet' else 'Target']['checks_per_month'] or 1
+            s.append(f"The {d['name']} has 0% interest until {mname(d['interest_free_until'])}: pay at least {usd0(d['needed_monthly'])} a month "
+                     f"(about {usd0(d['needed_monthly'] / n)} from each {d['paid_from']} check) so it is done in time. Faster is better.")
     for job in ('Valet', 'Target'):
         if per_check[job]:
             parts = ', '.join(f"{usd0(x['amount'])} to {x['debt']}" for x in per_check[job])
@@ -196,18 +231,21 @@ def make_steps(debts, income, per_check, spend, goal, debt_free, left_at_goal, s
     vd = [d for d in debts if d['paid_from'] == 'Valet' and d['balance'] > 0]
     for d in vd:
         if d['payoff_month']:
-            s.append(f"Valet money pays the {d['name']} first; it is done in {mname(d['payoff_month'])}. Then that same money moves to the next debt.")
+            s.append(f"The {d['name']} is done in {mname(d['payoff_month'])}. After that, the money you were sending to it moves to the next debt.")
     td = sorted([d for d in debts if d['paid_from'] != 'Valet' and d['balance'] > 0], key=lambda d: (-d['apr'], d['balance']))
     if td:
         s.append('Pay at least the monthly payment on ' + ', '.join(d['name'] for d in td) + '. Any extra goes to the ' + td[0]['name'] + ' first' + (' (highest interest).' if td[0]['apr'] else '.'))
     s.append('Extra money (gifts, bonuses, tips) goes straight to the next debt in line. Log it with a + sign.')
     s.append('Never use the Cozy House savings or the automatic $1,300 for debts.')
     if debt_free and debt_free <= goal:
-        s.append(f'On this plan you are debt-free by {mname(debt_free)}, before the {mname(goal)} goal.')
+        s.append(f'On this plan you are debt-free by {mname(debt_free)}, in time for the {mname(goal)} goal.')
     elif left_at_goal > 0:
         s.append(f'By {mname(goal)} about {usd0(left_at_goal)} would still be left (mostly long loans like the car). Keep the monthly payment going after that.')
+    for d in debts:
+        if d.get('late_for_promo'):
+            s.append(f"Heads-up: at this pace the {d['name']} would not be done before its 0% deal ends ({mname(d['interest_free_until'])}). Put extra money there first.")
     if shortfall:
-        s.append('Heads-up: the Target money left after your spending does not fully cover the monthly payments. Trim spending or add Valet shifts.')
+        s.append('Heads-up: the money left after your spending does not fully cover the monthly payments. Trim spending or add Valet shifts.')
     return s
 
 
@@ -235,7 +273,7 @@ def email_html(p, url):
         if rows:
             inc = p['income'][job]
             checks += (f'<div style="font-size:12px;font-weight:700;color:{ACCENT};margin:6px 0 2px;">EACH {job.upper()} CHECK '
-                       f'<span style="color:{MUTED};font-weight:400;">(about {usd0(inc["per_check"])})</span></div>'
+                       + (f'<span style="color:{MUTED};font-weight:400;">(about {usd0(inc["per_check"])})</span>' if inc["per_check"] else '') + '</div>'
                        f'<table role="presentation" width="100%" cellpadding="0" cellspacing="0">{rows}</table>')
     if not checks:
         checks = f'<div style="font-size:13px;color:{MUTED};">Log your debts and paychecks in your note to get amounts per check.</div>'
@@ -245,7 +283,7 @@ def email_html(p, url):
         when = mname(d['payoff_month']) if d['payoff_month'] else 'later'
         tag = (f'<span style="color:{GOOD};">by goal</span>' if d['by_goal'] else f'<span style="color:{MUTED};">after goal</span>') if d['balance'] > 0 else f'<span style="color:{GOOD};">paid off</span>'
         drows += (f'<tr><td style="padding:8px 0;border-bottom:1px solid #EEF0F3;"><div style="font-size:14px;font-weight:600;color:{TEXT};">{e(d["name"])}'
-                  f' <span style="font-size:11px;font-weight:400;color:{MUTED};">· {e(d["paid_from"])}{(" · " + str(d["apr"]).rstrip("0").rstrip(".") + "% APR") if d["apr"] else ""}</span></div>'
+                  f' <span style="font-size:11px;font-weight:400;color:{MUTED};">· {e(d["paid_from"])}{(" · " + str(d["apr"]).rstrip("0").rstrip(".") + "% APR") if d["apr"] else ""}{(" · 0% until " + mname(d["interest_free_until"], True)) if d.get("interest_free_until") else ""}</span></div>'
                   f'<div style="height:6px;background:#EEF0F3;border-radius:3px;margin:6px 0 4px;"><div style="width:{pct}%;height:6px;background:{ACCENT};border-radius:3px;"></div></div>'
                   f'<div style="font-size:11px;color:{MUTED};">Paid off {e(when)} · {tag}</div></td>'
                   f'<td align="right" valign="top" style="padding:8px 0 8px 10px;border-bottom:1px solid #EEF0F3;font-size:14px;font-weight:700;color:{TEXT};white-space:nowrap;">{usd(d["balance"])}'
@@ -267,7 +305,7 @@ def email_html(p, url):
 {card('Your debts', debts_t or f'<div style="font-size:13px;color:{MUTED};">No debts logged yet.</div>')}
 {card('The money behind the plan', money)}
 <tr><td style="padding:4px 0 20px;font-size:12px;color:{MUTED};line-height:1.6;">Amounts are in US dollars and based on what you logged in your note. The Cozy House savings and your automatic $1,300 a month are never touched.
-Log new paychecks with a + sign and payments like "Paid watch 300"; write "send plan" any time to get this email again.<br>
+Log paychecks like "Target 1800" or "Valet 400", extra money with a + sign, and payments like "Paid watch 300"; write "send plan" any time to get this email again.<br>
 <a href="{e(url)}" style="color:{ACCENT};">Open the dashboard</a></td></tr>
 </table></td></tr></table></body></html>'''
 

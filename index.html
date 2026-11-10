@@ -777,7 +777,7 @@ window.exU = (function () {
   const usd0 = (v) => '$' + d3.format(',.0f')(Math.round(v));
   const help = () => {
     const h = el('div', 'ex-dp-help');
-    h.innerHTML = 'How to write it in your note: paychecks with a <b>+</b> &nbsp;<code>+ Target 1050</code> <code>+ Valet 400</code> · extra money <code>+ Bonus 200</code><br>' +
+    h.innerHTML = 'How to write it in your note: paychecks &nbsp;<code>Target 1800</code> <code>Valet 400</code> · extra money <code>+ Bonus 200</code><br>' +
       'debts <code>Debt watch 2800</code> <code>Debt credit card 3200 min 120 24%</code> <code>Debt car 18000 monthly 450</code><br>' +
       'payments <code>Paid watch 300</code> · new balance <code>Card balance 2900</code> · get it by email <code>send plan</code>';
     return h;
@@ -793,10 +793,10 @@ window.exU = (function () {
     const stats = el('div', 'ex-dp-stats');
     const stat = (l, v, s, good) => { const b = el('div', 'ex-dp-stat'); b.append(el('div', 'l', l)); const vv = el('div', 'v' + (good ? ' good' : ''), v); b.append(vv); if (s) b.append(el('div', 's', s)); stats.append(b); };
     const onTime = p.debt_free_month && p.debt_free_month <= p.goal_month;
-    stat('Total debt', U.usd(p.total_debt), p.debts.length + ' debts');
-    stat('Debt-free', p.debt_free_month ? U.monthName(p.debt_free_month, true) : '6+ years', onTime ? 'before the goal' : 'goal ' + U.monthName(p.goal_month, true), onTime);
+    stat('Total debt', U.usd(p.total_debt), p.debts.length + (p.debts.length === 1 ? ' debt' : ' debts'));
+    stat('Debt-free', p.debt_free_month ? U.monthName(p.debt_free_month, true) : '6+ years', onTime ? 'on time for the goal' : 'goal ' + U.monthName(p.goal_month, true), onTime);
     stat('Left by ' + U.monthName(p.goal_month, true), usd0(p.left_at_goal), p.left_at_goal > 0 ? 'keep paying after' : 'all paid', p.left_at_goal <= 0);
-    stat('To debts / month', usd0(p.available_monthly), 'Target + Valet');
+    stat('To debts / month', usd0(p.available_monthly), p.estimated ? 'minimum · log your checks' : 'Target + Valet');
     root.append(stats);
 
     const cols = el('div', 'ex-dp-cols');
@@ -804,7 +804,7 @@ window.exU = (function () {
     let any = false;
     for (const job of ['Target', 'Valet']) {
       const xs = p.per_check[job] || []; if (!xs.length) continue; any = true;
-      const t = el('div', 'ex-dp-job', job + ' check '); t.append(el('span', '', '(about ' + usd0(p.income[job].per_check) + ')')); left.append(t);
+      const t = el('div', 'ex-dp-job', job + ' check '); if (p.income[job].per_check) t.append(el('span', '', '(about ' + usd0(p.income[job].per_check) + ')')); left.append(t);
       xs.forEach((x) => { const r = el('div', 'ex-dp-line'); r.append(el('span', '', x.debt), el('b', '', U.usd(x.amount))); left.append(r); });
     }
     if (!any) left.append(el('div', 'ex-empty', 'Log your paychecks with a + to see how much goes to each debt.'));
@@ -814,7 +814,7 @@ window.exU = (function () {
       const top = el('div', 'top'); const nm = el('span', '', d.name); nm.style.fontWeight = '600'; top.append(nm, el('b', '', U.usd(d.balance)));
       const bar = el('div', 'ex-dp-bar'); const f = el('div'); f.style.width = Math.max(0, Math.min(100, d.pct_paid)) + '%'; bar.append(f);
       const meta = el('div', 'meta');
-      meta.append(el('span', '', 'Paid by ' + d.paid_from + (d.apr ? ' · ' + d.apr + '% APR' : '') + ' · ' + usd0(d.this_month) + ' this month'));
+      meta.append(el('span', '', 'Paid by ' + d.paid_from + (d.apr ? ' · ' + d.apr + '% APR' : '') + (d.interest_free_until ? ' · 0% until ' + U.monthName(d.interest_free_until, true) : '') + ' · ' + usd0(d.this_month) + ' this month'));
       const tag = d.balance <= 0 ? el('span', 'ex-dp-tag ok', 'Paid off') : el('span', 'ex-dp-tag ' + (d.by_goal ? 'ok' : 'late'), (d.payoff_month ? 'Done ' + U.monthName(d.payoff_month, true) : 'Long term') + (d.by_goal ? ' ✓' : ''));
       meta.append(tag);
       r.append(top, bar, meta); right.append(r);
