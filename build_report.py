@@ -62,6 +62,14 @@ def card(title, body, sub='', center=False):
             f'style="background:{CARD};border:1px solid {LINE};border-radius:4px;"><tr><td style="padding:16px 18px;">{s}'
             f'<div style="margin-top:12px;">{body}</div></td></tr></table></td></tr>')
 
+def tip_html(t):
+    if not t: return ''
+    amt = usd0(t['amount']) + (f' ({cop(t["amount_cop"])})' if t.get('amount_cop') else '')
+    soon = ' &rarr; paid off now' if t.get('clears') else f' &rarr; paid off {t["months_sooner"]} month{"s" if t["months_sooner"] != 1 else ""} sooner' if t['months_sooner'] > 0 else ''
+    why = ', less interest' if t['reason'] == 'interest' else ''
+    return (f'<div style="margin-top:12px;padding:10px 12px;border-radius:6px;background:#F5EEFB;font-size:13px;color:{TEXT};line-height:1.45;">'
+            f'<b style="color:{PURPLE};">Tip:</b> {amt} extra to {e(t["debt"])}{soon}{why}. Keep {usd0(t["keep"])} for fun.</div>')
+
 def dot(c, size=9): return f'<span style="display:inline-block;width:{size}px;height:{size}px;border-radius:50%;background:{c};margin-right:6px;vertical-align:middle;"></span>'
 
 def main():
@@ -159,8 +167,7 @@ def main():
         return (f'<td width="50%" valign="top" style="padding:0;"><table role="presentation" width="100%" cellpadding="0" cellspacing="0" '
                 f'style="background:{CARD};border:1px solid {LINE};border-radius:4px;"><tr><td style="padding:14px 14px 16px;">'
                 f'<div style="font-size:13px;font-weight:700;color:{TEXT};">{label}</div>'
-                f'<div style="text-align:center;margin-top:8px;font-size:12px;">{d}</div>'
-                f'<div style="text-align:center;font-size:{size};font-weight:800;color:{TEXT};margin-top:2px;">{v}</div>'
+                f'<div style="text-align:center;font-size:{size};font-weight:800;color:{TEXT};margin-top:10px;">{v}</div>'
                 f'<div style="text-align:center;font-size:12px;color:{MUTED};margin-top:2px;">{cap}</div></td></tr></table></td>')
     kpis = (f'<tr><td style="padding:0 24px 14px;"><table role="presentation" width="100%" cellpadding="0" cellspacing="0">'
             f'<tr>{tile(tiles[0])}<td width="12"></td>{tile(tiles[1])}</tr><tr><td colspan="3" height="12"></td></tr>'
@@ -299,7 +306,8 @@ def main():
             f'<table role="presentation" width="100%" cellpadding="0" cellspacing="0">'
             f'<tr><td style="font-size:14px;font-weight:700;color:{TEXT};">Left over in {mname(month)}</td><td align="right" style="font-size:18px;font-weight:800;color:{DOWN if left > 0 else TEXT};">{("+" + usd(left)) if left > 0 else usd(0)}</td></tr>'
             f'<tr><td colspan="2" style="font-size:12px;color:{MUTED};padding:2px 0 10px;border-bottom:1px solid #EEF0F3;">{cap}</td></tr>'
-            f'<tr><td style="font-size:14px;font-weight:700;color:{TEXT};padding-top:10px;">Ready to use</td><td align="right" style="font-size:16px;font-weight:800;color:{TEXT};padding-top:10px;white-space:nowrap;">{tot}</td></tr></table>')
+            f'<tr><td style="font-size:14px;font-weight:700;color:{TEXT};padding-top:10px;">Ready to use</td><td align="right" style="font-size:16px;font-weight:800;color:{TEXT};padding-top:10px;white-space:nowrap;">{tot}</td></tr></table>'
+            + tip_html(fr.get('tip')))
 
     title = ((f'Cozy House {month} Wrapped' if who else f'{person}’s {month} Wrapped') if year_mode
              else ('Cozy House' if who else f'{person}’s Report'))

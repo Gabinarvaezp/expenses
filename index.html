@@ -135,6 +135,8 @@
 .ex-dp-read { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; background: #F7F8FA; border-radius: 8px; padding: 8px 12px; margin: -2px 0 8px; font-size: 13px; color: var(--ex-muted); }
 .ex-dp-read b { font-size: 17px; color: var(--ex-text); font-variant-numeric: tabular-nums; }
 .ex-dp-budget { display: flex; flex-direction: column; }
+.ex-dp-tip { margin-top: 12px; padding: 10px 12px; border-radius: 6px; background: rgba(155,89,208,.08); color: inherit; font-size: 13px; line-height: 1.45; }
+.ex-dp-tip b { color: #9B59D0; }
 .ex-dp-bline { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; padding: 8px 0; border-bottom: 1px solid #EEF0F3; font-size: 14px; }
 .ex-dp-bline small { display: block; font-size: 11.5px; color: var(--ex-muted); margin-top: 2px; }
 .ex-dp-bline b { font-variant-numeric: tabular-nums; }
@@ -965,7 +967,15 @@ window.exU = (function () {
         fr.months.forEach((x) => line(short(x.month), x.left > 0 ? '+' + usd0(x.left) : usd0(0), 'in ' + usd0(x.income) + ' · recurring ' + usd0(x.fixed) + ' · everyday ' + usd0(x.variable) + (x.saved ? ' · saved ' + usd0(x.saved) : '') + (x.debts ? ' · debts ' + usd0(x.debts) : '')));
         if (fr.this_month) line(short(fr.this_month.month) + ' so far', (fr.this_month.left < 0 ? '−' : '') + usd0(Math.abs(fr.this_month.left)), 'adds when the month closes');
         if (fr.spent) line('Used', '−' + usd0(fr.spent), fr.spent_items.map((x) => x.item).join(', '));
-        fc.append(t); grid.append(fc);
+        fc.append(t);
+        if (fr.tip) {
+          const tp = el('div', 'ex-dp-tip');
+          tp.append(el('b', '', 'Tip: '), document.createTextNode(usd0(fr.tip.amount) + (fr.tip.amount_cop ? ' (' + U.cop(fr.tip.amount_cop) + ')' : '') + ' extra to ' + fr.tip.debt
+            + (fr.tip.clears ? ' → paid off now' : fr.tip.months_sooner > 0 ? ' → paid off ' + fr.tip.months_sooner + (fr.tip.months_sooner === 1 ? ' month' : ' months') + ' sooner' : '')
+            + (fr.tip.reason === 'interest' ? ', less interest' : '') + '. Keep ' + usd0(fr.tip.keep) + ' for fun.'));
+          fc.append(tp);
+        }
+        grid.append(fc);
       }
       if (who === 'Together' && fund) {
         const house = goals.find((g) => g.uses_cozy_fund);

@@ -365,6 +365,25 @@ def compute_free(expenses, savings, debts, who, cur, rate):
             'this_month': now, 'spent_items': [{'month': e['month'], 'item': e['item'], 'amount': e['amount_usd']} for e in mine if e.get('from_free')]}
 
 
+def free_tip(free, debts_list, rate=None):
+    """Suggest how to use free money: half to the costliest debt (interest first, then the 0% that ends soonest),
+    the other half stays free for trips and fun. No debts → no suggestion."""
+    bal = free.get('balance') or 0
+    live = [d for d in debts_list if d.get('balance', 0) > 0]
+    if bal < 20 or not live:
+        return None
+    d = sorted(live, key=lambda d: (-(d.get('apr') or 0), d.get('interest_free_until') or '9999', -d['balance']))[0]
+    amt = min(d['balance'], round(bal / 2 / 10) * 10 or round(bal / 2))
+    mon = d.get('this_month') or d.get('goal_monthly') or 0
+    sooner = 0
+    if mon > 0:
+        sooner = int(-(-d['balance'] // mon) - -(-max(0.0, d['balance'] - amt) // mon))
+    clears = amt >= d['balance'] - 0.01
+    cop_amt = (d.get('balance_cop') if clears and d.get('balance_cop') else round(amt * rate / 1000) * 1000) if rate else None
+    return {'debt': d['name'], 'amount': round(amt, 2), 'amount_cop': cop_amt, 'months_sooner': sooner,
+            'keep': round(bal - amt, 2), 'clears': clears, 'reason': 'interest' if (d.get('apr') or 0) > 0 else 'payoff'}
+
+
 def budget(expenses, savings, who, cur, rate, debts_monthly, goals_monthly, pots_monthly=0.0):
     """Money in vs out for one person: income = average of the last 3 months they logged income."""
     mine = [e for e in expenses if e['person'] == who]
@@ -412,6 +431,7 @@ def compute_all(expenses, debts, savings, today):
             p['pots'] = compute_pots(debts, who, cur, rate)
             p['pots_monthly'] = round(sum(x['monthly'] for x in p['pots'] if x['active']), 2)
             p['free'] = compute_free(expenses, savings, debts, who, cur, rate)
+            p['free']['tip'] = free_tip(p['free'], p['debts'], rate if who == 'Gabby' else None)
             p['budget'] = budget(expenses, savings, who, cur, rate, p['available_monthly'] if p['debts'] else 0, p['goals_monthly'], p['pots_monthly'])
         people[who] = p
     return {'generated': today.isoformat(), 'month': cur, 'goal_month': st['goal_month'], 'rate': rate, 'people': people}
