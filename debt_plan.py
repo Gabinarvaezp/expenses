@@ -213,10 +213,10 @@ def compute(expenses, debts, today):
 def make_steps(debts, income, per_check, spend, goal, debt_free, left_at_goal, shortfall, estimated=False, half_rule=False):
     s = []
     if not debts:
-        return ['Write each debt in your note, e.g. "Debt watch 2800" or "Debt credit card 3200 min 120 24%".']
+        return ['Write what you owe in your note, e.g. "Reloj 2890", "Carro 18000" or "Tarjeta 3200".']
     missing = [j for j in ('Target', 'Valet') if not income[j]['n_logged']]
     if missing:
-        s.append('No ' + ' or '.join(missing) + ' paycheck logged yet, so that part shows the minimum you need to pay. Write your checks in your note (e.g. "Target 1800", "Valet 400") and the plan will speed up.')
+        s.append('No ' + ' or '.join(missing) + ' paycheck logged yet, so that part shows the minimum you need to pay. Write your checks in your note with a + (e.g. "Target + 1800", "Valet + 399") and the plan will speed up.')
     if half_rule and any(d['paid_from'] != 'Valet' and d['balance'] > 0 for d in debts):
         s.append('Your first month: until a full month of your spending is logged, the plan only uses up to half of your Target pay for debts, so you still have money to live on.')
     for d in debts:
@@ -305,7 +305,7 @@ def email_html(p, url):
 {card('Your debts', debts_t or f'<div style="font-size:13px;color:{MUTED};">No debts logged yet.</div>')}
 {card('The money behind the plan', money)}
 <tr><td style="padding:4px 0 20px;font-size:12px;color:{MUTED};line-height:1.6;">Amounts are in US dollars and based on what you logged in your note. The Cozy House savings and your automatic $1,300 a month are never touched.
-Log paychecks like "Target 1800" or "Valet 400", extra money with a + sign, and payments like "Paid watch 300"; write "send plan" any time to get this email again.<br>
+Money in has a + ("Valet + 399"), what you owe is just the name and amount ("Reloj 2890"), payments say "Pagué reloj 400"; write "send plan" any time to get this email again.<br>
 <a href="{e(url)}" style="color:{ACCENT};">Open the dashboard</a></td></tr>
 </table></td></tr></table></body></html>'''
 

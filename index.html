@@ -777,9 +777,9 @@ window.exU = (function () {
   const usd0 = (v) => '$' + d3.format(',.0f')(Math.round(v));
   const help = () => {
     const h = el('div', 'ex-dp-help');
-    h.innerHTML = 'How to write it in your note: paychecks &nbsp;<code>Target 1800</code> <code>Valet 400</code> · extra money <code>+ Bonus 200</code><br>' +
-      'debts <code>Debt watch 2800</code> <code>Debt credit card 3200 min 120 24%</code> <code>Debt car 18000 monthly 450</code><br>' +
-      'payments <code>Paid watch 300</code> · new balance <code>Card balance 2900</code> · get it by email <code>send plan</code>';
+    h.innerHTML = 'How to write it in your note: money in has a <b>+</b> &nbsp;<code>Target + 1800</code> <code>Valet + 399</code> <code>+ Bonus 200</code><br>' +
+      'what you owe <code>Reloj 2890</code> <code>Carro 18000</code> <code>Tarjeta 3200</code> · payments <code>Pagué reloj 400</code><br>' +
+      'spending <code>Gaseosa 5</code> · get this plan by email <code>send plan</code>';
     return h;
   };
   dash.draw('dpSub', (n) => { const p = plan(); n.textContent = p ? 'Goal: ' + U.monthName(p.goal_month) + ' · updated ' + p.generated : ''; });
