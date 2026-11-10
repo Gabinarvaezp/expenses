@@ -39,6 +39,7 @@
 .ex-kpi .ex-kpi-label { font-size: 13px; font-weight: 600; align-self: stretch; text-align: left; margin-bottom: 4px; }
 .ex-delta { font-size: 12px; font-weight: 600; min-height: 16px; font-variant-numeric: tabular-nums; }
 .ex-delta.ex-isup { color: var(--ex-up); } .ex-delta.ex-isdown { color: var(--ex-down); }
+.ex-kpi .ex-delta { display: none; }
 .ex-kpi-value { font-size: 30px; font-weight: 700; letter-spacing: -.01em; font-variant-numeric: tabular-nums; line-height: 1.15; overflow-wrap: anywhere; }
 .ex-kpi-value.ex-word { font-size: 21px; }
 .ex-kpi-cap { font-size: 12px; color: var(--ex-muted); font-variant-numeric: tabular-nums; }
@@ -135,6 +136,7 @@
 .ex-dp-read { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; background: #F7F8FA; border-radius: 8px; padding: 8px 12px; margin: -2px 0 8px; font-size: 13px; color: var(--ex-muted); }
 .ex-dp-read b { font-size: 17px; color: var(--ex-text); font-variant-numeric: tabular-nums; }
 .ex-dp-budget { display: flex; flex-direction: column; }
+.ex-auto { margin-left: 6px; font-size: 10px; font-weight: 700; letter-spacing: .03em; text-transform: uppercase; color: #9B59D0; background: rgba(155,89,208,.1); border-radius: 3px; padding: 1px 5px; vertical-align: middle; }
 .ex-dp-tip { margin-top: 12px; padding: 10px 12px; border-radius: 6px; background: rgba(155,89,208,.08); color: inherit; font-size: 13px; line-height: 1.45; }
 .ex-dp-tip b { color: #9B59D0; }
 .ex-dp-bline { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; padding: 8px 0; border-bottom: 1px solid #EEF0F3; font-size: 14px; }
@@ -245,16 +247,16 @@ html, body { margin: 0; padding: 0; background: #F1F2F4; }
         <div class="ex-kpi-cap" data-draw="cTotal" data-source="summary">—</div>
       </div>
       <div class="ex-card ex-kpi ex-span3" id="kpi-everyday">
-        <div class="ex-kpi-label">Everyday Spending</div>
+        <div class="ex-kpi-label">Variable Spending</div>
         <div class="ex-delta" data-draw="dVar" data-source="summary"></div>
         <div class="ex-kpi-value" data-draw="vVar" data-source="summary">—</div>
         <div class="ex-kpi-cap"><span data-draw="cVarN" data-source="summary" data-field="n_variable">—</span> purchases</div>
       </div>
       <div class="ex-card ex-kpi ex-span3" id="kpi-recurring">
-        <div class="ex-kpi-label">Recurring</div>
+        <div class="ex-kpi-label">Fixed Spending</div>
         <div class="ex-delta" data-draw="dFixed" data-source="summary"></div>
         <div class="ex-kpi-value" data-draw="vFixed" data-source="summary">—</div>
-        <div class="ex-kpi-cap"><span data-draw="cFixedN" data-source="summary" data-field="n_fixed">—</span> repeating expenses</div>
+        <div class="ex-kpi-cap"><span data-draw="cFixedN" data-source="summary" data-field="n_fixed">—</span> fixed expenses</div>
       </div>
       <div class="ex-card ex-kpi ex-span3" id="kpi-top">
         <div class="ex-kpi-label">Top Category</div>
@@ -294,13 +296,13 @@ html, body { margin: 0; padding: 0; background: #F1F2F4; }
 
     <section class="ex-card" id="category-heatmap">
       <h2>Category by Month</h2>
-      <p class="ex-sub">Everyday spending per category. Darker cells mean more spending.</p>
+      <p class="ex-sub">Variable spending per category. Darker cells mean more spending.</p>
       <div class="ex-tablewrap"><table class="ex-table ex-heat" data-draw="heat" data-source="categories"></table></div>
     </section>
 
     <section class="ex-grid">
       <div class="ex-card ex-span6" id="fixed-bills">
-        <h2>Recurring Expenses</h2>
+        <h2>Fixed Expenses</h2>
         <div class="ex-tablewrap">
           <table class="ex-table" data-source="expenses" data-row-key="id">
             <thead><tr><th data-field="person">Who</th><th data-field="item">Item</th><th data-field="category">Category</th><th data-field="amount_usd" class="ex-r">Amount</th></tr></thead>
@@ -318,7 +320,7 @@ html, body { margin: 0; padding: 0; background: #F1F2F4; }
         </div>
       </div>
       <div class="ex-card ex-span12" id="variable-purchases">
-        <h2>Everyday Purchases</h2>
+        <h2>Variable Purchases</h2>
         <div class="ex-tablewrap">
           <table class="ex-table" data-source="expenses" data-row-key="id">
             <thead><tr><th data-field="person">Who</th><th data-field="item">Item</th><th data-field="category">Category</th><th data-field="amount_usd" class="ex-r">Amount</th></tr></thead>
@@ -663,7 +665,7 @@ window.exU = (function () {
   function series() {
     const p = U.per();
     if (p === 'Household') return [{ k: 'Gabby', label: 'Gabby', col: U.PERSON.Gabby }, { k: 'Jorgie', label: 'Jorgie', col: U.PERSON.Jorgie }];
-    return [{ k: 'fixed', label: 'Recurring', col: '#C7CDD6' }, { k: 'variable', label: 'Everyday', col: U.PERSON[p] }];
+    return [{ k: 'fixed', label: 'Fixed', col: '#C7CDD6' }, { k: 'variable', label: 'Variable', col: U.PERSON[p] }];
   }
   dash.draw('monthlyLegend', (el) => {
     el.replaceChildren();
@@ -738,7 +740,7 @@ window.exU = (function () {
     const m = U.month(), p = U.per(), cop = U.isCop();
     const key = cop ? 'total_cop' : 'total_usd';
     const rs = d.data.filter((r) => r.month === m && r.person === p);
-    if (!rs.length) { const e = document.createElement('div'); e.className = 'ex-empty'; e.textContent = 'No everyday spending this month'; el.append(e); return; }
+    if (!rs.length) { const e = document.createElement('div'); e.className = 'ex-empty'; e.textContent = 'No variable spending this month'; el.append(e); return; }
     const colors = U.catColors();
     const size = Math.min(190, Math.max(140, (el.clientWidth || 300) * 0.5));
     const R = size / 2;
@@ -783,7 +785,7 @@ window.exU = (function () {
     const p = U.per(), cop = U.isCop(), key = cop ? 'total_cop' : 'total_usd';
     const cur = U.month(); const ms = U.isYear(cur) ? U.months().filter((m) => m.slice(0, 4) === cur) : U.months().slice(-6);
     const rs = d.data.filter((r) => r.person === p && ms.includes(r.month));
-    if (!rs.length) { const tr = tbl.insertRow(); const td = tr.insertCell(); td.className = 'ex-empty'; td.textContent = 'No everyday spending yet'; return; }
+    if (!rs.length) { const tr = tbl.insertRow(); const td = tr.insertCell(); td.className = 'ex-empty'; td.textContent = 'No variable spending yet'; return; }
     const cats = d3.rollups(rs, (v) => d3.sum(v, (r) => r[key]), (r) => r.category).sort((a, b) => b[1] - a[1]).map((c) => c[0]);
     const max = d3.max(rs, (r) => r[key]) || 1;
     const scale = d3.scaleLinear().domain([0, max]).range([0.08, 1]);
@@ -911,7 +913,7 @@ window.exU = (function () {
       if (bg) {
         const bc = card('ex-span12', 'Money In vs Out');
         const sub = 'average of ' + bg.months_used.map((m) => short(m)).join(', ');
-        const lines = [['Expected income', bg.income_avg, sub + (bg.income_avg_cop ? ' · ≈ ' + U.cop(bg.income_avg_cop) : '')], ['Recurring expenses', -(bg.fixed_avg ?? 0)], ['Everyday spending', -(bg.variable_avg ?? bg.spend_avg)]];
+        const lines = [['Expected income', bg.income_avg, sub + (bg.income_avg_cop ? ' · ≈ ' + U.cop(bg.income_avg_cop) : '')], ['Fixed expenses', -(bg.fixed_avg ?? 0)], ['Variable spending', -(bg.variable_avg ?? bg.spend_avg)]];
         if (bg.savings_monthly) lines.push(['Cozy House saving', -bg.savings_monthly]);
         if (bg.pots_monthly) lines.push(['Other savings', -bg.pots_monthly]);
         if (bg.debts_monthly) lines.push(['Debts', -bg.debts_monthly]);
@@ -964,7 +966,7 @@ window.exU = (function () {
         head.append(top, meta); fc.append(head);
         const t = el('div', 'ex-dp-budget');
         const line = (k, v, note, cls) => { const r = el('div', 'ex-dp-bline' + (cls ? ' ' + cls : '')); const l = el('span', '', k); if (note) l.append(el('small', '', note)); r.append(l, el('b', '', v)); t.append(r); };
-        fr.months.forEach((x) => line(short(x.month), x.left > 0 ? '+' + usd0(x.left) : usd0(0), 'in ' + usd0(x.income) + ' · recurring ' + usd0(x.fixed) + ' · everyday ' + usd0(x.variable) + (x.saved ? ' · saved ' + usd0(x.saved) : '') + (x.debts ? ' · debts ' + usd0(x.debts) : '')));
+        fr.months.forEach((x) => line(short(x.month), x.left > 0 ? '+' + usd0(x.left) : usd0(0), 'in ' + usd0(x.income) + ' · fixed ' + usd0(x.fixed) + ' · variable ' + usd0(x.variable) + (x.saved ? ' · saved ' + usd0(x.saved) : '') + (x.debts ? ' · debts ' + usd0(x.debts) : '')));
         if (fr.this_month) line(short(fr.this_month.month) + ' so far', (fr.this_month.left < 0 ? '−' : '') + usd0(Math.abs(fr.this_month.left)), 'adds when the month closes');
         if (fr.spent) line('Used', '−' + usd0(fr.spent), fr.spent_items.map((x) => x.item).join(', '));
         fc.append(t);
@@ -1094,13 +1096,14 @@ window.exU = (function () {
         const card = tb.closest('.ex-card'); if (card) card.hidden = !rs.length;
         const fx = document.getElementById('fixed-bills'); if (fx) fx.classList.toggle('ex-span12', !rs.length);
       }
-      if (!rs.length) { const tr = tb.insertRow(); const td = tr.insertCell(); td.colSpan = cols; td.className = 'ex-empty'; td.textContent = type === 'Fixed' ? 'No recurring expenses this month' : 'Nothing this month'; return; }
+      if (!rs.length) { const tr = tb.insertRow(); const td = tr.insertCell(); td.colSpan = cols; td.className = 'ex-empty'; td.textContent = type === 'Fixed' ? 'No fixed expenses this month' : 'Nothing this month'; return; }
       rs.forEach((r) => {
         const tr = tb.insertRow(); tr.dataset.key = U.enc(r.id);
         const a = tr.insertCell(); const tag = document.createElement('span'); tag.className = 'ex-tag';
         const dt = document.createElement('span'); dt.className = 'ex-dot'; dt.style.background = U.PERSON[r.person];
         const nm = document.createElement('span'); nm.textContent = r.person; tag.append(dt, nm); a.append(tag);
         const b = tr.insertCell(); b.textContent = r.item;
+        if (r.origin === 'auto') { const at = document.createElement('span'); at.className = 'ex-auto'; at.textContent = 'auto'; b.append(at); }
         const c = tr.insertCell(); const ch = document.createElement('span'); ch.className = 'ex-chip'; ch.textContent = r.category; c.append(ch);
         const dd = tr.insertCell(); dd.className = 'ex-r'; dd.textContent = U.usd(Number(r.amount_usd));
         if (r.currency === 'COP') { const sm = document.createElement('div'); sm.className = 'ex-small'; sm.textContent = U.cop(Number(r.amount)); dd.append(sm); }

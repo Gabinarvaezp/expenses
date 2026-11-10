@@ -488,7 +488,7 @@ def email_html(plan, who, url):
     if bg:
         body += card('Money in vs out', '<table role="presentation" width="100%" cellpadding="0" cellspacing="0"><tr>'
                      + kpi('Expected income', usd0(bg['income_avg']), 'avg of ' + str(len(bg['months_used'])) + ' mo')
-                     + kpi('Recurring + everyday', usd0(bg['fixed_avg']) + ' + ' + usd0(bg['variable_avg'])) + kpi('Left over', usd0(bg['free'])) + '</tr></table>')
+                     + kpi('Fixed + variable', usd0(bg['fixed_avg']) + ' + ' + usd0(bg['variable_avg'])) + kpi('Left over', usd0(bg['free'])) + '</tr></table>')
     f = t.get('fund') or {}
     together = (f'<table role="presentation" width="100%" cellpadding="0" cellspacing="0"><tr>'
                 + kpi('Cozy House fund', usd0(f.get('balance', 0))) + kpi('Going in a month', usd0(f.get('monthly_in', 0)))

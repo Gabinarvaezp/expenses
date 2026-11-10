@@ -143,7 +143,7 @@ def main():
                wedgeprops={'edgecolor': 'white', 'linewidth': 1.5, 'width': 0.38})
         tot_v = sum(d['v'] for _, d in cats)
         ax.text(0, 0.1, usd0(tot_v), ha='center', va='center', fontsize=13, fontweight='bold', color=TEXT)
-        ax.text(0, -0.18, 'everyday', ha='center', va='center', fontsize=7.5, color='#8A919C')
+        ax.text(0, -0.18, 'variable', ha='center', va='center', fontsize=7.5, color='#8A919C')
     ax.set_aspect('equal'); fig.tight_layout(pad=0.1)
     fig.savefig(os.path.join(outdir, 'chart_category.png'), facecolor='white'); plt.close(fig)
 
@@ -157,8 +157,8 @@ def main():
     tiles = [
         ('Total Spent', delta(S['total'], P['total'] if P else None), money(S['total']),
          ('&asymp; ' + cop(S['cop'])) if person != 'Jorgie' else f"{S['n_var'] + S['n_fixed']} expenses"),
-        ('Everyday Spending', delta(S['variable'], P['variable'] if P else None), money(S['variable']), f"{S['n_var']} purchases"),
-        ('Recurring', delta(S['fixed'], P['fixed'] if P else None), money(S['fixed']), f"{S['n_fixed']} repeating expenses"),
+        ('Variable Spending', delta(S['variable'], P['variable'] if P else None), money(S['variable']), f"{S['n_var']} purchases"),
+        ('Fixed Spending', delta(S['fixed'], P['fixed'] if P else None), money(S['fixed']), f"{S['n_fixed']} fixed expenses"),
         ('Top Category', '&nbsp;', e(top[0]) if top else '&mdash;', (money(top[1]['v']) + (' this year' if year_mode else ' this month')) if top else ''),
     ]
     def tile(t):
@@ -281,7 +281,8 @@ def main():
         out = ''
         for r in items:
             w = ''
-            out += (f'<tr><td style="padding:9px 0;border-bottom:1px solid #EEF0F3;font-size:13px;color:{TEXT};">{e(r["item"])}'
+            auto = (f' <span style="font-size:10px;font-weight:700;color:{PURPLE};background:#F5EEFB;border-radius:3px;padding:1px 5px;">AUTO</span>' if r.get('origin') == 'auto' else '')
+            out += (f'<tr><td style="padding:9px 0;border-bottom:1px solid #EEF0F3;font-size:13px;color:{TEXT};">{e(r["item"])}{auto}'
                     f'<div style="font-size:11px;color:{MUTED};margin-top:2px;">{w}{e(r["category"])}</div></td>'
                     f'<td align="right" valign="top" style="padding:9px 0;border-bottom:1px solid #EEF0F3;font-size:13px;font-weight:700;color:{TEXT};white-space:nowrap;">{amount_txt(r)}</td></tr>')
         return f'<table role="presentation" width="100%" cellpadding="0" cellspacing="0">{out}</table>'
@@ -299,7 +300,7 @@ def main():
     mrow = next((x for x in (fr or {}).get('months', []) if x['month'] == month), None)
     if mrow:
         left = mrow['left']
-        cap = (f'In {usd0(mrow["income"])} &middot; recurring {usd0(mrow["fixed"])} &middot; everyday {usd0(mrow["variable"])}'
+        cap = (f'In {usd0(mrow["income"])} &middot; fixed {usd0(mrow["fixed"])} &middot; variable {usd0(mrow["variable"])}'
                + (f' &middot; saved {usd0(mrow["saved"])}' if mrow['saved'] else '') + (f' &middot; debts {usd0(mrow["debts"])}' if mrow['debts'] else ''))
         tot = f'{usd(fr["balance"])}' + (f' <span style="font-weight:400;color:{MUTED};font-size:12px;">&asymp; {cop(fr["balance_cop"])}</span>' if fr.get('balance_cop') is not None else '')
         free_html = card('Free Money',
@@ -339,14 +340,14 @@ def main():
   </td></tr>
   <tr><td height="14"></td></tr>
   {kpis}
-  {card('Spending by Category', pie, 'Everyday spending ' + span, center=True)}
+  {card('Spending by Category', pie, 'Variable spending ' + span, center=True)}
   {card('Month by Month', monthly, 'Total spent each month' + ('' if year_mode else ' · ' + mname(month) + ' in color'), center=True)}
   {analysis_html}
   {who_html}
-  {card('Category by Month', heatmap, 'Everyday spending in US dollars. Darker cells mean more spending.')}
+  {card('Category by Month', heatmap, 'Variable spending in US dollars. Darker cells mean more spending.')}
   {card(top_title, rows_html(topbuy, who))}
   {card('Income', rows_html(sorted(S['income_rows'], key=lambda r: (r['month'], -r['amount_usd'])), who)) if (S['income_rows'] and not who) else ''}
-  {card('Recurring Expenses', rows_html(fixed, who) if fixed else f'<div style="font-size:13px;color:{MUTED};">No recurring expenses this month</div>')}
+  {card('Fixed Expenses', rows_html(fixed, who) if fixed else f'<div style="font-size:13px;color:{MUTED};">No fixed expenses this month</div>', 'Automatic debits and monthly bills' + (f' &middot; {money(S["fixed"])} in total' if fixed else ''))}
   {free_html}
   {savings_html}
   {button}
