@@ -293,6 +293,32 @@ def compute_goals(debts, owner, cur, fund):
     return out
 
 
+def budget(expenses, savings, who, cur, rate, debts_monthly, goals_monthly):
+    """Money in vs out for one person: income = average of the last 3 months they logged income."""
+    mine = [e for e in expenses if e['person'] == who]
+    inc_m, sp_m, inc_c = {}, {}, {}
+    for e in mine:
+        if e['type'] == 'Income':
+            inc_m[e['month']] = inc_m.get(e['month'], 0) + float(e['amount_usd'])
+            inc_c[e['month']] = inc_c.get(e['month'], 0) + float(e.get('amount_cop') or 0)
+        else: sp_m[e['month']] = sp_m.get(e['month'], 0) + float(e['amount_usd'])
+    months = sorted(inc_m)[-3:]
+    if not months:
+        return None
+    income = sum(inc_m[m] for m in months) / len(months)
+    past = sorted(m for m in sp_m if m < cur)[-3:]
+    spend = sum(sp_m[m] for m in past) / len(past) if past else sp_m.get(cur, 0)
+    sav = 0.0
+    if who == 'Gabby':  # Jorgie's saving leaves his pay before it reaches him; Gabby's comes out of her income
+        for pl in savings.get('plan', []):
+            if pl['person'] == 'Gabby':
+                sav = float(pl['monthly']) / rate if pl.get('currency') == 'COP' else float(pl['monthly'])
+    free = income - spend - sav - debts_monthly - goals_monthly
+    return {'income_avg': round(income, 2), 'income_avg_cop': round(sum(inc_c[m] for m in months) / len(months)) if who == 'Gabby' else None, 'months_used': months,
+            'spend_avg': round(spend, 2), 'savings_monthly': round(sav, 2), 'debts_monthly': round(debts_monthly, 2),
+            'goals_monthly': round(goals_monthly, 2), 'free': round(free, 2)}
+
+
 def compute_all(expenses, debts, savings, today):
     cur = today.strftime('%Y-%m')
     st = dict(DEFAULTS); st.update(debts.get('settings') or {})
@@ -305,6 +331,8 @@ def compute_all(expenses, debts, savings, today):
         p['goals_monthly'] = round(sum(g['monthly_needed'] or 0 for g in p['goals'] if g['remaining'] > 0 and not g['uses_cozy_fund']), 2)
         if who == 'Together':
             p['fund'] = fund
+        else:
+            p['budget'] = budget(expenses, savings, who, cur, rate, p['available_monthly'] if p['debts'] else 0, p['goals_monthly'])
         people[who] = p
     return {'generated': today.isoformat(), 'month': cur, 'goal_month': st['goal_month'], 'rate': rate, 'people': people}
 
@@ -316,6 +344,7 @@ TEXT, MUTED, LINE, ACCENT, GOOD = '#2F3542', '#8A919C', '#E3E6EA', '#9B59D0', '#
 def email_html(plan, who, url):
     e = html.escape
     p, t = plan['people'][who], plan['people']['Together']
+    if who == 'Together': p = {'debts': [], 'goals': [], 'per_check': {}}
     def card(title, body):
         return (f'<tr><td style="padding:0 0 14px;"><table role="presentation" width="100%" cellpadding="0" cellspacing="0" '
                 f'style="background:#fff;border:1px solid {LINE};border-radius:6px;"><tr><td style="padding:16px 18px;">'
@@ -349,6 +378,11 @@ def email_html(plan, who, url):
         body += card('Debts', tbl(debts_rows(p)))
     if p['goals']:
         body += card('Goals', tbl(goals_rows(p)))
+    bg = p.get('budget')
+    if bg:
+        body += card('Money in vs out', '<table role="presentation" width="100%" cellpadding="0" cellspacing="0"><tr>'
+                     + kpi('Expected income', usd0(bg['income_avg']), 'avg of ' + str(len(bg['months_used'])) + ' mo')
+                     + kpi('Plan + spending', usd0(bg['income_avg'] - bg['free'])) + kpi('Left over', usd0(bg['free'])) + '</tr></table>')
     f = t.get('fund') or {}
     together = (f'<table role="presentation" width="100%" cellpadding="0" cellspacing="0"><tr>'
                 + kpi('Cozy House fund', usd0(f.get('balance', 0))) + kpi('Going in a month', usd0(f.get('monthly_in', 0)))
@@ -359,7 +393,7 @@ def email_html(plan, who, url):
     return f"""<!doctype html><html><body style="margin:0;padding:0;background:#F1F2F4;font-family:Inter,-apple-system,'Segoe UI',Roboto,Arial,sans-serif;">
 <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#F1F2F4;"><tr><td align="center" style="padding:20px 12px;">
 <table role="presentation" width="600" cellpadding="0" cellspacing="0" style="max-width:600px;width:100%;">
-<tr><td style="padding:4px 0 16px;"><div style="font-size:22px;font-weight:700;color:{TEXT};">Your Plan</div>
+<tr><td style="padding:4px 0 16px;"><div style="font-size:22px;font-weight:700;color:{TEXT};">{'Our Plan' if who == 'Together' else 'Your Plan'}</div>
 <div style="font-size:13px;color:{MUTED};">{e(who)} · {e(mname(plan["month"]))}</div></td></tr>
 {body}
 <tr><td style="padding:4px 0 20px;font-size:12px;"><a href="{e(url)}" style="color:{ACCENT};">Open the dashboard</a></td></tr>
@@ -368,6 +402,7 @@ def email_html(plan, who, url):
 
 def email_text(plan, who, url):
     p, t = plan['people'][who], plan['people']['Together']
+    if who == 'Together': p = {'debts': [], 'goals': [], 'per_check': {}}
     L = [f"Your Plan — {who} — {mname(plan['month'])}", '']
     if p['debts']:
         L += [f"You owe: {usd(p['total_debt'])} · pay {usd0(p['available_monthly'])} a month · debt-free {mname(p['debt_free_month'], True) if p['debt_free_month'] else '—'}"]
