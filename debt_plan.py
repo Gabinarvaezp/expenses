@@ -296,6 +296,18 @@ def compute_goals(debts, owner, cur, fund):
     return out
 
 
+def pot_monthly_at(pt, m):
+    """A pot's monthly amount in month m. pt["changes"] = [{"month": "YYYY-MM", "from": old, "to": new}, ...]
+    (the new amount applies from that month on); without changes it is always pt["monthly"]."""
+    ch = sorted(pt.get('changes') or [], key=lambda c: c['month'])
+    if not ch:
+        return float(pt['monthly'])
+    v = float(ch[0].get('from', pt['monthly']))
+    for c in ch:
+        if c['month'] <= m: v = float(c['to'])
+    return v
+
+
 def compute_pots(debts, who, cur, rate):
     """Personal savings pots (money set aside automatically every month, e.g. a gifts fund)."""
     out = []
@@ -304,7 +316,7 @@ def compute_pots(debts, who, cur, rate):
             continue
         end = pt.get('end_month') or cur
         n = max(0, months_between(pt['start_month'], min(end, cur)) + 1) if pt['start_month'] <= cur else 0
-        native = float(pt['monthly']) * n + float(pt.get('adjust') or 0)
+        native = sum(pot_monthly_at(pt, add_month(pt['start_month'], k)) for k in range(n)) + float(pt.get('adjust') or 0)
         cop = pt.get('currency') == 'COP'
         to_usd = (lambda v: v / rate) if cop else (lambda v: v)
         out.append({'id': pt['id'], 'name': pt['name'], 'active': pt.get('active', True), 'start_month': pt['start_month'],
@@ -334,7 +346,7 @@ def compute_free(expenses, savings, debts, who, cur, rate):
         t = 0.0
         for pt in debts.get('pots', []):
             if pt.get('person') == who and pt['start_month'] <= m and (not pt.get('end_month') or m <= pt['end_month']):
-                t += float(pt['monthly']) / rate if pt.get('currency') == 'COP' else float(pt['monthly'])
+                v = pot_monthly_at(pt, m); t += v / rate if pt.get('currency') == 'COP' else v
         return t
     mine_debts = {a['id'] for a in debts.get('accounts', []) if a.get('owner', 'Jorgie') == who}
     pay = {}
