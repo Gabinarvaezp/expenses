@@ -184,7 +184,8 @@ def main():
     if an:
         analysis_html = card('Monthly Analysis',
             f'<div style="font-size:17px;font-weight:700;color:{TEXT};line-height:1.3;">{e(an["title"])}</div>'
-            f'<div style="font-size:14px;color:#474E5A;line-height:1.65;margin-top:8px;">{e(an["text"])}</div>')
+            ''.join(f'<div style="font-size:14px;color:#474E5A;line-height:1.5;margin-top:8px;">&bull;&nbsp; {e(t.strip().lstrip("-•· ").strip())}</div>'
+                    for t in an["text"].split("\n") if t.strip()))
 
     who_html = ''
     if person == 'Household':
