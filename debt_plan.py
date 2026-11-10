@@ -2,7 +2,11 @@
 """Jorgie's debt payoff plan.
 
 Usage:
-  python3 debt_plan.py expenses.json debts.json [TODAY=YYYY-MM-DD] [--email OUTDIR]
+  python3 debt_plan.py expenses.json debts.json [TODAY=YYYY-MM-DD] --savings savings.json [--email OUTDIR --who Jorgie|Gabby]
+
+Plans for three owners: Jorgie, Gabby and Together (Cozy House). accounts and goals carry "owner".
+goals: [{id "gl01", owner, name, kind (Purchase/Home), target (USD), by_month ("" or YYYY-MM), saved (USD),
+         uses_cozy_fund (true for the shared house: the Cozy House fund counts as saved), raw_line, origin}]
 
 Reads Jorgie's paychecks (expenses with person "Jorgie", type "Income", item containing
 "Target" or "Valet"), his everyday + recurring spending, and his debts (debts.json), then
@@ -74,13 +78,14 @@ def job_of(item):
     return None
 
 
-def compute(expenses, debts, today):
+def compute(expenses, debts, today, owner='Jorgie'):
     st = dict(DEFAULTS); st.update(debts.get('settings') or {})
     cur = today.strftime('%Y-%m')
     goal = st['goal_month']
-    accounts = [a for a in debts.get('accounts', []) if not a.get('closed')]
+    accounts = [a for a in debts.get('accounts', []) if not a.get('closed') and a.get('owner', 'Jorgie') == owner]
     payments = debts.get('payments', [])
-    j = [e for e in expenses if e['person'] == 'Jorgie']
+    # paychecks and spending are only known for Jorgie (Target/Valet); Gabby and Together plan on the monthly amount needed
+    j = [e for e in expenses if e['person'] == 'Jorgie'] if owner == 'Jorgie' else []
 
     # --- income per job: average of the last 6 checks x checks per month
     income = {}
@@ -117,7 +122,7 @@ def compute(expenses, debts, today):
         # monthly payment that finishes this debt by the goal month (long loans like a car keep their own monthly payment)
         long_loan = a.get('kind') in ('Car', 'Loan', 'Mortgage') and float(a.get('monthly') or 0) > 0
         r = float(a.get('apr') or 0) / 1200
-        by_goal = (b * r / (1 - (1 + r) ** -mg)) if r else b / mg  # equal payments incl. interest
+        by_goal = -(-((b * r / (1 - (1 + r) ** -mg)) if r else b / mg) // 1)  # equal payments incl. interest, rounded up to the dollar
         goal_m = (max(need, float(a['monthly'])) if long_loan else max(need, by_goal)) if b > 0 else 0
         debts_now.append({'id': a['id'], 'name': a['name'], 'kind': a.get('kind', 'Other'), 'apr': float(a.get('apr') or 0),
                           'monthly': float(a.get('monthly') or 0), 'needed_monthly': round(need, 2), 'goal_monthly': round(goal_m, 2),
@@ -234,99 +239,174 @@ def make_steps(debts, income, per_check, spend, goal, debt_free, left_at_goal, s
     return s
 
 
+# ---------------- goals (things to buy, the house) ----------------
+def latest_rate(expenses, savings):
+    rs = [e.get('rate') for e in expenses + savings.get('entries', []) if e.get('rate') and e.get('rate') > 100]
+    return rs[-1] if rs else 4000.0
+
+
+def fund_outlook(savings, rate, cur, goal):
+    """The Cozy House fund: balance now, money going in each month, and where it will be."""
+    entries = savings.get('entries', [])
+    bal = round(sum(float(e.get('amount_usd') or 0) for e in entries), 2)
+    monthly = 0.0
+    for pl in savings.get('plan', []):
+        monthly += float(pl['monthly']) / rate if pl.get('currency') == 'COP' else float(pl['monthly'])
+    monthly = round(monthly, 2)
+    proj = [{'month': add_month(cur, k), 'balance': round(bal + monthly * (k + 1), 2)} for k in range(18)]
+    at_goal = next((x['balance'] for x in proj if x['month'] == goal), bal)
+    return {'balance': bal, 'monthly_in': monthly, 'at_goal': at_goal, 'projection': proj}
+
+
+def compute_goals(debts, owner, cur, fund):
+    out = []
+    for g in debts.get('goals', []):
+        if g.get('owner', 'Jorgie') != owner or g.get('closed'):
+            continue
+        target = float(g['target'])
+        uses_fund = bool(g.get('uses_cozy_fund'))
+        saved = fund['balance'] if (uses_fund and fund) else float(g.get('saved') or 0)
+        remaining = max(0.0, round(target - saved, 2))
+        by = g.get('by_month') or ''
+        item = {'id': g['id'], 'name': g['name'], 'kind': g.get('kind', 'Purchase'), 'target': round(target, 2), 'saved': round(saved, 2),
+                'remaining': remaining, 'pct': round(min(100.0, saved / target * 100), 1) if target else 100.0,
+                'by_month': by, 'uses_cozy_fund': uses_fund, 'monthly_needed': None, 'reach_month': None, 'options': []}
+        if remaining <= 0:
+            item['reach_month'] = cur
+        elif by:
+            n = max(1, months_between(cur, by) + 1)
+            item['monthly_needed'] = round(remaining / n, 2)
+            item['reach_month'] = by
+        if uses_fund and fund and fund['monthly_in'] > 0 and remaining > 0:
+            k = -(-remaining // fund['monthly_in'])
+            item['fund_reach_month'] = add_month(cur, int(k) - 1)
+            if not by:
+                item['monthly_needed'] = fund['monthly_in']
+                item['reach_month'] = item['fund_reach_month']
+        if remaining > 0:
+            item['options'] = [{'months': n, 'monthly': round(remaining / n, 2), 'month': add_month(cur, n - 1)} for n in (3, 6, 12, 24)]
+            if not item['monthly_needed']:
+                item['monthly_needed'] = item['options'][1]['monthly']
+                item['reach_month'] = item['options'][1]['month']
+                item['suggested'] = True
+        out.append(item)
+    return out
+
+
+def compute_all(expenses, debts, savings, today):
+    cur = today.strftime('%Y-%m')
+    st = dict(DEFAULTS); st.update(debts.get('settings') or {})
+    rate = latest_rate(expenses, savings)
+    fund = fund_outlook(savings, rate, cur, st['goal_month'])
+    people = {}
+    for who in ('Jorgie', 'Gabby', 'Together'):
+        p = compute(expenses, debts, today, who)
+        p['goals'] = compute_goals(debts, who, cur, fund)
+        p['goals_monthly'] = round(sum(g['monthly_needed'] or 0 for g in p['goals'] if g['remaining'] > 0 and not g['uses_cozy_fund']), 2)
+        if who == 'Together':
+            p['fund'] = fund
+        people[who] = p
+    return {'generated': today.isoformat(), 'month': cur, 'goal_month': st['goal_month'], 'rate': rate, 'people': people}
+
+
 # ---------------- email ----------------
-TEXT, MUTED, LINE, ACCENT, GOOD = '#2F3542', '#8A919C', '#E3E6EA', '#4B9FD5', '#2E9E6A'
+TEXT, MUTED, LINE, ACCENT, GOOD = '#2F3542', '#8A919C', '#E3E6EA', '#9B59D0', '#2E9E6A'
 
 
-def email_html(p, url):
+def email_html(plan, who, url):
     e = html.escape
+    p, t = plan['people'][who], plan['people']['Together']
     def card(title, body):
         return (f'<tr><td style="padding:0 0 14px;"><table role="presentation" width="100%" cellpadding="0" cellspacing="0" '
                 f'style="background:#fff;border:1px solid {LINE};border-radius:6px;"><tr><td style="padding:16px 18px;">'
                 f'<div style="font-size:13px;font-weight:700;color:{TEXT};margin-bottom:10px;">{e(title)}</div>{body}</td></tr></table></td></tr>')
     kpi = lambda label, val, sub='': (f'<td width="33%" valign="top" style="padding:4px 6px;"><div style="font-size:11px;color:{MUTED};">{e(label)}</div>'
                                       f'<div style="font-size:20px;font-weight:700;color:{TEXT};">{e(val)}</div><div style="font-size:11px;color:{MUTED};">{e(sub)}</div></td>')
-    df = mname(p['debt_free_month']) if p['debt_free_month'] else 'After 6 years'
-    kpis = ('<table role="presentation" width="100%" cellpadding="0" cellspacing="0"><tr>'
-            + kpi('Total debt', usd(p['total_debt']))
-            + kpi('Debt-free', df, 'goal ' + mname(p['goal_month']))
-            + kpi('Left by ' + mname(p['goal_month'], True), usd0(p['left_at_goal']))
-            + '</tr></table>')
-    checks = ''
-    for job in ('Target', 'Valet'):
-        rows = ''.join(f'<tr><td style="padding:6px 0;font-size:14px;color:{TEXT};">{e(x["debt"])}</td><td align="right" style="padding:6px 0;font-size:14px;font-weight:700;color:{TEXT};">{usd(x["amount"])}</td></tr>' for x in p['per_check'][job])
-        if rows:
-            inc = p['income'][job]
-            checks += (f'<div style="font-size:12px;font-weight:700;color:{ACCENT};margin:6px 0 2px;">EACH {job.upper()} CHECK '
-                       + (f'<span style="color:{MUTED};font-weight:400;">(about {usd0(inc["per_check"])})</span>' if inc["per_check"] else '') + '</div>'
-                       f'<table role="presentation" width="100%" cellpadding="0" cellspacing="0">{rows}</table>')
-    if not checks:
-        checks = f'<div style="font-size:13px;color:{MUTED};">Log your debts and paychecks in your note to get amounts per check.</div>'
-    drows = ''
-    for d in sorted(p['debts'], key=lambda d: (d['payoff_month'] or '9999')):
-        pct = max(0, min(100, d['pct_paid']))
-        when = mname(d['payoff_month']) if d['payoff_month'] else 'later'
-        tag = (f'<span style="color:{GOOD};">by goal</span>' if d['by_goal'] else f'<span style="color:{MUTED};">after goal</span>') if d['balance'] > 0 else f'<span style="color:{GOOD};">paid off</span>'
-        drows += (f'<tr><td style="padding:8px 0;border-bottom:1px solid #EEF0F3;"><div style="font-size:14px;font-weight:600;color:{TEXT};">{e(d["name"])}'
-                  f' <span style="font-size:11px;font-weight:400;color:{MUTED};">· {e(d["paid_from"])}{(" · " + str(d["apr"]).rstrip("0").rstrip(".") + "% APR") if d["apr"] else ""}{(" · 0% until " + mname(d["interest_free_until"], True)) if d.get("interest_free_until") else ""}</span></div>'
-                  f'<div style="height:6px;background:#EEF0F3;border-radius:3px;margin:6px 0 4px;"><div style="width:{pct}%;height:6px;background:{ACCENT};border-radius:3px;"></div></div>'
-                  f'<div style="font-size:11px;color:{MUTED};">Paid off {e(when)} · {tag}</div></td>'
-                  f'<td align="right" valign="top" style="padding:8px 0 8px 10px;border-bottom:1px solid #EEF0F3;font-size:14px;font-weight:700;color:{TEXT};white-space:nowrap;">{usd(d["balance"])}'
-                  f'<div style="font-size:11px;font-weight:400;color:{MUTED};">{usd0(d["this_month"])} this month</div></td></tr>')
-    debts_t = f'<table role="presentation" width="100%" cellpadding="0" cellspacing="0">{drows}</table>' if drows else ''
-    steps = ''.join(f'<tr><td valign="top" style="padding:5px 8px 5px 0;font-size:13px;font-weight:700;color:{ACCENT};">{i}</td><td style="padding:5px 0;font-size:14px;color:#474E5A;line-height:1.45;">{e(t)}</td></tr>' for i, t in enumerate(p['steps'], 1))
-    inc = p['income']
-    money = (f'<div style="font-size:13px;color:#474E5A;line-height:1.7;">Target ≈ <b>{usd0(inc["Target"]["monthly"])}</b>/mo · Valet ≈ <b>{usd0(inc["Valet"]["monthly"])}</b>/mo<br>'
-             f'Your spending ≈ <b>{usd0(p["monthly_spending"])}</b>/mo · kept aside as a cushion: {p["cushion_pct"]}%<br>'
-             f'Going to debts ≈ <b>{usd0(p["available_monthly"])}</b>/mo</div>')
-    return f'''<!doctype html><html><body style="margin:0;padding:0;background:#F1F2F4;font-family:Inter,-apple-system,'Segoe UI',Roboto,Arial,sans-serif;">
+    bar = lambda pct: (f'<div style="height:6px;background:#EEF0F3;border-radius:3px;margin:6px 0 4px;"><div style="width:{max(0, min(100, pct))}%;height:6px;background:{ACCENT};border-radius:3px;"></div></div>')
+    def row(name, sub, right, right_sub, pct):
+        return (f'<tr><td style="padding:8px 0;border-bottom:1px solid #EEF0F3;"><div style="font-size:14px;font-weight:600;color:{TEXT};">{e(name)}</div>{bar(pct)}'
+                f'<div style="font-size:11px;color:{MUTED};">{e(sub)}</div></td><td align="right" valign="top" style="padding:8px 0 8px 10px;border-bottom:1px solid #EEF0F3;'
+                f'font-size:14px;font-weight:700;color:{TEXT};white-space:nowrap;">{e(right)}<div style="font-size:11px;font-weight:400;color:{MUTED};">{e(right_sub)}</div></td></tr>')
+    tbl = lambda rows: f'<table role="presentation" width="100%" cellpadding="0" cellspacing="0">{rows}</table>'
+    def debts_rows(q):
+        return ''.join(row(d['name'], ('Done ' + mname(d['payoff_month'], True)) if d['payoff_month'] else 'Long term', usd(d['balance']), usd0(d['this_month']) + ' a month', d['pct_paid'])
+                       for d in sorted(q['debts'], key=lambda d: d['payoff_month'] or '9999'))
+    def goals_rows(q):
+        return ''.join(row(g['name'], ('Ready ' + mname(g['reach_month'], True)) if g['reach_month'] else '', usd0(g['target']),
+                           (usd0(g['monthly_needed']) + ' a month') if g['monthly_needed'] else 'ready', g['pct']) for g in q['goals'])
+    body = ''
+    if p['debts']:
+        df = mname(p['debt_free_month'], True) if p['debt_free_month'] else '—'
+        body += card('Where you stand', '<table role="presentation" width="100%" cellpadding="0" cellspacing="0"><tr>'
+                     + kpi('You owe', usd(p['total_debt'])) + kpi('Pay each month', usd0(p['available_monthly'])) + kpi('Debt-free', df) + '</tr></table>')
+        checks = ''
+        for job in ('Valet', 'Target'):
+            rows = ''.join(f'<tr><td style="padding:5px 0;font-size:14px;color:{TEXT};">{e(x["debt"])}</td><td align="right" style="padding:5px 0;font-size:14px;font-weight:700;color:{TEXT};">{usd(x["amount"])}</td></tr>' for x in p['per_check'].get(job, []))
+            if rows:
+                checks += f'<div style="font-size:12px;font-weight:700;color:{ACCENT};margin:6px 0 2px;">EACH {job.upper()} CHECK</div>' + tbl(rows)
+        if checks:
+            body += card('Every paycheck', checks)
+        body += card('Debts', tbl(debts_rows(p)))
+    if p['goals']:
+        body += card('Goals', tbl(goals_rows(p)))
+    f = t.get('fund') or {}
+    together = (f'<table role="presentation" width="100%" cellpadding="0" cellspacing="0"><tr>'
+                + kpi('Cozy House fund', usd0(f.get('balance', 0))) + kpi('Going in a month', usd0(f.get('monthly_in', 0)))
+                + kpi('By ' + mname(plan['goal_month'], True), usd0(f.get('at_goal', 0))) + '</tr></table>')
+    if t['goals']: together += tbl(goals_rows(t))
+    if t['debts']: together += tbl(debts_rows(t))
+    body += card('Together · Cozy House', together)
+    return f"""<!doctype html><html><body style="margin:0;padding:0;background:#F1F2F4;font-family:Inter,-apple-system,'Segoe UI',Roboto,Arial,sans-serif;">
 <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#F1F2F4;"><tr><td align="center" style="padding:20px 12px;">
 <table role="presentation" width="600" cellpadding="0" cellspacing="0" style="max-width:600px;width:100%;">
-<tr><td style="padding:4px 0 16px;"><div style="font-size:22px;font-weight:700;color:{TEXT};">Your Debt Payoff Plan</div>
-<div style="font-size:13px;color:{MUTED};">{e(mname(p["month"]))}</div></td></tr>
-{card('Where you stand', kpis)}
-{card('What to do with every paycheck', checks)}
-{card('Your debts', debts_t or f'<div style="font-size:13px;color:{MUTED};">No debts logged yet.</div>')}
-<tr><td style="padding:4px 0 20px;font-size:12px;color:{MUTED};line-height:1.6;">
-<a href="{e(url)}" style="color:{ACCENT};">Open the dashboard</a></td></tr>
-</table></td></tr></table></body></html>'''
+<tr><td style="padding:4px 0 16px;"><div style="font-size:22px;font-weight:700;color:{TEXT};">Your Plan</div>
+<div style="font-size:13px;color:{MUTED};">{e(who)} · {e(mname(plan["month"]))}</div></td></tr>
+{body}
+<tr><td style="padding:4px 0 20px;font-size:12px;"><a href="{e(url)}" style="color:{ACCENT};">Open the dashboard</a></td></tr>
+</table></td></tr></table></body></html>"""
 
 
-def email_text(p, url):
-    L = [f"Your Debt Payoff Plan — {mname(p['month'])}", '',
-         f"Total debt: {usd(p['total_debt'])}",
-         f"Debt-free: {mname(p['debt_free_month']) if p['debt_free_month'] else 'after 6 years'} (goal {mname(p['goal_month'])})",
-         f"Left by {mname(p['goal_month'])}: {usd0(p['left_at_goal'])}", '']
-    for job in ('Target', 'Valet'):
-        if p['per_check'][job]:
-            L.append(f'Each {job} check: ' + ', '.join(f"{usd(x['amount'])} to {x['debt']}" for x in p['per_check'][job]))
-    L.append('')
-    L += [f'{i}. {t}' for i, t in enumerate(p['steps'], 1)]
-    L += ['', f'Dashboard: {url}']
+def email_text(plan, who, url):
+    p, t = plan['people'][who], plan['people']['Together']
+    L = [f"Your Plan — {who} — {mname(plan['month'])}", '']
+    if p['debts']:
+        L += [f"You owe: {usd(p['total_debt'])} · pay {usd0(p['available_monthly'])} a month · debt-free {mname(p['debt_free_month'], True) if p['debt_free_month'] else '—'}"]
+        for job in ('Valet', 'Target'):
+            if p['per_check'].get(job):
+                L.append(f'Each {job} check: ' + ', '.join(f"{usd(x['amount'])} to {x['debt']}" for x in p['per_check'][job]))
+        L += [f"- {d['name']}: {usd(d['balance'])}, {usd0(d['this_month'])} a month" + (f", done {mname(d['payoff_month'], True)}" if d['payoff_month'] else '') for d in p['debts']]
+    for g in p['goals'] + t['goals']:
+        L.append(f"- Goal {g['name']}: {usd0(g['target'])}" + (f", {usd0(g['monthly_needed'])} a month" if g['monthly_needed'] else '') + (f", ready {mname(g['reach_month'], True)}" if g['reach_month'] else ''))
+    f = t.get('fund') or {}
+    L += ['', f"Cozy House fund: {usd0(f.get('balance', 0))} (+{usd0(f.get('monthly_in', 0))} a month)", '', f'Dashboard: {url}']
     return '\n'.join(L)
 
 
 def main():
     args = [a for a in sys.argv[1:]]
-    outdir = None
-    if '--email' in args:
-        k = args.index('--email'); outdir = args[k + 1]; del args[k:k + 2]
+    opt = {}
+    for flag in ('--email', '--who', '--savings'):
+        if flag in args:
+            k = args.index(flag); opt[flag] = args[k + 1]; del args[k:k + 2]
     if len(args) < 2: sys.exit(__doc__)
     fe, fd = args[0], args[1]
     today = date.fromisoformat(args[2]) if len(args) > 2 else date.today()
     expenses = json.load(open(fe, encoding='utf-8'))
     debts = json.load(open(fd, encoding='utf-8'))
-    debts.setdefault('settings', dict(DEFAULTS)); debts.setdefault('accounts', []); debts.setdefault('payments', []); debts.setdefault('plan_requests', [])
-    p = compute(expenses, debts, today)
-    debts['plan'] = p
+    savings = json.load(open(opt['--savings'], encoding='utf-8')) if '--savings' in opt else {'plan': [], 'entries': []}
+    for k in ('accounts', 'payments', 'plan_requests', 'goals'): debts.setdefault(k, [])
+    debts.setdefault('settings', dict(DEFAULTS))
+    plan = compute_all(expenses, debts, savings, today)
+    debts['plan'] = plan
     json.dump(debts, open(fd, 'w', encoding='utf-8'), ensure_ascii=False, indent=1)
-    if outdir:
+    if '--email' in opt:
         import os
-        os.makedirs(outdir, exist_ok=True)
+        who = opt.get('--who', 'Jorgie')
+        os.makedirs(opt['--email'], exist_ok=True)
         url = 'https://gabinarvaezp.github.io/expenses/'
-        open(os.path.join(outdir, 'plan.html'), 'w', encoding='utf-8').write(email_html(p, url))
-        open(os.path.join(outdir, 'plan.txt'), 'w', encoding='utf-8').write(email_text(p, url))
-    print(json.dumps({k: p[k] for k in ('total_debt', 'debt_free_month', 'left_at_goal', 'available_monthly', 'per_check', 'shortfall')}, indent=1))
+        open(os.path.join(opt['--email'], 'plan.html'), 'w', encoding='utf-8').write(email_html(plan, who, url))
+        open(os.path.join(opt['--email'], 'plan.txt'), 'w', encoding='utf-8').write(email_text(plan, who, url))
+    print(json.dumps({w: {'debt': q['total_debt'], 'debt_free': q['debt_free_month'], 'goals': [(g['name'], g['monthly_needed'], g['reach_month']) for g in q['goals']]} for w, q in plan['people'].items()}, indent=1))
 
 
 if __name__ == '__main__':

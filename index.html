@@ -122,6 +122,16 @@
 .ex-dp-steps { margin: 0; padding: 0; list-style: none; counter-reset: st; display: grid; gap: 10px; }
 .ex-dp-steps li { counter-increment: st; position: relative; padding-left: 30px; line-height: 1.45; color: #474E5A; font-size: 13.5px; }
 .ex-dp-steps li::before { content: counter(st); position: absolute; left: 0; top: 0; width: 20px; height: 20px; border-radius: 50%; background: #F1E8FA; color: var(--ex-purple); font-size: 11px; font-weight: 700; display: grid; place-items: center; }
+.ex-dp-seg { display: inline-flex; justify-self: start; background: #E6E8EC; border-radius: 10px; padding: 3px; gap: 2px; width: max-content; }
+.ex-dp-seg button { all: unset; cursor: pointer; padding: 7px 18px; border-radius: 8px; font-size: 13.5px; font-weight: 600; color: #5D6470; }
+.ex-dp-seg button[aria-pressed="true"] { background: var(--ex-card); color: var(--ex-text); box-shadow: 0 1px 3px rgba(30,40,60,.12); }
+.ex-dp-chip.goal span::before { content: ''; display: inline-block; width: 7px; height: 7px; border-radius: 50%; background: #2E9E6A; margin-right: 6px; vertical-align: 1px; }
+.ex-dp-opts { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; }
+.ex-dp-opt { background: #F7F8FA; border-radius: 8px; padding: 12px 14px; display: flex; flex-direction: column; gap: 2px; }
+.ex-dp-opt span { font-size: 12px; color: var(--ex-muted); font-weight: 600; }
+.ex-dp-opt b { font-size: 18px; font-variant-numeric: tabular-nums; }
+.ex-dp-opt small { font-size: 11.5px; color: var(--ex-muted); }
+@container (max-width: 760px) { .ex-dp-opts { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
 .ex-dp-chips { display: flex; flex-wrap: wrap; gap: 8px; }
 .ex-dp-chip { all: unset; cursor: pointer; display: inline-flex; align-items: baseline; gap: 8px; padding: 8px 14px; border-radius: 999px; background: var(--ex-card); border: 1px solid var(--ex-line); font-size: 13px; color: var(--ex-text); }
 .ex-dp-chip b { font-weight: 600; color: var(--ex-muted); font-variant-numeric: tabular-nums; }
@@ -206,7 +216,7 @@ html, body { margin: 0; padding: 0; background: #F1F2F4; }
       <button type="button" data-per="Gabby" aria-pressed="false"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="10" cy="7" r="3.2"/><path d="M3.5 17c1.2-3.2 3.6-4.6 6.5-4.6s5.3 1.4 6.5 4.6"/></svg>Gabby</button>
       <button type="button" data-per="Jorgie" aria-pressed="false"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="10" cy="7" r="3.2"/><path d="M3.5 17c1.2-3.2 3.6-4.6 6.5-4.6s5.3 1.4 6.5 4.6"/></svg>Jorgie</button>
       <div class="ex-nav-sep">Plans</div>
-      <button type="button" data-view="plan" aria-pressed="false"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M4 18V3M4 3h10l-2 3.5L14 10H4"/></svg>Debt Plan</button>
+      <button type="button" data-view="plan" aria-pressed="false"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M4 18V3M4 3h10l-2 3.5L14 10H4"/></svg>Plans</button>
     </nav>
     <div class="ex-side-foot">All amounts in USD. Gabby logs in pesos; they are converted at the TRM and shown small as a reference.</div>
   </aside>
@@ -554,7 +564,7 @@ window.exU = (function () {
 (function () {
   const U = window.exU;
   const mark = (el, r, field) => { el.dataset.where = U.where(r); if (field) el.dataset.field = field; };
-  dash.draw('pageTitle', (el) => { const p = U.per(); el.textContent = window.exView === 'plan' ? 'Jorgie’s Debt Plan' : (p === 'Household' ? 'Cozy House' : p + '’s Dashboard'); });
+  dash.draw('pageTitle', (el) => { const p = U.per(); el.textContent = window.exView === 'plan' ? 'Plans' : (p === 'Household' ? 'Cozy House' : p + '’s Dashboard'); });
   dash.draw('selMonth', (sel) => {
     const opts = U.years().slice().reverse().concat(U.months().slice().reverse());
     sel.replaceChildren(...opts.map((m) => new Option(U.monthName(m), m)));
@@ -791,10 +801,11 @@ window.exU = (function () {
 </script>
 
 <script>
-// ---------- Jorgie's debt payoff plan (own page in the menu) ----------
+// ---------- Plans page: Jorgie, Gabby and Together (debts + goals) ----------
 (function () {
   const U = window.exU;
-  const plan = () => { const d = dash.data('debts'); return d.status === 'ok' && d.data && d.data.plan ? d.data.plan : null; };
+  const WHO = ['Jorgie', 'Gabby', 'Together'];
+  const plans = () => { const d = dash.data('debts'); const pl = d.status === 'ok' && d.data ? d.data.plan : null; if (!pl) return null; return pl.people ? pl : { generated: pl.generated, month: pl.month, goal_month: pl.goal_month, people: { Jorgie: pl } }; };
   const el = (tag, cls, txt) => { const n = document.createElement(tag); if (cls) n.className = cls; if (txt !== undefined) n.textContent = txt; return n; };
   const usd0 = (v) => '$' + d3.format(',.0f')(Math.round(v));
   const short = (m) => U.monthName(m, true);
@@ -804,12 +815,16 @@ window.exU = (function () {
     const c = card('ex-span3 ex-kpi ex-dp-kpi'); c.append(el('div', 'ex-kpi-label', label));
     c.append(el('div', 'ex-kpi-value' + (good ? ' good' : ''), value)); c.append(el('div', 'ex-kpi-cap', cap || '')); grid.append(c);
   };
-  const select = (id) => { window.exDebt = id; dash.draw('dpBody'); };
-  const bars = (box, data, val, goal, label) => requestAnimationFrame(() => {
+  const redraw = () => { dash.draw('dpBody'); dash.draw('pageTitle'); };
+  const bars = (box, data, val, goal, label, target) => requestAnimationFrame(() => {
     const W = Math.max(280, box.clientWidth || 560), H = 190;
     const x = d3.scaleBand().domain(data.map((d) => d.month)).range([4, W - 4]).padding(0.3);
-    const y = d3.scaleLinear().domain([0, d3.max(data, val) || 1]).range([H - 22, 18]);
+    const y = d3.scaleLinear().domain([0, Math.max(d3.max(data, val) || 1, target || 0)]).range([H - 22, 18]);
     const svg = d3.select(box).append('svg').attr('class', 'ex-svg').attr('width', '100%').attr('viewBox', `0 0 ${W} ${H}`).attr('role', 'img').attr('aria-label', label);
+    if (target) {
+      svg.append('line').attr('x1', 4).attr('x2', W - 4).attr('y1', y(target)).attr('y2', y(target)).style('stroke', '#2E9E6A').style('stroke-dasharray', '4 4');
+      svg.append('text').attr('x', W - 6).attr('y', y(target) - 5).attr('text-anchor', 'end').style('fill', '#2E9E6A').style('font-weight', 600).text('Goal ' + U.usdK(target));
+    }
     svg.selectAll('rect').data(data).join('rect').attr('x', (d) => x(d.month)).attr('width', x.bandwidth()).attr('y', (d) => y(val(d))).attr('height', (d) => Math.max(1, y(0) - y(val(d)))).attr('rx', 3)
       .style('fill', (d) => d.month === goal ? '#9B59D0' : (d.month > goal ? '#E6DAF2' : '#C9A9E6'));
     if (x.bandwidth() > 26) svg.selectAll('text.v').data(data).join('text').attr('class', 'ex-vlabel').attr('text-anchor', 'middle').attr('x', (d) => x(d.month) + x.bandwidth() / 2).attr('y', (d) => y(val(d)) - 5).style('font-size', '10px').text((d) => U.usdK(val(d)));
@@ -817,87 +832,133 @@ window.exU = (function () {
       .style('font-weight', (d) => d.month === goal ? 700 : 400).text((d, i) => (i % Math.max(1, Math.ceil(40 / x.step())) === 0) ? short(d.month).replace(/ 20(\d\d)$/, " '$1") : '');
   });
   const doneTag = (d) => d.balance <= 0 ? el('span', 'ex-dp-tag ok', 'Paid off') : el('span', 'ex-dp-tag ' + (d.by_goal ? 'ok' : 'late'), d.payoff_month ? 'Done ' + short(d.payoff_month) : 'Long term');
+  const row = (name, right, pct, metaL, metaR, onClick) => {
+    const r = el('div', 'ex-dp-debt ex-dp-click'); r.addEventListener('click', onClick);
+    const top = el('div', 'top'); const nm = el('span', '', name); nm.style.fontWeight = '600'; top.append(nm, el('b', '', right));
+    const bar = el('div', 'ex-dp-bar'); const f = el('div'); f.style.width = Math.max(0, Math.min(100, pct)) + '%'; bar.append(f);
+    const meta = el('div', 'meta'); meta.append(el('span', '', metaL), metaR); r.append(top, bar, meta); return r;
+  };
+  const goalTag = (g) => g.remaining <= 0 ? el('span', 'ex-dp-tag ok', 'Ready') : el('span', 'ex-dp-tag ok', g.reach_month ? 'Ready ' + short(g.reach_month) : '');
 
   dash.draw('dpBody', (root) => {
     root.replaceChildren();
     if (window.exView !== 'plan') return;
-    const p = plan();
+    const P = plans();
+    const who = WHO.includes(window.exPlanWho) ? window.exPlanWho : 'Jorgie';
     const grid = el('div', 'ex-grid'); root.append(grid);
-    if (!p || !p.debts || !p.debts.length) {
-      const c = card('ex-span12 ex-dp-empty');
-      const ic = el('div', 'ic'); ic.innerHTML = ICON;
-      c.append(ic, el('h3', '', 'No debts yet'));
-      grid.append(c);
-      return;
-    }
-    const debts = [...p.debts].sort((a, b) => (a.payoff_month || '9999').localeCompare(b.payoff_month || '9999'));
-    let selId = window.exDebt && debts.some((d) => d.id === window.exDebt) ? window.exDebt : 'all';
 
-    // selector: All + one chip per debt
-    const chips = el('div', 'ex-span12 ex-dp-chips');
-    [['all', 'All debts', p.total_debt]].concat(debts.map((d) => [d.id, d.name, d.balance])).forEach(([id, name, v]) => {
-      const b = el('button', 'ex-dp-chip'); b.type = 'button'; b.setAttribute('aria-pressed', id === selId ? 'true' : 'false');
-      b.append(el('span', '', name), el('b', '', usd0(v))); b.addEventListener('click', () => select(id)); chips.append(b);
-    });
-    grid.append(chips);
+    // who: Jorgie | Gabby | Together
+    const seg = el('div', 'ex-span12 ex-dp-seg');
+    WHO.forEach((w) => { const b = el('button', '', w); b.type = 'button'; b.setAttribute('aria-pressed', w === who ? 'true' : 'false'); b.addEventListener('click', () => { window.exPlanWho = w; window.exDebt = 'all'; redraw(); }); seg.append(b); });
+    grid.append(seg);
+
+    const p = P && P.people[who];
+    const debts = p ? [...(p.debts || [])].sort((a, b) => (a.payoff_month || '9999').localeCompare(b.payoff_month || '9999')) : [];
+    const goals = p ? (p.goals || []) : [];
+    const fund = p && p.fund;
+    if (!p || (!debts.length && !goals.length && !fund)) {
+      const c = card('ex-span12 ex-dp-empty'); const ic = el('div', 'ic'); ic.innerHTML = ICON;
+      c.append(ic, el('h3', '', 'Nothing here yet')); grid.append(c); return;
+    }
+    const items = debts.map((d) => ({ id: d.id, name: d.name, v: d.balance })).concat(goals.map((g) => ({ id: g.id, name: g.name, v: g.target, goal: true })));
+    const selId = items.some((i) => i.id === window.exDebt) ? window.exDebt : 'all';
+    const select = (id) => { window.exDebt = id; redraw(); };
+    if (items.length) {
+      const chips = el('div', 'ex-span12 ex-dp-chips');
+      [{ id: 'all', name: who === 'Together' ? 'Overview' : 'All', v: null }].concat(items).forEach((it) => {
+        const b = el('button', 'ex-dp-chip' + (it.goal ? ' goal' : '')); b.type = 'button'; b.setAttribute('aria-pressed', it.id === selId ? 'true' : 'false');
+        b.append(el('span', '', it.name)); if (it.v != null) b.append(el('b', '', usd0(it.v))); b.addEventListener('click', () => select(it.id)); chips.append(b);
+      });
+      grid.append(chips);
+    }
     const tl = (p.timeline || []).slice(0, 18);
 
     if (selId === 'all') {
-      const onTime = p.debt_free_month && p.debt_free_month <= p.goal_month;
-      kpi(grid, 'Total Owed', U.usd(p.total_debt), debts.length + (debts.length === 1 ? ' debt' : ' debts'));
-      kpi(grid, 'Pay Each Month', usd0(p.available_monthly), p.estimated ? 'to be done on time' : 'from Target + Valet');
-      kpi(grid, 'Debt-Free By', p.debt_free_month ? short(p.debt_free_month) : '—', onTime ? 'on time' : 'goal ' + short(p.goal_month), onTime);
-      kpi(grid, 'Left in ' + short(p.goal_month), usd0(p.left_at_goal), p.left_at_goal > 0 ? 'keep paying after' : 'all paid', p.left_at_goal <= 0);
-
-      const hasChecks = ['Valet', 'Target'].some((j) => (p.per_check[j] || []).length);
-      const chk = card('ex-span5', 'Every Paycheck');
-      let any = false;
-      for (const job of ['Valet', 'Target']) {
-        const xs = p.per_check[job] || []; if (!xs.length) continue; any = true;
-        const b = el('div', 'ex-dp-check'); const hd = el('div', 'hd');
-        hd.append(el('b', '', job + ' check'), el('span', '', 'about ' + usd0(p.income[job].per_check)));
-        b.append(hd); xs.forEach((x) => { const r = el('div', 'ex-dp-line'); r.append(el('span', '', 'To ' + x.debt), el('b', '', U.usd(x.amount))); b.append(r); });
-        chk.append(b);
+      if (who === 'Together') {
+        const next = goals.filter((g) => g.remaining > 0).sort((a, b) => (a.reach_month || '9999').localeCompare(b.reach_month || '9999'))[0];
+        kpi(grid, 'Cozy House Fund', usd0(fund.balance), 'saved so far');
+        kpi(grid, 'Going In a Month', usd0(fund.monthly_in), 'Gabby + Jorgie');
+        kpi(grid, 'By ' + short(P.goal_month), usd0(fund.at_goal), 'at this pace');
+        kpi(grid, next ? next.name + ' Ready' : 'Next Goal', next && next.reach_month ? short(next.reach_month) : '—', next ? usd0(next.target) + ' goal' : 'none set yet');
+      } else {
+        const onTime = p.debt_free_month && p.debt_free_month <= P.goal_month;
+        kpi(grid, 'Total Owed', debts.length ? U.usd(p.total_debt) : '$0', debts.length + (debts.length === 1 ? ' debt' : ' debts'));
+        kpi(grid, 'Debts a Month', usd0(p.available_monthly || 0), debts.length ? (p.estimated ? 'to be done on time' : 'from your pay') : 'no debts');
+        kpi(grid, 'Debt-Free By', debts.length ? (p.debt_free_month ? short(p.debt_free_month) : '—') : 'Now', debts.length ? (onTime ? 'on time' : 'goal ' + short(P.goal_month)) : 'nothing owed', !debts.length || onTime);
+        kpi(grid, 'Goals a Month', usd0(p.goals_monthly || 0), goals.length + (goals.length === 1 ? ' goal' : ' goals'));
       }
-      if (hasChecks) grid.append(chk);
-
-      const dc = card(hasChecks ? 'ex-span7' : 'ex-span12', 'Debts');
-      debts.forEach((d) => {
-        const r = el('div', 'ex-dp-debt ex-dp-click'); r.addEventListener('click', () => select(d.id));
-        const top = el('div', 'top'); const nm = el('span', '', d.name); nm.style.fontWeight = '600';
-        top.append(nm, el('b', '', U.usd(d.balance)));
-        const bar = el('div', 'ex-dp-bar'); const f = el('div'); f.style.width = Math.max(0, Math.min(100, d.pct_paid)) + '%'; bar.append(f);
-        const meta = el('div', 'meta'); meta.append(el('span', '', usd0(d.this_month) + ' a month · ' + d.paid_from), doneTag(d));
-        r.append(top, bar, meta); dc.append(r);
-      });
-      grid.append(dc);
-
-      if (tl.length > 1) { const tc = card('ex-span12', 'What You Owe, Month by Month'); const box = el('div'); tc.append(box); grid.append(tc); bars(box, tl, (t) => t.left, p.goal_month, 'Debt left by month'); }
-    } else {
-      const d = debts.find((x) => x.id === selId);
-      const job = d.paid_from;
+      const hasChecks = ['Valet', 'Target'].some((j) => ((p.per_check || {})[j] || []).length);
+      if (hasChecks) {
+        const chk = card('ex-span5', 'Every Paycheck');
+        for (const job of ['Valet', 'Target']) {
+          const xs = p.per_check[job] || []; if (!xs.length) continue;
+          const b = el('div', 'ex-dp-check'); const hd = el('div', 'hd'); hd.append(el('b', '', job + ' check'), el('span', '', 'about ' + usd0(p.income[job].per_check)));
+          b.append(hd); xs.forEach((x) => { const r = el('div', 'ex-dp-line'); r.append(el('span', '', 'To ' + x.debt), el('b', '', U.usd(x.amount))); b.append(r); });
+          chk.append(b);
+        }
+        grid.append(chk);
+      }
+      const span = (n) => n === 2 ? 'ex-span6' : 'ex-span12';
+      const lists = (debts.length ? 1 : 0) + (goals.length ? 1 : 0);
+      if (debts.length) {
+        const dc = card(hasChecks ? 'ex-span7' : span(lists), 'Debts');
+        debts.forEach((d) => dc.append(row(d.name, U.usd(d.balance), d.pct_paid, usd0(d.this_month) + ' a month', doneTag(d), () => select(d.id))));
+        grid.append(dc);
+      }
+      if (goals.length) {
+        const gc = card(hasChecks ? 'ex-span12' : span(lists), who === 'Together' ? 'Our Goals' : 'Goals');
+        goals.forEach((g) => gc.append(row(g.name, usd0(g.target), g.pct, g.remaining > 0 ? usd0(g.monthly_needed) + ' a month' + (g.uses_cozy_fund ? ' · Cozy House fund' : '') : 'Saved', goalTag(g), () => select(g.id))));
+        grid.append(gc);
+      }
+      if (who === 'Together' && fund) {
+        const house = goals.find((g) => g.uses_cozy_fund);
+        const tc = card('ex-span12', 'Cozy House Fund, Month by Month'); const box = el('div'); tc.append(box); grid.append(tc);
+        bars(box, fund.projection, (t) => t.balance, P.goal_month, 'Fund by month', house ? house.target : null);
+      } else if (tl.length > 1) {
+        const tc = card('ex-span12', 'What You Owe, Month by Month'); const box = el('div'); tc.append(box); grid.append(tc);
+        bars(box, tl, (t) => t.left, P.goal_month, 'Debt left by month');
+      }
+    } else if (debts.some((d) => d.id === selId)) {
+      const d = debts.find((x) => x.id === selId); const job = d.paid_from;
       kpi(grid, 'Owe Now', U.usd(d.balance), d.paid_so_far ? usd0(d.paid_so_far) + ' paid so far' : 'nothing paid yet');
       kpi(grid, 'Pay Each Month', usd0(d.this_month || d.goal_monthly), d.interest_free_until ? 'before 0% ends ' + short(d.interest_free_until) : 'to be done on time');
       if (d.per_check != null) kpi(grid, 'Each ' + job + ' Check', usd0(d.per_check), 'of about ' + usd0(p.income[job].per_check));
-      else { const ml = d.payoff_month ? (Number(d.payoff_month.slice(0, 4)) - Number(p.month.slice(0, 4))) * 12 + Number(d.payoff_month.slice(5)) - Number(p.month.slice(5)) + 1 : null; kpi(grid, 'Months Left', ml ? String(ml) : '—', ml === 1 ? 'payment' : 'payments'); }
-      kpi(grid, 'Paid Off', d.payoff_month ? short(d.payoff_month) : '—', d.by_goal ? 'on time' : 'after ' + short(p.goal_month), d.by_goal);
-
+      else { const ml = d.payoff_month ? (Number(d.payoff_month.slice(0, 4)) - Number(P.month.slice(0, 4))) * 12 + Number(d.payoff_month.slice(5)) - Number(P.month.slice(5)) + 1 : null; kpi(grid, 'Months Left', ml ? String(ml) : '—', ml === 1 ? 'payment' : 'payments'); }
+      kpi(grid, 'Paid Off', d.payoff_month ? short(d.payoff_month) : '—', d.by_goal ? 'on time' : 'after ' + short(P.goal_month), d.by_goal);
       const pc = card('ex-span12', 'Progress');
       const bar = el('div', 'ex-dp-bar ex-dp-bar-lg'); const f = el('div'); f.style.width = Math.max(0, Math.min(100, d.pct_paid)) + '%'; bar.append(f);
-      const facts = el('div', 'ex-dp-facts');
-      const fact = (k, v) => { const x = el('div'); x.append(el('span', '', k), el('b', '', v)); facts.append(x); };
-      fact('Paid', Math.round(d.pct_paid) + '%');
-      fact('Started at', U.usd(d.original));
+      const facts = el('div', 'ex-dp-facts'); const fact = (k, v) => { const x = el('div'); x.append(el('span', '', k), el('b', '', v)); facts.append(x); };
+      fact('Paid', Math.round(d.pct_paid) + '%'); fact('Started at', U.usd(d.original));
       fact('Interest', d.apr ? d.apr + '% APR' : (d.interest_free_until ? '0% until ' + short(d.interest_free_until) : '0%'));
       if (d.monthly) fact('Minimum', usd0(d.monthly) + ' a month');
-      fact('Paid from', job);
+      if (who === 'Jorgie') fact('Paid from', job);
       pc.append(bar, facts); grid.append(pc);
-
       const rows = tl.filter((t) => t.by_debt && (t.by_debt[d.id] > 0 || (t.pay_by_debt || {})[d.id]));
-      if (rows.length) { const tc = card('ex-span12', d.name + ', Month by Month'); const box = el('div'); tc.append(box); grid.append(tc); bars(box, rows, (t) => t.by_debt[d.id] || 0, p.goal_month, d.name + ' left by month'); }
+      if (rows.length) { const tc = card('ex-span12', d.name + ', Month by Month'); const box = el('div'); tc.append(box); grid.append(tc); bars(box, rows, (t) => t.by_debt[d.id] || 0, P.goal_month, d.name + ' left by month'); }
+    } else {
+      const g = goals.find((x) => x.id === selId);
+      kpi(grid, 'Cost', usd0(g.target), g.kind === 'Home' ? 'goal' : 'to buy');
+      kpi(grid, g.uses_cozy_fund ? 'Cozy House Fund' : 'Saved', usd0(g.saved), Math.round(g.pct) + '% of the goal');
+      kpi(grid, 'Save Each Month', g.remaining > 0 ? usd0(g.monthly_needed) : '$0', g.uses_cozy_fund ? 'what goes in today' : (g.by_month ? 'to buy it on time' : 'suggested'));
+      kpi(grid, 'Ready By', g.reach_month ? short(g.reach_month) : '—', g.by_month ? 'your date' : 'at this pace', true);
+      const pc = card('ex-span12', 'Progress');
+      const bar = el('div', 'ex-dp-bar ex-dp-bar-lg'); const f = el('div'); f.style.width = Math.max(0, Math.min(100, g.pct)) + '%'; bar.append(f);
+      const facts = el('div', 'ex-dp-facts'); const fact = (k, v) => { const x = el('div'); x.append(el('span', '', k), el('b', '', v)); facts.append(x); };
+      fact('Saved', usd0(g.saved)); fact('Still needed', usd0(g.remaining)); if (g.by_month) fact('Wanted by', short(g.by_month));
+      pc.append(bar, facts); grid.append(pc);
+      if (g.options && g.options.length) {
+        const oc = card('ex-span12', 'Other Ways to Get There'); const ow = el('div', 'ex-dp-opts');
+        g.options.forEach((o) => { const b = el('div', 'ex-dp-opt'); b.append(el('span', '', o.months + ' months'), el('b', '', usd0(o.monthly) + '/mo'), el('small', '', 'ready ' + short(o.month))); ow.append(b); });
+        oc.append(ow); grid.append(oc);
+      }
+      if (g.remaining > 0 && g.monthly_needed) {
+        const data = []; let v = g.saved, m = P.month;
+        for (let k = 0; k < 18 && v < g.target; k++) { v = Math.min(g.target, v + g.monthly_needed); data.push({ month: m, v }); const [yy, mm] = m.split('-').map(Number); m = mm === 12 ? (yy + 1) + '-01' : yy + '-' + String(mm + 1).padStart(2, '0'); }
+        if (data.length > 1) { const tc = card('ex-span12', g.name + ', Month by Month'); const box = el('div'); tc.append(box); grid.append(tc); bars(box, data, (t) => t.v, g.reach_month || P.goal_month, g.name + ' saved by month', g.target); }
+      }
     }
     if (p.shortfall) grid.append(el('div', 'ex-span12 ex-dp-warn', 'Heads-up: the money left after spending does not cover the monthly payments yet.'));
-    const fc = el('div', 'ex-span12'); fc.append(el('div', 'ex-dp-foot', 'Updated ' + p.generated + ' · write “send plan” in your note to get it by email')); grid.append(fc);
+    const fc = el('div', 'ex-span12'); fc.append(el('div', 'ex-dp-foot', 'Updated ' + P.generated + ' · write “send plan” in your note to get it by email')); grid.append(fc);
   });
 })();
 
