@@ -59,7 +59,10 @@
 .ex-tip b { font-weight: 700; }
 .ex-tip .ex-tip-row { display: flex; align-items: center; gap: 6px; }
 .ex-analysis-title { font-size: 18px; font-weight: 600; margin: 0 0 8px; line-height: 1.3; }
-.ex-analysis-text { margin: 0; line-height: 1.65; color: #474E5A; }
+.ex-analysis-text { margin: 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 8px; color: #474E5A; line-height: 1.45; }
+.ex-analysis-text li { position: relative; padding-left: 16px; }
+.ex-analysis-text li::before { content: ''; position: absolute; left: 2px; top: .55em; width: 6px; height: 6px; border-radius: 50%; background: var(--ex-purple); }
+.ex-analysis-text b { color: var(--ex-text); font-weight: 700; font-variant-numeric: tabular-nums; }
 .ex-who { display: flex; flex-direction: column; gap: 14px; }
 .ex-who-row { display: grid; grid-template-columns: 1fr auto; align-items: end; gap: 6px 10px; }
 .ex-who-name { display: flex; align-items: center; gap: 8px; font-weight: 600; }
@@ -79,11 +82,20 @@
 .ex-tag { display: inline-flex; align-items: center; gap: 6px; }
 .ex-chip { display: inline-block; padding: 2px 8px; border-radius: 3px; background: #F1F2F5; font-size: 12px; color: #4D5562; }
 .ex-empty { color: var(--ex-muted); font-size: 13px; padding: 10px; }
-.ex-sav-total { display: flex; flex-direction: column; gap: 2px; padding-bottom: 14px; margin-bottom: 14px; border-bottom: 1px solid #EEF0F3; }
-.ex-sav-big { font-size: 32px; font-weight: 700; letter-spacing: -.01em; font-variant-numeric: tabular-nums; line-height: 1.15; color: var(--ex-down); }
+.ex-sav-card h2 { margin-bottom: 8px; }
+.ex-sav-wrap { display: grid; grid-template-columns: minmax(170px, 220px) 1fr; gap: 24px; align-items: center; }
+.ex-sav-total { display: flex; flex-direction: column; gap: 2px; }
+.ex-sav-big { font-size: 24px; font-weight: 700; letter-spacing: -.01em; font-variant-numeric: tabular-nums; line-height: 1.15; color: var(--ex-text); }
 .ex-sav-cap { font-size: 12px; color: var(--ex-muted); font-variant-numeric: tabular-nums; }
-.ex-sav-plan { grid-column: 1 / -1; font-size: 12px; color: #5D6470; font-variant-numeric: tabular-nums; }
-.ex-sav-plan b { color: var(--ex-down); font-weight: 700; }
+.ex-sav-bars { display: flex; flex-direction: column; gap: 12px; min-width: 0; }
+.ex-sb-row { display: grid; grid-template-columns: 64px 1fr auto; align-items: center; gap: 4px 12px; font-size: 13px; }
+.ex-sb-name { display: flex; align-items: center; gap: 6px; font-weight: 600; }
+.ex-sb-track { height: 10px; background: #F1F2F4; border-radius: 5px; overflow: hidden; }
+.ex-sb-track > div { height: 100%; border-radius: 5px; opacity: .55; }
+.ex-sb-val { font-weight: 600; font-variant-numeric: tabular-nums; text-align: right; min-width: 6.5em; }
+.ex-sb-plan { grid-column: 2 / -1; font-size: 11.5px; color: var(--ex-muted); font-variant-numeric: tabular-nums; }
+.ex-sb-plan b { color: var(--ex-down); font-weight: 600; }
+@container (max-width: 760px) { .ex-sav-wrap { grid-template-columns: 1fr; gap: 14px; } }
 [data-dash-source-state=refreshing] { opacity: .5; }
 .ex-shell { container-type: inline-size; }
 .ex-single table[data-row-key] th:first-child, .ex-single table[data-row-key] td:first-child { display: none; }
@@ -177,19 +189,6 @@ html, body { margin: 0; padding: 0; background: #F1F2F4; }
       </div>
     </section>
 
-    <section class="ex-grid" id="savings">
-      <div class="ex-card ex-span5" id="savings-total">
-        <h2 data-draw="savTitle">Cozy House Savings</h2>
-        <div class="ex-sav-total" data-draw="savTotal" data-source="savings"></div>
-        <div class="ex-who" data-draw="savPeople" data-source="savings"></div>
-      </div>
-      <div class="ex-card ex-span7" id="savings-growth">
-        <h2>Savings Growth</h2>
-        <div class="ex-chart" data-draw="savChart" data-source="savings"></div>
-        <div class="ex-legend" data-draw="savLegend"></div>
-      </div>
-    </section>
-
     <section class="ex-grid">
       <div class="ex-card ex-span8" id="spending-by-month">
         <h2>Spending by Month</h2>
@@ -202,11 +201,21 @@ html, body { margin: 0; padding: 0; background: #F1F2F4; }
       </div>
     </section>
 
+    <section class="ex-grid" id="savings">
+      <div class="ex-card ex-span12 ex-sav-card" id="savings-total">
+        <h2 data-draw="savTitle">Cozy House Savings</h2>
+        <div class="ex-sav-wrap">
+          <div class="ex-sav-total" data-draw="savTotal" data-source="savings"></div>
+          <div class="ex-sav-bars" data-draw="savPeople" data-source="savings"></div>
+        </div>
+      </div>
+    </section>
+
     <section class="ex-grid">
       <div class="ex-card ex-span7" id="analysis">
         <h2>Monthly Analysis</h2>
         <h3 class="ex-analysis-title" data-draw="anTitle" data-source="analysis" data-field="title">—</h3>
-        <p class="ex-analysis-text" data-draw="anText" data-source="analysis" data-field="text">—</p>
+        <ul class="ex-analysis-text" data-draw="anText" data-source="analysis" data-field="text"><li>—</li></ul>
       </div>
       <div class="ex-card ex-span5" id="who-spent-what">
         <h2>Who Spent What</h2>
@@ -271,7 +280,7 @@ window.dash = (function () {
       onDatas.forEach((f) => f());
       Object.keys(draws).forEach(run);
     },
-    _redrawCharts() { ['monthly', 'pie', 'savChart'].forEach(run); }
+    _redrawCharts() { ['monthly', 'pie'].forEach(run); }
   };
 })();
 </script>
@@ -445,7 +454,7 @@ window.exU = (function () {
     tip.style.left = Math.max(0, Math.min(e.clientX - b.left + 12, el.clientWidth - tip.offsetWidth)) + 'px';
     tip.style.top = (e.clientY - b.top + 14) + 'px';
   }
-  const ALL = ['pageTitle','selMonth','dTotal','vTotal','cTotal','dVar','vVar','cVarN','dFixed','vFixed','cFixedN','dTop','vTop','cTop','savTitle','savTotal','savPeople','savChart','savLegend','tIncome','monthly','monthlyLegend','pie','anTitle','anText','who','heat','tFixed','tVar'];
+  const ALL = ['pageTitle','selMonth','dTotal','vTotal','cTotal','dVar','vVar','cVarN','dFixed','vFixed','cFixedN','dTop','vTop','cTop','savTitle','savTotal','savPeople','tIncome','monthly','monthlyLegend','pie','anTitle','anText','who','heat','tFixed','tVar'];
   function redraw() { ALL.forEach((n) => dash.draw(n)); }
   function pickMonth(m) { window.exMonth = m; redraw(); }
   return { monthName, usd, usd0, cop, copK, usdK, pct, enc, PERSON, PIE, LINE, per, isCop, suf, money, rows, months, years, month, isYear, inPeriod, sumRow, where, catColors, tipAt, redraw, pickMonth };
@@ -522,7 +531,19 @@ window.exU = (function () {
   // analysis
   const an = () => { const m = U.month(), p = U.per(); return U.rows('analysis').find((a) => a.month === m && a.person === p) || null; };
   dash.draw('anTitle', (el) => { const a = an(); if (!a) { el.textContent = 'No analysis for this period yet'; delete el.dataset.where; return; } el.dataset.where = U.where(a); el.textContent = a.title; });
-  dash.draw('anText', (el) => { const a = an(); if (!a) { el.textContent = 'The analysis is written when the month’s notes are processed.'; delete el.dataset.where; return; } el.dataset.where = U.where(a); el.textContent = a.text; });
+  dash.draw('anText', (el) => {
+    el.replaceChildren();
+    const a = an();
+    const li = (txt) => {
+      const n = document.createElement('li');
+      String(txt).split(/(\$[\d,.]+K?|COP [\d,.]+[MK]?|[\d.]+%)/).forEach((part, i) => { if (!part) return; if (i % 2) { const b = document.createElement('b'); b.textContent = part; n.append(b); } else n.append(part); });
+      el.append(n);
+    };
+    if (!a) { li('The analysis is written when the month’s notes are processed.'); delete el.dataset.where; return; }
+    el.dataset.where = U.where(a);
+    const parts = String(a.text).includes('\n') ? String(a.text).split('\n') : String(a.text).split(/(?<=\.)\s+(?=[A-Z])/);
+    parts.map((t) => t.replace(/^\s*[-•·]\s*/, '').trim()).filter(Boolean).forEach(li);
+  });
 
   // who spent what
   dash.draw('who', (el) => {
@@ -727,103 +748,31 @@ window.exU = (function () {
   });
   dash.draw('savPeople', (el) => {
     el.replaceChildren();
-    const p = U.per(), people = p === 'Household' ? ['Gabby', 'Jorgie'] : [p];
-    for (const name of people) {
-      const r = row(name), pl = plan(name), yr = U.isYear();
-      const rowEl = document.createElement('div'); rowEl.className = 'ex-who-row';
-      const n = document.createElement('div'); n.className = 'ex-who-name';
+    const p = U.per(), people = p === 'Household' ? ['Gabby', 'Jorgie'] : [p], yr = U.isYear();
+    const rs = people.map((n) => row(n));
+    const max = Math.max(1, ...rs.map((r) => r ? r.balance_usd : 0));
+    people.forEach((name, i) => {
+      const r = rs[i], pl = plan(name);
+      const rowEl = document.createElement('div'); rowEl.className = 'ex-sb-row';
+      const n = document.createElement('div'); n.className = 'ex-sb-name';
       const d = document.createElement('span'); d.className = 'ex-dot'; d.style.background = U.PERSON[name];
-      const t = document.createElement('span'); t.textContent = people.length > 1 ? name : (yr ? 'This year' : 'This month'); n.append(d, t);
-      const v = document.createElement('div'); v.className = 'ex-who-val';
-      const s = document.createElement('div'); s.className = 'ex-who-sub';
-      const planEl = document.createElement('div'); planEl.className = 'ex-sav-plan';
-      const bar = document.createElement('div'); bar.className = 'ex-who-bar'; const fill = document.createElement('div'); fill.style.background = U.PERSON[name]; bar.append(fill);
-      if (people.length > 1) {
-        v.textContent = r ? U.usd(r.balance_usd) : '$0.00';
-        if (r) { v.dataset.source = 'savings'; v.dataset.where = U.where(r); v.dataset.field = 'balance_usd'; }
-        s.textContent = name === 'Gabby' ? (r ? '≈ ' + U.cop(r.balance_cop) + ' saved' : 'Nothing saved yet') : 'Saved in US dollars';
-      } else {
-        v.textContent = r ? '+' + native(name, r, 'saved') : '—';
-        s.textContent = r && name === 'Gabby' ? '≈ +' + U.usd(r.saved_usd) : '';
-      }
-      let pct = null;
-      if (!r) planEl.textContent = pl ? 'Plan: ' + (pl.currency === 'COP' ? U.cop(pl.monthly) : U.usd(pl.monthly)) + ' a month' + (pl.automatic ? ', automatic' : '') : '';
-      else if (people.length === 1) {
-        if (!yr && r.has_start && !r.n_contrib) planEl.textContent = 'Starting balance recorded this month';
-        else if (!yr && pl) {
-          planEl.textContent = 'Plan: ' + (pl.currency === 'COP' ? U.cop(pl.monthly) : U.usd(pl.monthly)) + ' a month' + (pl.automatic ? ', saved automatically' : '');
-          const got = pl.currency === 'COP' ? r.saved_cop : r.saved_usd;
-          pct = pl.monthly ? Math.max(0, Math.min(100, got / pl.monthly * 100)) : null;
-        }
-      } else if (yr) {
-        planEl.innerHTML = '';
-        planEl.append('Saved this year: ');
+      const t = document.createElement('span'); t.textContent = name; n.append(d, t);
+      const track = document.createElement('div'); track.className = 'ex-sb-track'; const fill = document.createElement('div'); fill.style.background = U.PERSON[name];
+      fill.style.width = (r ? Math.max(0, r.balance_usd) / max * 100 : 0) + '%'; track.append(fill);
+      track.title = name + ': ' + (r ? U.usd(r.balance_usd) : '$0.00') + ' saved';
+      const v = document.createElement('div'); v.className = 'ex-sb-val'; v.textContent = r ? U.usd(r.balance_usd) : '$0.00';
+      if (r) { v.dataset.source = 'savings'; v.dataset.where = U.where(r); v.dataset.field = 'balance_usd'; }
+      const planEl = document.createElement('div'); planEl.className = 'ex-sb-plan';
+      const fmtPlan = pl ? (pl.currency === 'COP' ? U.cop(pl.monthly) : U.usd(pl.monthly)) : '';
+      if (r && (r.n_contrib || yr)) {
+        planEl.append(yr ? 'This year ' : 'This month ');
         const b = document.createElement('b'); b.textContent = '+' + native(name, r, 'saved'); planEl.append(b);
-      } else if (r.has_start && !r.n_contrib) {
-        planEl.textContent = 'Starting balance recorded this month' + (pl ? ' · plan ' + (pl.currency === 'COP' ? U.cop(pl.monthly) : U.usd(pl.monthly)) + ' a month' : '');
-      } else {
-        planEl.append('This month: ');
-        const b = document.createElement('b'); b.textContent = '+' + native(name, r, 'saved'); planEl.append(b);
-        if (pl) {
-          const got = pl.currency === 'COP' ? r.saved_cop : r.saved_usd;
-          planEl.append(' of ' + (pl.currency === 'COP' ? U.cop(pl.monthly) : U.usd(pl.monthly)) + (pl.automatic ? ' · automatic' : ' plan'));
-          pct = pl.monthly ? Math.max(0, Math.min(100, got / pl.monthly * 100)) : null;
-        }
-      }
-      rowEl.append(n, v);
-      if (s.textContent) rowEl.append(s);
+        if (!yr && pl) planEl.append(' of ' + fmtPlan + (pl.automatic ? ' (automatic)' : ' plan'));
+      } else if (pl) planEl.textContent = (r && r.has_start ? 'Starting balance · ' : '') + 'Plan ' + fmtPlan + ' a month' + (pl.automatic ? ', automatic' : '');
+      rowEl.append(n, track, v);
       if (planEl.textContent) rowEl.append(planEl);
-      if (pct !== null) { fill.style.width = pct + '%'; rowEl.append(bar); }
       el.append(rowEl);
-    }
-  });
-  dash.draw('savLegend', (el) => {
-    el.replaceChildren();
-    const p = U.per(), people = p === 'Household' ? ['Gabby', 'Jorgie'] : [p];
-    for (const name of people) { const s = document.createElement('span'); const d = document.createElement('span'); d.className = 'ex-dot'; d.style.background = U.PERSON[name]; const x = document.createElement('span'); x.textContent = name; s.append(d, x); el.append(s); }
-  });
-  dash.draw('savChart', (el) => {
-    el.replaceChildren();
-    const all = U.rows('savings'); const p = U.per(), sel = U.month();
-    let ms = [...new Set(all.filter((r) => r.month.length === 7).map((r) => r.month))].sort();
-    ms = U.isYear(sel) ? ms.filter((m) => m.slice(0, 4) === sel) : ms.filter((m) => !sel || m <= sel).slice(-12);
-    if (!ms.length) { const e = document.createElement('div'); e.className = 'ex-empty'; e.textContent = 'No savings recorded yet'; el.append(e); return; }
-    const people = p === 'Household' ? ['Gabby', 'Jorgie'] : [p];
-    const get = (m, who) => all.find((r) => r.month === m && r.person === who) || { balance_usd: 0 };
-    const data = ms.map((m) => ({ month: m, parts: people.map((k) => ({ k, v: get(m, k).balance_usd })), total: get(m, p).balance_usd }));
-    const W = Math.max(260, el.clientWidth || 500), H = 250;
-    const y = d3.scaleLinear().domain([0, (d3.max(data, (r) => r.total) || 100) * 1.15]).nice().range([H - 26, 14]);
-    const ticks = y.ticks(4);
-    const svg = d3.select(el).append('svg').attr('class', 'ex-svg').attr('width', '100%').attr('viewBox', `0 0 ${W} ${H}`).attr('role', 'img').attr('aria-label', 'Savings balance by month');
-    const tmp = svg.append('g'); let ml = 0;
-    ticks.forEach((t) => { const tx = tmp.append('text').text(U.usdK(t)); ml = Math.max(ml, tx.node().getComputedTextLength()); }); tmp.remove();
-    const left = ml + 10, right = 8;
-    const x = d3.scaleBand().domain(ms).range([left, W - right]).padding(ms.length < 5 ? 0.55 : 0.35);
-    ticks.forEach((t) => {
-      svg.append('line').attr('class', 'ex-gridline').attr('x1', left).attr('x2', W - right).attr('y1', y(t)).attr('y2', y(t));
-      svg.append('text').attr('x', left - 6).attr('y', y(t) + 4).attr('text-anchor', 'end').text(U.usdK(t));
     });
-    const tip = d3.select(el).append('div').attr('class', 'ex-tip').property('hidden', true);
-    const g = svg.selectAll('g.b').data(data).join('g').attr('class', 'b').style('cursor', 'pointer').style('opacity', (r) => (r.month === sel || U.isYear(sel)) ? 1 : 0.6);
-    g.each(function (r) {
-      let acc = 0; const gg = d3.select(this);
-      r.parts.forEach((pt) => { gg.append('rect').attr('x', x(r.month)).attr('width', x.bandwidth()).attr('y', y(acc + pt.v)).attr('height', Math.max(0, y(acc) - y(acc + pt.v))).style('fill', U.PERSON[pt.k]); acc += pt.v; });
-    });
-    if (x.bandwidth() > 36) {
-      g.append('text').attr('class', 'ex-vlabel').attr('text-anchor', 'middle').attr('x', (r) => x(r.month) + x.bandwidth() / 2).attr('y', (r) => y(r.total) - 6)
-        .attr('data-source', 'savings').attr('data-field', 'balance_usd').attr('data-where', (r) => 'month=' + U.enc(r.month) + '&person=' + U.enc(p))
-        .text((r) => U.usdK(r.total));
-    }
-    g.append('text').attr('text-anchor', 'middle').attr('x', (r) => x(r.month) + x.bandwidth() / 2).attr('y', H - 8).text((r) => U.monthName(r.month, true));
-    g.on('click', (e, r) => U.pickMonth(r.month))
-      .on('pointermove', (e, r) => {
-        tip.property('hidden', false).selectAll('*').remove();
-        tip.append('div').append('b').text(U.monthName(r.month));
-        r.parts.forEach((pt) => { const rw = tip.append('div').attr('class', 'ex-tip-row'); rw.append('span').attr('class', 'ex-dot').style('background', U.PERSON[pt.k]); rw.append('span').text(pt.k + ': ' + U.usd(pt.v)); });
-        if (r.parts.length > 1) tip.append('div').text('Total: ' + U.usd(r.total));
-        U.tipAt(el, tip.node(), e);
-      })
-      .on('pointerleave', () => tip.property('hidden', true));
   });
 })();
 </script>
