@@ -112,6 +112,12 @@
 .ex-ov-chip { display: inline-flex; gap: 6px; align-items: baseline; background: #F5F6F8; border-radius: 999px; padding: 4px 10px; font-size: 12px; color: #5D6470; }
 .ex-ov-chip b { color: var(--ex-text); font-weight: 600; font-variant-numeric: tabular-nums; }
 .ex-chart:has(.ex-msplit) { min-height: 0; flex: 0 0 auto; }
+.ex-ov-box .ex-ov-label::before { content: ''; display: inline-block; width: 7px; height: 7px; border-radius: 50%; margin-right: 6px; vertical-align: 1px; background: var(--ov-c, #9AA5B1); }
+.ex-ov-box.in { --ov-c: #2E9E6A; } .ex-ov-box.out { --ov-c: #E8697D; } .ex-ov-box.save { --ov-c: #9B59D0; } .ex-ov-box.free { --ov-c: #E9A23B; }
+.ex-ov-box.save .ex-ov-val { color: #7D3FB3; }
+.ex-ov-chip { --chip: #9B59D0; background: color-mix(in srgb, var(--chip) 12%, #fff); color: color-mix(in srgb, var(--chip) 70%, #2F3542); }
+.ex-ov-chip::before { content: ''; width: 7px; height: 7px; border-radius: 50%; background: var(--chip); align-self: center; }
+.ex-ov-chip.gabby { --chip: #E8697D; } .ex-ov-chip.jorgie { --chip: #4B9FD5; }
 .ex-msplit { display: flex; flex-direction: column; gap: 14px; padding: 6px 2px 4px; }
 .ex-msplit-total { font-size: 28px; font-weight: 700; font-variant-numeric: tabular-nums; }
 .ex-msplit-total small { display: block; font-size: 12px; font-weight: 500; color: var(--ex-muted); }
@@ -1152,8 +1158,8 @@ window.exU = (function () {
     T.pots = Object.values(T.pots);
     return T;
   }
-  const box = (label, val, cls, caps, list) => {
-    const b = document.createElement('div'); b.className = 'ex-ov-box';
+  const box = (label, val, cls, caps, list, kind) => {
+    const b = document.createElement('div'); b.className = 'ex-ov-box' + (kind ? ' ' + kind : '');
     const l = document.createElement('div'); l.className = 'ex-ov-label'; l.textContent = label;
     const v = document.createElement('div'); v.className = 'ex-ov-val' + (cls ? ' ' + cls : ''); v.textContent = val;
     b.append(l, v);
@@ -1180,8 +1186,8 @@ window.exU = (function () {
     const big = (u, c) => gab ? U.cop(c) : U.usd0(u);
     const small = (u, c) => gab ? (c >= 1e6 || c <= -1e6 ? 'COP ' + U.copK(c) : 'COP ' + Math.round(c / 1e3) + 'K') : U.usd0(u);
     const grid = document.createElement('div'); grid.className = 'ex-ov' + (hh ? ' ex-ov3' : '');
-    grid.append(box('Money In', big(T.inc, T.incCop), '', [T.nInc ? (gab ? U.usd0(T.inc) + ' · ' : '') + T.nInc + (T.nInc === 1 ? ' payment' : ' payments') : 'Nothing logged yet']));
-    grid.append(box('Spent', big(T.fix + T.vr, T.spentCop), '', ['Fixed ' + small(T.fix, T.fixCop) + ' · variable ' + small(T.vr, T.vrCop)]));
+    grid.append(box('Money In', big(T.inc, T.incCop), '', [T.nInc ? (gab ? U.usd0(T.inc) + ' · ' : '') + T.nInc + (T.nInc === 1 ? ' payment' : ' payments') : 'Nothing logged yet'], null, 'in'));
+    grid.append(box('Spent', big(T.fix + T.vr, T.spentCop), '', ['Fixed ' + small(T.fix, T.fixCop) + ' · variable ' + small(T.vr, T.vrCop)], null, 'out'));
     const potsU = T.pots.reduce((a, x) => a + x.usd, 0);
     const rate = T.spentCop && (T.fix + T.vr) ? T.spentCop / (T.fix + T.vr) : 4000;
     const items = [];
@@ -1190,16 +1196,16 @@ window.exU = (function () {
     if (!hh) for (const x of T.pots) items.push([x.name, x.cop != null ? U.cop(x.cop) : U.usd0(x.usd)]);
     const savedU = T.cozy + (hh ? 0 : potsU);
     const savedC = T.cozyCop + (hh ? 0 : T.pots.reduce((a, x) => a + (x.cop != null ? x.cop : x.usd * rate), 0));
-    grid.append(box(hh ? 'Cozy House Saved' : 'Saved', big(savedU, savedC), '', [items.length ? (hh ? 'Gabby + Jorgie ' + word : items.length === 1 ? items[0][0] : items.length + ' savings') : 'Nothing saved ' + word]));
+    grid.append(box(hh ? 'Cozy House Saved' : 'Saved', big(savedU, savedC), '', [items.length ? (hh ? 'Gabby + Jorgie ' + word : items.length === 1 ? items[0][0] : items.length + ' savings') : 'Nothing saved ' + word], null, 'save'));
     if (!hh) {
       const soFar = !yr && m >= nowMonth();
       const cap = T.left == null ? 'Log income to see it' : (soFar ? 'Left so far' : 'Left over') + (T.pay ? ' after debts' : '');
-      grid.append(box('Free Money', T.left == null ? '—' : big(T.left, T.leftCop), T.left == null ? '' : (T.left >= 0 ? 'good' : 'neg'), [cap]));
+      grid.append(box('Free Money', T.left == null ? '—' : big(T.left, T.leftCop), T.left == null ? '' : (T.left >= 0 ? 'good' : 'neg'), [cap], null, 'free'));
     }
     el.append(grid);
     if (items.length > 1 || (hh && items.length)) {
       const chips = document.createElement('div'); chips.className = 'ex-ov-chips';
-      for (const [a, z] of items) { const c = document.createElement('span'); c.className = 'ex-ov-chip'; const n = document.createElement('span'); n.textContent = a; const v = document.createElement('b'); v.textContent = z; c.append(n, v); chips.append(c); }
+      for (const [a, z] of items) { const c = document.createElement('span'); c.className = 'ex-ov-chip' + (a === 'Gabby' ? ' gabby' : a === 'Jorgie' ? ' jorgie' : ''); const n = document.createElement('span'); n.textContent = a; const v = document.createElement('b'); v.textContent = z; c.append(n, v); chips.append(c); }
       el.append(chips);
     }
   });

@@ -373,7 +373,8 @@ def main():
                 f'<td align="right" style="padding:10px 0 0;font-size:17px;font-weight:800;color:{color or TEXT};white-space:nowrap;">{val}</td></tr>'
                 f'<tr><td colspan="2" style="font-size:12px;color:{MUTED};padding:2px 0 10px;border-bottom:1px solid #EEF0F3;">{cap}</td></tr>')
     def sub_row(label, val):
-        return (f'<tr><td style="padding:5px 0 5px 14px;font-size:13px;color:#474E5A;border-bottom:1px solid #F4F5F7;">{e(label)}</td>'
+        c = PERSON.get(label, PURPLE)
+        return (f'<tr><td style="padding:5px 0 5px 14px;font-size:13px;color:#474E5A;border-bottom:1px solid #F4F5F7;">{dot(c, 8)}{e(label)}</td>'
                 f'<td align="right" style="padding:5px 0;font-size:13px;font-weight:700;color:{TEXT};white-space:nowrap;border-bottom:1px solid #F4F5F7;">{val}</td></tr>')
     inc_cap = (f'{O["n_inc"]} payment{"s" if O["n_inc"] != 1 else ""} logged' + (f' &middot; &asymp; {cop(O["inc_cop"])}' if gab else '')) if O['n_inc'] else f'No income logged {span_o}'
     sp_cap = f'Fixed {usd0(O["fixed"])} &middot; variable {usd0(O["variable"])}' + (f' &middot; &asymp; {cop(O["spent_cop"])}' if gab else '') + (f' &middot; plus {usd0(O["from_free"])} paid with free money' if O['from_free'] else '')
@@ -399,7 +400,7 @@ def main():
         f'<table role="presentation" width="100%" cellpadding="0" cellspacing="0">'
         + ov_row('Money in', usd(O['inc']), inc_cap)
         + ov_row('Spent', usd(O['fixed'] + O['variable']), sp_cap)
-        + ov_row('Cozy House saved' if hh_o else 'Saved', usd(O['cozy'] + pots_u), sv_cap) + subs
+        + ov_row('Cozy House saved' if hh_o else 'Saved', usd(O['cozy'] + pots_u), sv_cap, PURPLE) + subs
         + ('' if hh_o else ov_row('Free money', fm_val, fm_cap, fm_col)) + '</table>')
 
     title = ((f'Cozy House {month} Wrapped' if who else f'{person}’s {month} Wrapped') if year_mode
