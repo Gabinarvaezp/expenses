@@ -1137,9 +1137,10 @@ window.exU = (function () {
     const ex = get('expenses', []), ses = get('savings_entries', []), debts = get('debts', {});
     const ms = period.length === 4 ? [...new Set(ex.map((e) => e.month).concat(ses.map((x) => x.month)))].filter((m) => m.slice(0, 4) === period) : [period];
     const people = person === 'Household' ? ['Gabby', 'Jorgie'] : [person];
-    const T = { inc: 0, incCop: 0, nInc: 0, fix: 0, vr: 0, fixCop: 0, vrCop: 0, spentCop: 0, fromFree: 0, cozy: 0, cozyCop: 0, pots: {}, pay: 0, left: null, leftCop: null };
+    const T = { inc: 0, incCop: 0, nInc: 0, fix: 0, vr: 0, fixCop: 0, vrCop: 0, spentCop: 0, fromFree: 0, cozy: 0, cozyCop: 0, pots: {}, pay: 0, left: null, leftCop: null, cozyBy: {} };
     for (const m of ms) for (const w of people) {
       const o = one(w, m, ex, ses, debts);
+      const cb = T.cozyBy[w] || (T.cozyBy[w] = { usd: 0, cop: 0 }); cb.usd += o.cozy; cb.cop += o.cozyCop;
       for (const k of ['inc', 'incCop', 'nInc', 'fix', 'vr', 'fixCop', 'vrCop', 'spentCop', 'fromFree', 'cozy', 'cozyCop', 'pay']) T[k] += o[k];
       for (const p of o.pots) {
         const k = p.who + '|' + p.name;
@@ -1184,18 +1185,19 @@ window.exU = (function () {
     const potsU = T.pots.reduce((a, x) => a + x.usd, 0);
     const rate = T.spentCop && (T.fix + T.vr) ? T.spentCop / (T.fix + T.vr) : 4000;
     const items = [];
-    if (T.cozy) items.push(['Cozy House', gab ? U.cop(T.cozyCop) : U.usd0(T.cozy)]);
+    if (hh) { for (const w of ['Gabby', 'Jorgie']) { const cb = T.cozyBy[w]; if (cb && cb.usd) items.push([w, w === 'Gabby' ? U.cop(cb.cop) + ' (' + U.usd0(cb.usd) + ')' : U.usd0(cb.usd)]); } }
+    else if (T.cozy) items.push(['Cozy House', gab ? U.cop(T.cozyCop) : U.usd0(T.cozy)]);
     if (!hh) for (const x of T.pots) items.push([x.name, x.cop != null ? U.cop(x.cop) : U.usd0(x.usd)]);
     const savedU = T.cozy + (hh ? 0 : potsU);
     const savedC = T.cozyCop + (hh ? 0 : T.pots.reduce((a, x) => a + (x.cop != null ? x.cop : x.usd * rate), 0));
-    grid.append(box(hh ? 'Cozy House Saved' : 'Saved', big(savedU, savedC), '', [items.length ? (items.length === 1 ? items[0][0] : items.length + ' savings') : 'Nothing saved ' + word]));
+    grid.append(box(hh ? 'Cozy House Saved' : 'Saved', big(savedU, savedC), '', [items.length ? (hh ? 'Gabby + Jorgie ' + word : items.length === 1 ? items[0][0] : items.length + ' savings') : 'Nothing saved ' + word]));
     if (!hh) {
       const soFar = !yr && m >= nowMonth();
       const cap = T.left == null ? 'Log income to see it' : (soFar ? 'Left so far' : 'Left over') + (T.pay ? ' after debts' : '');
       grid.append(box('Free Money', T.left == null ? '—' : big(T.left, T.leftCop), T.left == null ? '' : (T.left >= 0 ? 'good' : 'neg'), [cap]));
     }
     el.append(grid);
-    if (items.length > 1) {
+    if (items.length > 1 || (hh && items.length)) {
       const chips = document.createElement('div'); chips.className = 'ex-ov-chips';
       for (const [a, z] of items) { const c = document.createElement('span'); c.className = 'ex-ov-chip'; const n = document.createElement('span'); n.textContent = a; const v = document.createElement('b'); v.textContent = z; c.append(n, v); chips.append(c); }
       el.append(chips);

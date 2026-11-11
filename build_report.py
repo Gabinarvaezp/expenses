@@ -69,7 +69,7 @@ def overview(rows, sav, debts, person, period):
     ms = sorted({r['month'] for r in rows} | {x['month'] for x in sav.get('entries', [])})
     ms = [m for m in ms if inp(m, period)]
     T = {'inc': 0.0, 'inc_cop': 0.0, 'n_inc': 0, 'fixed': 0.0, 'variable': 0.0, 'spent_cop': 0.0, 'from_free': 0.0,
-         'cozy': 0.0, 'cozy_cop': 0.0, 'pots': {}, 'debts': 0.0, 'left': None, 'left_cop': None}
+         'cozy': 0.0, 'cozy_cop': 0.0, 'pots': {}, 'debts': 0.0, 'left': None, 'left_cop': None, 'cozy_by': {}}
     for m in ms:
         rate = next((r['rate'] for r in rows if r['person'] == 'Gabby' and r['month'] == m and r.get('rate')), None) \
             or next((r['rate'] for r in reversed(rows) if r.get('rate')), 4000.0)
@@ -99,6 +99,7 @@ def overview(rows, sav, debts, person, period):
             pay = sum(float(x['amount']) for x in debts.get('payments', []) if x['debt_id'] in ids and x['month'] == m)
             T['inc'] += inc; T['inc_cop'] += inc_cop; T['n_inc'] += n; T['fixed'] += fx; T['variable'] += vr; T['spent_cop'] += sc
             T['from_free'] += ff; T['cozy'] += cz; T['cozy_cop'] += czc; T['debts'] += pay
+            cb = T['cozy_by'].setdefault(w, {'usd': 0.0, 'cop': 0.0}); cb['usd'] += cz; cb['cop'] += czc
             if n:
                 left = inc - (fx + vr + (cz if w == 'Gabby' else 0) + pots_u + pay)
                 T['left'] = (T['left'] or 0) + left
@@ -383,6 +384,10 @@ def main():
     sv_cap = (f'Cozy House {usd0(O["cozy"])}' + ('' if hh_o else f' &middot; personal savings {usd0(pots_u)}')) if (O['cozy'] or pots_u) else f'Nothing saved {span_o}'
     subs = ''
     if O['cozy'] and not hh_o: subs += sub_row('Cozy House', cop(O['cozy_cop']) if gab else usd0(O['cozy']))
+    if hh_o:
+        for w in ('Gabby', 'Jorgie'):
+            cb = O['cozy_by'].get(w)
+            if cb and cb['usd']: subs += sub_row(w, (cop(cb['cop']) + ' (' + usd0(cb['usd']) + ')') if w == 'Gabby' else usd0(cb['usd']))
     for x in O['pots']:
         subs += sub_row((x['who'] + ' · ' if person == 'Household' else '') + x['name'], cop(x['cop']) if (x['cop'] is not None and person != 'Household') else usd0(x['usd']))
     if O['left'] is None:
