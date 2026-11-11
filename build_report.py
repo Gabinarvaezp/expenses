@@ -54,6 +54,59 @@ def summarize(rows, month, person, cur):
     out['variable'] = out['total'] - out['fixed']
     return out
 
+def pot_at(pt, m):
+    ch = sorted(pt.get('changes') or [], key=lambda c: c['month'])
+    if not ch: return float(pt['monthly'])
+    v = float(ch[0].get('from', pt['monthly']))
+    for c in ch:
+        if c['month'] <= m: v = float(c['to'])
+    return v
+
+def overview(rows, sav, debts, person, period):
+    """Money in, spent, saved (Cozy House + each personal savings pot) and free money left, for a month or a year.
+    Same rules as compute_free in debt_plan.py (Jorgie's paychecks already arrive after his Cozy House saving)."""
+    people = ['Gabby', 'Jorgie'] if person == 'Household' else [person]
+    ms = sorted({r['month'] for r in rows} | {x['month'] for x in sav.get('entries', [])})
+    ms = [m for m in ms if inp(m, period)]
+    T = {'inc': 0.0, 'inc_cop': 0.0, 'n_inc': 0, 'fixed': 0.0, 'variable': 0.0, 'spent_cop': 0.0, 'from_free': 0.0,
+         'cozy': 0.0, 'cozy_cop': 0.0, 'pots': {}, 'debts': 0.0, 'left': None, 'left_cop': None}
+    for m in ms:
+        rate = next((r['rate'] for r in rows if r['person'] == 'Gabby' and r['month'] == m and r.get('rate')), None) \
+            or next((r['rate'] for r in reversed(rows) if r.get('rate')), 4000.0)
+        for w in people:
+            inc = inc_cop = fx = vr = sc = ff = cz = czc = pay = 0.0; n = 0
+            for r in rows:
+                if r['person'] != w or r['month'] != m: continue
+                if r['type'] == 'Income': inc += r['amount_usd']; inc_cop += r['amount_cop']; n += 1
+                elif r.get('from_free'): ff += r['amount_usd']
+                else:
+                    sc += r['amount_cop']
+                    if r['type'] == 'Fixed': fx += r['amount_usd']
+                    else: vr += r['amount_usd']
+            for x in sav.get('entries', []):
+                if x['person'] == w and x['month'] == m and x.get('kind') in ('Monthly saving', 'Extra saving'):
+                    cz += float(x.get('amount_usd') or 0); czc += float(x.get('amount_cop') or 0)
+            pots_u = pots_c = 0.0
+            for pt in debts.get('pots', []):
+                if pt.get('person') != w or pt['start_month'] > m or (pt.get('end_month') and m > pt['end_month']): continue
+                v = pot_at(pt, m); cop_pt = pt.get('currency') == 'COP'
+                u = v / rate if cop_pt else v
+                q = T['pots'].setdefault((w, pt['name']), {'who': w, 'name': pt['name'], 'usd': 0.0, 'cop': 0.0 if cop_pt else None})
+                q['usd'] += u
+                if cop_pt: q['cop'] += v
+                pots_u += u; pots_c += v if cop_pt else v * rate
+            ids = {a['id'] for a in debts.get('accounts', []) if a.get('owner', 'Jorgie') == w}
+            pay = sum(float(x['amount']) for x in debts.get('payments', []) if x['debt_id'] in ids and x['month'] == m)
+            T['inc'] += inc; T['inc_cop'] += inc_cop; T['n_inc'] += n; T['fixed'] += fx; T['variable'] += vr; T['spent_cop'] += sc
+            T['from_free'] += ff; T['cozy'] += cz; T['cozy_cop'] += czc; T['debts'] += pay
+            if n:
+                left = inc - (fx + vr + (cz if w == 'Gabby' else 0) + pots_u + pay)
+                T['left'] = (T['left'] or 0) + left
+                if w == 'Gabby':
+                    T['left_cop'] = (T['left_cop'] or 0) + (inc_cop - sc - czc - pots_c - pay * rate)
+    T['pots'] = list(T['pots'].values())
+    return T
+
 def card(title, body, sub='', center=False):
     al = 'text-align:center;' if center else ''
     s = f'<div style="font-size:14px;font-weight:700;color:{TEXT};{al}">{title}</div>'
@@ -310,6 +363,37 @@ def main():
             f'<tr><td style="font-size:14px;font-weight:700;color:{TEXT};padding-top:10px;">Ready to use</td><td align="right" style="font-size:16px;font-weight:800;color:{TEXT};padding-top:10px;white-space:nowrap;">{tot}</td></tr></table>'
             + tip_html(fr.get('tip')))
 
+    # month overview: money in, spent, saved (Cozy House + personal savings), free money
+    O = overview(rows, sav, debts, person, month)
+    span_o = 'this year' if year_mode else 'this month'
+    gab = person == 'Gabby'
+    def ov_row(label, val, cap, color=None, bold=True):
+        return (f'<tr><td style="padding:10px 0 0;font-size:14px;font-weight:700;color:{TEXT};">{label}</td>'
+                f'<td align="right" style="padding:10px 0 0;font-size:17px;font-weight:800;color:{color or TEXT};white-space:nowrap;">{val}</td></tr>'
+                f'<tr><td colspan="2" style="font-size:12px;color:{MUTED};padding:2px 0 10px;border-bottom:1px solid #EEF0F3;">{cap}</td></tr>')
+    def sub_row(label, val):
+        return (f'<tr><td style="padding:5px 0 5px 14px;font-size:13px;color:#474E5A;border-bottom:1px solid #F4F5F7;">{e(label)}</td>'
+                f'<td align="right" style="padding:5px 0;font-size:13px;font-weight:700;color:{TEXT};white-space:nowrap;border-bottom:1px solid #F4F5F7;">{val}</td></tr>')
+    inc_cap = (f'{O["n_inc"]} payment{"s" if O["n_inc"] != 1 else ""} logged' + (f' &middot; &asymp; {cop(O["inc_cop"])}' if gab else '')) if O['n_inc'] else f'No income logged {span_o}'
+    sp_cap = f'Fixed {usd0(O["fixed"])} &middot; variable {usd0(O["variable"])}' + (f' &middot; &asymp; {cop(O["spent_cop"])}' if gab else '') + (f' &middot; plus {usd0(O["from_free"])} paid with free money' if O['from_free'] else '')
+    pots_u = sum(x['usd'] for x in O['pots'])
+    sv_cap = f'Cozy House {usd0(O["cozy"])} &middot; personal savings {usd0(pots_u)}' if (O['cozy'] or pots_u) else f'Nothing saved {span_o}'
+    subs = ''
+    if O['cozy']: subs += sub_row('Cozy House', cop(O['cozy_cop']) if gab else usd0(O['cozy']))
+    for x in O['pots']:
+        subs += sub_row((x['who'] + ' · ' if person == 'Household' else '') + x['name'], cop(x['cop']) if (x['cop'] is not None and person != 'Household') else usd0(x['usd']))
+    if O['left'] is None:
+        fm_val, fm_col, fm_cap = '&mdash;', None, 'Log income to see what is left'
+    else:
+        fm_val, fm_col = usd(O['left']), (DOWN if O['left'] >= 0 else UP)
+        fm_cap = ('Left over ' + span_o + ', added to Free money') + (f' &middot; after {usd0(O["debts"])} paid to debts' if O['debts'] else '') + (f' &middot; &asymp; {cop(O["left_cop"])}' if (gab and O['left_cop'] is not None) else '')
+    overview_html = card(('Year' if year_mode else 'Month') + ' Overview',
+        f'<table role="presentation" width="100%" cellpadding="0" cellspacing="0">'
+        + ov_row('Money in', usd(O['inc']), inc_cap)
+        + ov_row('Spent', usd(O['fixed'] + O['variable']), sp_cap)
+        + ov_row('Saved', usd(O['cozy'] + pots_u), sv_cap) + subs
+        + ov_row('Free money', fm_val, fm_cap, fm_col) + '</table>')
+
     title = ((f'Cozy House {month} Wrapped' if who else f'{person}’s {month} Wrapped') if year_mode
              else ('Cozy House' if who else f'{person}’s Report'))
     span = 'this year' if year_mode else 'this month'
@@ -340,6 +424,7 @@ def main():
   </td></tr>
   <tr><td height="14"></td></tr>
   {kpis}
+  {overview_html}
   {card('Spending by Category', pie, 'Variable spending ' + span, center=True)}
   {card('Month by Month', monthly, 'Total spent each month' + ('' if year_mode else ' · ' + mname(month) + ' in color'), center=True)}
   {analysis_html}

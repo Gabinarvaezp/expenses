@@ -97,6 +97,17 @@
 .ex-single .ex-sav-bars { display: none; }
 .ex-sb-val { font-weight: 600; color: #5D6470; font-variant-numeric: tabular-nums; }
 @container (max-width: 760px) { .ex-sav-bars { justify-content: flex-start; } }
+.ex-ov { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; }
+.ex-ov-box { border: 1px solid var(--ex-line); border-radius: 4px; padding: 12px 14px; display: flex; flex-direction: column; gap: 3px; min-width: 0; }
+.ex-ov-label { font-size: 12px; font-weight: 600; color: var(--ex-muted); text-transform: uppercase; letter-spacing: .04em; }
+.ex-ov-val { font-size: 22px; font-weight: 700; font-variant-numeric: tabular-nums; }
+.ex-ov-val.good { color: var(--ex-down); } .ex-ov-val.neg { color: var(--ex-up); }
+.ex-ov-cap { font-size: 12px; color: var(--ex-muted); font-variant-numeric: tabular-nums; }
+.ex-ov-list { margin-top: 6px; display: flex; flex-direction: column; gap: 3px; font-size: 12.5px; }
+.ex-ov-li { display: flex; justify-content: space-between; gap: 8px; border-top: 1px dashed var(--ex-line); padding-top: 3px; }
+.ex-ov-li span:last-child { font-weight: 600; font-variant-numeric: tabular-nums; white-space: nowrap; }
+@container (max-width: 900px) { .ex-ov { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@container (max-width: 460px) { .ex-ov { grid-template-columns: minmax(0, 1fr); } }
 .ex-nav-sep { margin: 10px 20px 4px; padding-top: 12px; border-top: 1px solid var(--ex-line); font-size: 10.5px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--ex-muted); }
 .ex-app:not(.ex-planmode) #debt-plan { display: none; }
 .ex-planmode .ex-main > section:not(#debt-plan) { display: none; }
@@ -263,6 +274,13 @@ html, body { margin: 0; padding: 0; background: #F1F2F4; }
         <div class="ex-delta" data-draw="dTop" data-source="summary"></div>
         <div class="ex-kpi-value ex-word" data-draw="vTop" data-source="summary" data-field="top_category">—</div>
         <div class="ex-kpi-cap" data-draw="cTop" data-source="summary">—</div>
+      </div>
+    </section>
+
+    <section class="ex-grid" id="month-overview">
+      <div class="ex-card ex-span12">
+        <h2 data-draw="ovTitle">Month Overview</h2>
+        <div class="ex-ov" data-draw="overview" data-source="expenses"></div>
       </div>
     </section>
 
@@ -535,7 +553,7 @@ window.exU = (function () {
     tip.style.left = Math.max(0, Math.min(e.clientX - b.left + 12, el.clientWidth - tip.offsetWidth)) + 'px';
     tip.style.top = (e.clientY - b.top + 14) + 'px';
   }
-  const ALL = ['pageTitle','selMonth','dTotal','vTotal','cTotal','dVar','vVar','cVarN','dFixed','vFixed','cFixedN','dTop','vTop','cTop','savTitle','savTotal','savPeople','dpBody','tIncome','monthly','monthlyLegend','pie','anTitle','anText','who','heat','tFixed','tVar'];
+  const ALL = ['pageTitle','selMonth','dTotal','vTotal','cTotal','dVar','vVar','cVarN','dFixed','vFixed','cFixedN','dTop','vTop','cTop','savTitle','savTotal','savPeople','dpBody','tIncome','monthly','monthlyLegend','pie','anTitle','anText','who','heat','tFixed','tVar','ovTitle','overview'];
   function redraw() { ALL.forEach((n) => dash.draw(n)); }
   function pickMonth(m) { window.exMonth = m; redraw(); }
   return { monthName, usd, usd0, cop, copK, usdK, pct, enc, PERSON, PIE, LINE, per, isCop, suf, money, rows, months, years, month, isYear, inPeriod, sumRow, where, catColors, tipAt, redraw, pickMonth };
@@ -1027,6 +1045,121 @@ window.exU = (function () {
       }
     }
     if (p.shortfall) grid.append(el('div', 'ex-span12 ex-dp-warn', 'Heads-up: the money left after spending does not cover the monthly payments yet.'));
+  });
+})();
+
+// ---------- month overview: money in, spent, saved (Cozy House + personal savings), free money ----------
+(function () {
+  const U = window.exU;
+  const get = (id, d) => { const x = dash.data(id); return x.status === 'ok' ? x.data : d; };
+  const nowMonth = () => { const d = new Date(Date.now() - 5 * 3600e3); return d.getUTCFullYear() + '-' + String(d.getUTCMonth() + 1).padStart(2, '0'); };
+  function rateFor(ex, m) {
+    const r = ex.find((e) => e.person === 'Gabby' && e.month === m && Number(e.rate)) || ex.slice().reverse().find((e) => Number(e.rate));
+    return r ? Number(r.rate) : 4000;
+  }
+  function potAt(pt, m) {
+    const ch = (pt.changes || []).slice().sort((a, b) => a.month.localeCompare(b.month));
+    if (!ch.length) return Number(pt.monthly);
+    let v = Number(ch[0].from != null ? ch[0].from : pt.monthly);
+    for (const c of ch) if (c.month <= m) v = Number(c.to);
+    return v;
+  }
+  // Same rules as compute_free in debt_plan.py (Jorgie's paychecks already arrive after his Cozy House saving).
+  function one(who, m, ex, ses, debts) {
+    const o = { inc: 0, incCop: 0, nInc: 0, fix: 0, vr: 0, spentCop: 0, fromFree: 0, cozy: 0, cozyCop: 0, pots: [], pay: 0, left: null, leftCop: null };
+    for (const e of ex) {
+      if (e.person !== who || e.month !== m) continue;
+      const v = Number(e.amount_usd) || 0;
+      if (e.type === 'Income') { o.inc += v; o.incCop += Number(e.amount_cop) || 0; o.nInc += 1; }
+      else if (e.from_free) o.fromFree += v;
+      else { if (e.type === 'Fixed') o.fix += v; else o.vr += v; o.spentCop += Number(e.amount_cop) || 0; }
+    }
+    for (const x of ses) if (x.person === who && x.month === m && (x.kind === 'Monthly saving' || x.kind === 'Extra saving')) { o.cozy += Number(x.amount_usd) || 0; o.cozyCop += Number(x.amount_cop) || 0; }
+    const rate = rateFor(ex, m);
+    for (const pt of debts.pots || []) {
+      if (pt.person !== who || pt.start_month > m || (pt.end_month && m > pt.end_month)) continue;
+      const n = potAt(pt, m), cop = pt.currency === 'COP';
+      o.pots.push({ name: pt.name, who, usd: cop ? n / rate : n, cop: cop ? n : null });
+    }
+    const ids = new Set((debts.accounts || []).filter((a) => (a.owner || 'Jorgie') === who).map((a) => a.id));
+    for (const p of debts.payments || []) if (ids.has(p.debt_id) && p.month === m) o.pay += Number(p.amount) || 0;
+    if (o.nInc) {
+      o.left = o.inc - (o.fix + o.vr + (who === 'Gabby' ? o.cozy : 0) + o.pots.reduce((a, p) => a + p.usd, 0) + o.pay);
+      o.leftCop = who === 'Gabby' ? Math.round(o.incCop - o.spentCop - o.cozyCop - o.pots.reduce((a, p) => a + (p.cop != null ? p.cop : p.usd * rate), 0) - o.pay * rate) : null;
+    }
+    return o;
+  }
+  function overview(person, period) {
+    const ex = get('expenses', []), ses = get('savings_entries', []), debts = get('debts', {});
+    const ms = period.length === 4 ? [...new Set(ex.map((e) => e.month).concat(ses.map((x) => x.month)))].filter((m) => m.slice(0, 4) === period) : [period];
+    const people = person === 'Household' ? ['Gabby', 'Jorgie'] : [person];
+    const T = { inc: 0, incCop: 0, nInc: 0, fix: 0, vr: 0, spentCop: 0, fromFree: 0, cozy: 0, cozyCop: 0, pots: {}, pay: 0, left: null, leftCop: null };
+    for (const m of ms) for (const w of people) {
+      const o = one(w, m, ex, ses, debts);
+      for (const k of ['inc', 'incCop', 'nInc', 'fix', 'vr', 'spentCop', 'fromFree', 'cozy', 'cozyCop', 'pay']) T[k] += o[k];
+      for (const p of o.pots) {
+        const k = p.who + '|' + p.name;
+        const q = T.pots[k] || (T.pots[k] = { name: p.name, who: p.who, usd: 0, cop: p.cop == null ? null : 0 });
+        q.usd += p.usd; if (q.cop != null) q.cop += p.cop;
+      }
+      if (o.left != null) { T.left = (T.left || 0) + o.left; if (o.leftCop != null) T.leftCop = (T.leftCop || 0) + o.leftCop; }
+    }
+    T.pots = Object.values(T.pots);
+    return T;
+  }
+  const box = (label, val, cls, caps, list) => {
+    const b = document.createElement('div'); b.className = 'ex-ov-box';
+    const l = document.createElement('div'); l.className = 'ex-ov-label'; l.textContent = label;
+    const v = document.createElement('div'); v.className = 'ex-ov-val' + (cls ? ' ' + cls : ''); v.textContent = val;
+    b.append(l, v);
+    for (const c of caps || []) { const d = document.createElement('div'); d.className = 'ex-ov-cap'; d.textContent = c; b.append(d); }
+    if (list && list.length) {
+      const ul = document.createElement('div'); ul.className = 'ex-ov-list';
+      for (const [a, z] of list) {
+        const li = document.createElement('div'); li.className = 'ex-ov-li';
+        const s1 = document.createElement('span'); s1.textContent = a;
+        const s2 = document.createElement('span'); s2.textContent = z;
+        li.append(s1, s2); ul.append(li);
+      }
+      b.append(ul);
+    }
+    return b;
+  };
+  dash.draw('ovTitle', (el) => { el.textContent = (U.isYear() ? 'Year' : 'Month') + ' Overview'; });
+  dash.draw('overview', (el) => {
+    el.replaceChildren();
+    const m = U.month(); if (!m) return;
+    const p = U.per(), T = overview(p, m), yr = U.isYear(m), hh = p === 'Household';
+    const word = yr ? 'this year' : 'this month';
+    const copNote = (v) => (p === 'Gabby' && v) ? '≈ ' + U.cop(v) : null;
+    // 1. Money in
+    el.append(box('Money In', U.usd(T.inc), '', T.nInc
+      ? [T.nInc + (T.nInc === 1 ? ' payment' : ' payments') + ' logged', copNote(T.incCop)].filter(Boolean)
+      : ['No income logged ' + word]));
+    // 2. Spent
+    el.append(box('Spent', U.usd(T.fix + T.vr), '', ['Fixed ' + U.usd0(T.fix) + ' · variable ' + U.usd0(T.vr)]
+      .concat(copNote(T.spentCop) ? [copNote(T.spentCop)] : []).concat(T.fromFree ? ['+ ' + U.usd0(T.fromFree) + ' paid with free money'] : [])));
+    // 3. Saved: Cozy House + each personal savings pot
+    const potsU = T.pots.reduce((a, x) => a + x.usd, 0);
+    const list = [];
+    if (T.cozy) list.push(['Cozy House', p === 'Gabby' ? U.cop(T.cozyCop) : U.usd0(T.cozy)]);
+    for (const x of T.pots) list.push([(hh ? x.who + ' · ' : '') + x.name, (x.cop != null && !hh) ? U.cop(x.cop) : U.usd0(x.usd)]);
+    el.append(box('Saved', U.usd(T.cozy + potsU), '',
+      [(T.cozy || potsU) ? 'Cozy House ' + U.usd0(T.cozy) + ' · personal ' + U.usd0(potsU) : 'Nothing saved ' + word], list));
+    // 4. Free money: what is left after spending, savings and debt payments
+    const soFar = !yr && m >= nowMonth();
+    let caps;
+    if (T.left == null) caps = ['Log income to see what is left'];
+    else {
+      caps = [(soFar ? 'Left so far ' : 'Left over ') + word + (soFar ? '' : ', added to Free money')];
+      if (T.pay) caps.push('After ' + U.usd0(T.pay) + ' paid to debts');
+      if (copNote(T.leftCop)) caps.push(copNote(T.leftCop));
+      if (!hh) {
+        const fr = ((((get('debts', {}).plan || {}).people || {})[p]) || {}).free;
+        if (fr && fr.months && fr.months.length) caps.push('Free money total ' + U.usd0(fr.balance));
+      }
+    }
+    el.append(box('Free Money', T.left == null ? '—' : U.usd(T.left), T.left == null ? '' : (T.left >= 0 ? 'good' : 'neg'), caps));
   });
 })();
 
