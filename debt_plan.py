@@ -74,6 +74,33 @@ def current_balance(acc, payments):
     return max(0.0, round(float(acc['balance']) - paid, 2))
 
 
+def cuota_for(a, cur, goal):
+    """The fixed monthly installment (cuota) of a debt. Written cuota/minimum wins; otherwise the original
+    amount split evenly from the month it was added to the end of its 0% deal (or the goal month),
+    with interest when it has an APR. Extra payments do not change the cuota: they shorten the months."""
+    if float(a.get('monthly') or 0) > 0:
+        return float(a['monthly'])
+    start = a.get('added') or cur
+    end = a.get('interest_free_until') or goal
+    n = max(1, months_between(start, end) + 1)
+    orig = float(a.get('original', a['balance']))
+    r = float(a.get('apr') or 0) / 1200
+    return float(-(-((orig * r / (1 - (1 + r) ** -n)) if r else orig / n) // 1))
+
+
+def schedule(balance, cuota, apr, first_month, first_pay=None, max_n=72):
+    """Month-by-month installments at the fixed cuota until the debt is paid."""
+    rows, b, m, r = [], float(balance), first_month, float(apr or 0) / 1200
+    if cuota <= 0: return rows
+    while b > 0.005 and len(rows) < max_n:
+        b += b * r
+        pay = min(b, first_pay if (first_pay is not None and not rows) else cuota)
+        b -= pay
+        rows.append({'month': m, 'pay': round(pay, 2), 'left': round(max(0.0, b), 2)})
+        m = add_month(m)
+    return rows
+
+
 def job_of(item):
     s = item.lower()
     if 'valet' in s: return 'Valet'
@@ -118,21 +145,25 @@ def compute(expenses, debts, today, owner='Jorgie'):
         b = current_balance(a, payments)
         orig = float(a.get('original', a['balance']))
         promo = a.get('interest_free_until') or ''
-        need = float(a.get('monthly') or 0)
-        if promo and b > 0:  # 0% deal: must be fully paid by the end of that month
+        cuota = cuota_for(a, cur, goal)
+        need = cuota
+        if promo and b > 0:  # 0% deal: must be fully paid by the end of that month (catch up if payments were missed)
             need = max(need, -(-b // max(1, months_between(cur, promo) + 1)))
+        paid_now = round(sum(p['amount'] for p in payments if p['debt_id'] == a['id'] and p['month'] == cur), 2)
         mg = max(1, months_between(cur, goal) + 1)
         # monthly payment that finishes this debt by the goal month (long loans like a car keep their own monthly payment)
         long_loan = a.get('kind') in ('Car', 'Loan', 'Mortgage') and float(a.get('monthly') or 0) > 0
         r = float(a.get('apr') or 0) / 1200
         by_goal = -(-((b * r / (1 - (1 + r) ** -mg)) if r else b / mg) // 1)  # equal payments incl. interest, rounded up to the dollar
-        goal_m = (max(need, float(a['monthly'])) if long_loan else max(need, by_goal)) if b > 0 else 0
+        goal_m = (max(need, float(a['monthly'])) if long_loan else need) if b > 0 else 0
         debts_now.append({'id': a['id'], 'name': a['name'], 'kind': a.get('kind', 'Other'), 'apr': float(a.get('apr') or 0),
                           'monthly': float(a.get('monthly') or 0), 'needed_monthly': round(need, 2), 'goal_monthly': round(goal_m, 2),
                           'interest_free_until': promo,
                           'paid_from': a.get('paid_from', 'Target'),
                           'balance': b, 'original': max(orig, b),
-                          'paid_so_far': round(sum(p['amount'] for p in payments if p['debt_id'] == a['id']), 2)})
+                          'paid_so_far': round(sum(p['amount'] for p in payments if p['debt_id'] == a['id']), 2),
+                          'cuota': round(need, 2), 'paid_this_month': paid_now,
+                          'payments': [{'month': p['month'], 'amount': round(p['amount'], 2), 'extra': bool(p.get('extra'))} for p in payments if p['debt_id'] == a['id']]})
 
     # a job with no paycheck logged yet: assume it covers just the minimum of its own debts (estimated plan)
     estimated = income['Target']['n_logged'] == 0 or income['Valet']['n_logged'] == 0
@@ -210,6 +241,25 @@ def compute(expenses, debts, today, owner='Jorgie'):
         d['by_goal'] = bool(d['payoff_month'] and d['payoff_month'] <= goal)
         d['pct_paid'] = round((1 - d['balance'] / d['original']) * 100, 1) if d['original'] else 100.0
         d['late_for_promo'] = bool(d['interest_free_until'] and d['balance'] > 0 and (not d['payoff_month'] or d['payoff_month'] > d['interest_free_until']))
+        # fixed-installment schedule: this month's cuota counts what was already paid this month
+        left_now = max(0.0, d['cuota'] - d['paid_this_month'])
+        start, first_pay = (cur, left_now) if left_now > 0.5 else (add_month(cur), None)
+        d['schedule'] = schedule(d['balance'], d['cuota'], d['apr'], start, first_pay)
+        d['payments_left'] = len(d['schedule'])
+        d['cuota_done'] = d['schedule'][-1]['month'] if d['schedule'] else (cur if d['balance'] <= 0 else None)
+        d['due_this_month'] = round(left_now, 2) if d['balance'] > 0 else 0.0
+        d['paid_off'] = d['balance'] <= 0.005
+        # extra payment examples: the smallest extra (in $10 steps) that cuts 1, 2 and 3 installments
+        ex, n0 = [], len(d['schedule'])
+        for k in (1, 2, 3):
+            if n0 - k < 1: break
+            x = 10
+            while x < d['balance']:
+                sc = schedule(d['balance'] - x, d['cuota'], d['apr'], start, first_pay)
+                if len(sc) <= n0 - k:
+                    ex.append({'extra': x, 'payments_left': len(sc), 'done': sc[-1]['month'] if sc else cur, 'months_sooner': n0 - len(sc)}); break
+                x += 10
+        d['extra_examples'] = ex
 
     total = round(sum(d['balance'] for d in debts_now), 2)
     months_left = max(1, months_between(cur, goal) + 1)
@@ -467,7 +517,7 @@ def email_html(plan, who, url):
     if p['debts']:
         df = mname(p['debt_free_month'], True) if p['debt_free_month'] else '—'
         body += card('Where you stand', '<table role="presentation" width="100%" cellpadding="0" cellspacing="0"><tr>'
-                     + kpi('You owe', usd(p['total_debt'])) + kpi('Pay each month', usd0(p['available_monthly'])) + kpi('Debt-free', df) + '</tr></table>')
+                     + kpi('You owe', usd(p['total_debt'])) + kpi('Installments a month', usd0(sum(d['cuota'] for d in p['debts'] if not d.get('paid_off')))) + kpi('Debt-free', df) + '</tr></table>')
         checks = ''
         for job in ('Valet', 'Target'):
             rows = ''.join(f'<tr><td style="padding:5px 0;font-size:14px;color:{TEXT};">{e(x["debt"])}</td><td align="right" style="padding:5px 0;font-size:14px;font-weight:700;color:{TEXT};">{usd(x["amount"])}</td></tr>' for x in p['per_check'].get(job, []))
@@ -475,7 +525,26 @@ def email_html(plan, who, url):
                 checks += f'<div style="font-size:12px;font-weight:700;color:{ACCENT};margin:6px 0 2px;">EACH {job.upper()} CHECK</div>' + tbl(rows)
         if checks:
             body += card('Every paycheck', checks)
-        body += card('Debts', tbl(debts_rows(p)))
+        live = [d for d in p['debts'] if not d.get('paid_off')]
+        for d in sorted(live, key=lambda d: d.get('cuota_done') or '9999'):
+            sub = ('0% until ' + mname(d['interest_free_until'], True)) if d.get('interest_free_until') else (f"{d['apr']}% interest" if d['apr'] else 'no interest')
+            top = ('<table role="presentation" width="100%" cellpadding="0" cellspacing="0"><tr>'
+                   + kpi('You owe', usd(d['balance'])) + kpi('Monthly installment', usd0(d['cuota']), sub)
+                   + kpi('Payments left', str(d['payments_left']), ('done ' + mname(d['cuota_done'], True)) if d.get('cuota_done') else '') + '</tr></table>')
+            if d.get('paid_this_month'):
+                top += f'<div style="font-size:12px;color:{GOOD};margin:6px 0 0;">Paid this month: {usd0(d["paid_this_month"])}' + (f' · still due this month: {usd0(d["due_this_month"])}' if d.get('due_this_month') else ' · this month is covered') + '</div>'
+            sched = ''.join(f'<tr><td style="padding:5px 0;font-size:13px;color:{TEXT};border-bottom:1px solid #F1F2F4;">{e(mname(x["month"]))}</td>'
+                            f'<td align="right" style="padding:5px 0;font-size:13px;font-weight:700;color:{TEXT};border-bottom:1px solid #F1F2F4;">{usd0(x["pay"])}</td>'
+                            f'<td align="right" style="padding:5px 0 5px 12px;font-size:12px;color:{MUTED};border-bottom:1px solid #F1F2F4;white-space:nowrap;">{usd0(x["left"])} left</td></tr>' for x in d['schedule'][:12])
+            sched_html = (f'<div style="font-size:12px;font-weight:700;color:{ACCENT};margin:12px 0 2px;">YOUR INSTALLMENTS</div>' + tbl(sched)) if sched else ''
+            extra = ''.join(f'<div style="font-size:13px;color:{TEXT};padding:3px 0;">+{usd0(x["extra"])} extra now → <b>{x["payments_left"]} payments</b>, done {e(mname(x["done"], True))}'
+                            + (f' <span style="color:{GOOD};font-weight:700;">({x["months_sooner"]} month{"s" if x["months_sooner"] != 1 else ""} sooner)</span>' if x['months_sooner'] > 0 else '') + '</div>' for x in d.get('extra_examples', []))
+            extra_html = (f'<div style="font-size:12px;font-weight:700;color:{ACCENT};margin:12px 0 2px;">PAY EXTRA?</div>'
+                          f'<div style="font-size:12px;color:{MUTED};margin-bottom:4px;">The installment stays {usd0(d["cuota"])}; extra payments cut months off. Write "Extra {e(d["name"].lower())} 200" in your note.</div>' + extra) if extra else ''
+            body += card(d['name'], top + sched_html + extra_html)
+        done = [d for d in p['debts'] if d.get('paid_off')]
+        if done:
+            body += card('Paid off', tbl(''.join(f'<tr><td style="padding:6px 0;font-size:14px;color:{TEXT};">&#10003;&nbsp; {e(d["name"])}</td><td align="right" style="padding:6px 0;font-size:13px;font-weight:700;color:{GOOD};">Paid off · {usd0(d["original"])}</td></tr>' for d in done)))
     if p['goals']:
         body += card('Goals', tbl(goals_rows(p)))
     if p.get('pots'):
@@ -515,7 +584,13 @@ def email_text(plan, who, url):
         for job in ('Valet', 'Target'):
             if p['per_check'].get(job):
                 L.append(f'Each {job} check: ' + ', '.join(f"{usd(x['amount'])} to {x['debt']}" for x in p['per_check'][job]))
-        L += [f"- {d['name']}: {usd(d['balance'])}, {usd0(d['this_month'])} a month" + (f", done {mname(d['payoff_month'], True)}" if d['payoff_month'] else '') for d in p['debts']]
+        for d in p['debts']:
+            if d.get('paid_off'):
+                L.append(f"- {d['name']}: PAID OFF"); continue
+            L.append(f"- {d['name']}: owe {usd(d['balance'])} · installment {usd0(d['cuota'])} a month · {d['payments_left']} payments left" + (f", done {mname(d['cuota_done'], True)}" if d.get('cuota_done') else ''))
+            L += [f"    {mname(x['month'])}: {usd0(x['pay'])} ({usd0(x['left'])} left)" for x in d['schedule'][:12]]
+            for x in d.get('extra_examples', []):
+                L.append(f"    +{usd0(x['extra'])} extra now → {x['payments_left']} payments, done {mname(x['done'], True)}" + (f" ({x['months_sooner']} sooner)" if x['months_sooner'] > 0 else ''))
     for g in p['goals'] + t['goals']:
         L.append(f"- Goal {g['name']}: {usd0(g['target'])}" + (f", {usd0(g['monthly_needed'])} a month" if g['monthly_needed'] else '') + (f", ready {mname(g['reach_month'], True)}" if g['reach_month'] else ''))
     f = t.get('fund') or {}

@@ -120,6 +120,11 @@
 .ex-ov-chip.gabby, .ex-ov-gabby .ex-ov-chip { --chip: #E8697D; } .ex-ov-chip.jorgie, .ex-ov-jorgie .ex-ov-chip { --chip: #4B9FD5; }
 .ex-ov-gabby .ex-ov-box.save { --ov-c: #E8697D; } .ex-ov-gabby .ex-ov-box.save .ex-ov-val { color: #C94A60; }
 .ex-ov-jorgie .ex-ov-box.save { --ov-c: #4B9FD5; } .ex-ov-jorgie .ex-ov-box.save .ex-ov-val { color: #2F7FB8; }
+.ex-dp-paid { opacity: .6; } .ex-dp-paid .ex-dp-bar > div { background: var(--ex-down); }
+.ex-dp-input { width: 100%; box-sizing: border-box; font: inherit; font-size: 16px; padding: 10px 12px; border: 1px solid #D5D9DF; border-radius: 6px; margin: 10px 0 8px; background: var(--ex-card); color: var(--ex-text); }
+.ex-dp-quick { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 10px; }
+.ex-dp-quick button { all: unset; cursor: pointer; font-size: 12.5px; font-weight: 600; padding: 5px 10px; border-radius: 999px; background: #F3ECFA; color: #7D3FB3; }
+.ex-dp-sim { font-size: 14px; padding: 10px 12px; border-radius: 6px; background: #F1FAF5; color: #22543D; margin-bottom: 8px; }
 .ex-msplit { display: flex; flex-direction: column; gap: 14px; padding: 6px 2px 4px; }
 .ex-msplit-total { font-size: 28px; font-weight: 700; font-variant-numeric: tabular-nums; }
 .ex-msplit-total small { display: block; font-size: 12px; font-weight: 500; color: var(--ex-muted); }
@@ -923,7 +928,7 @@ window.exU = (function () {
       .style('fill', 'transparent').style('cursor', 'pointer').on('click', (e, d) => pick(d)).on('pointerenter', (e, d) => { if (e.pointerType === 'mouse') pick(d); });
     pick(data.find((d) => d.month === goal) || data[data.length - 1]);
   });
-  const doneTag = (d) => d.balance <= 0 ? el('span', 'ex-dp-tag ok', 'Paid off') : el('span', 'ex-dp-tag ' + (d.by_goal ? 'ok' : 'late'), d.payoff_month ? 'Done ' + short(d.payoff_month) : 'Long term');
+  const doneTag = (d) => d.balance <= 0 ? el('span', 'ex-dp-tag ok', '✓ Paid off') : el('span', 'ex-dp-tag ' + (d.by_goal ? 'ok' : 'late'), d.payoff_month ? 'Done ' + short(d.payoff_month) : 'Long term');
   const row = (name, right, pct, metaL, metaR, onClick) => {
     const r = el('div', 'ex-dp-debt ex-dp-click'); r.addEventListener('click', onClick);
     const top = el('div', 'top'); const nm = el('span', '', name); nm.style.fontWeight = '600'; top.append(nm, el('b', '', right));
@@ -952,7 +957,7 @@ window.exU = (function () {
       const c = card('ex-span12 ex-dp-empty'); const ic = el('div', 'ic'); ic.innerHTML = ICON;
       c.append(ic, el('h3', '', 'Nothing here yet')); grid.append(c); return;
     }
-    const items = debts.map((d) => ({ id: d.id, name: d.name, v: d.balance })).concat(goals.map((g) => ({ id: g.id, name: g.name, v: g.target, goal: true })));
+    const items = debts.map((d) => ({ id: d.id, name: (d.paid_off ? '✓ ' : '') + d.name, v: d.paid_off ? null : d.balance })).concat(goals.map((g) => ({ id: g.id, name: g.name, v: g.target, goal: true })));
     const selId = items.some((i) => i.id === window.exDebt) ? window.exDebt : 'all';
     const select = (id) => { window.exDebt = id; redraw(); };
     if (items.length) {
@@ -1008,7 +1013,7 @@ window.exU = (function () {
       const lists = (debts.length ? 1 : 0) + (goals.length ? 1 : 0);
       if (debts.length) {
         const dc = card(hasChecks ? 'ex-span7' : span(lists), 'Debts');
-        debts.forEach((d) => dc.append(row(d.name, U.usd(d.balance), d.pct_paid, usd0(d.this_month) + ' a month', doneTag(d), () => select(d.id))));
+        debts.forEach((d) => { const r = row(d.name, d.paid_off ? '✓ ' + usd0(d.original) : U.usd(d.balance), d.paid_off ? 100 : d.pct_paid, d.paid_off ? 'paid off' : usd0(d.cuota || d.this_month) + ' a month · ' + (d.payments_left || 0) + ' left', doneTag(d), () => select(d.id)); if (d.paid_off) r.classList.add('ex-dp-paid'); dc.append(r); });
         grid.append(dc);
       }
       if (goals.length) {
@@ -1060,10 +1065,10 @@ window.exU = (function () {
     } else if (debts.some((d) => d.id === selId)) {
       const d = debts.find((x) => x.id === selId); const job = d.paid_from;
       kpi(grid, 'Owe Now', U.usd(d.balance), d.paid_so_far ? usd0(d.paid_so_far) + ' paid so far' : 'nothing paid yet');
-      kpi(grid, 'Pay Each Month', usd0(d.this_month || d.goal_monthly), d.interest_free_until ? 'before 0% ends ' + short(d.interest_free_until) : 'to be done on time');
+      kpi(grid, 'Monthly Installment', d.paid_off ? '$0' : usd0(d.cuota || d.this_month || d.goal_monthly), d.paid_off ? 'paid off' : (d.paid_this_month ? usd0(d.paid_this_month) + ' paid this month' : (d.interest_free_until ? '0% until ' + short(d.interest_free_until) : 'fixed each month')));
       if (d.per_check != null) kpi(grid, 'Each ' + job + ' Check', usd0(d.per_check), 'of about ' + usd0(p.income[job].per_check));
-      else { const ml = d.payoff_month ? (Number(d.payoff_month.slice(0, 4)) - Number(P.month.slice(0, 4))) * 12 + Number(d.payoff_month.slice(5)) - Number(P.month.slice(5)) + 1 : null; kpi(grid, 'Months Left', ml ? String(ml) : '—', ml === 1 ? 'payment' : 'payments'); }
-      kpi(grid, 'Paid Off', d.payoff_month ? short(d.payoff_month) : '—', d.by_goal ? 'on time' : 'after ' + short(P.goal_month), d.by_goal);
+      else kpi(grid, 'Payments Left', String(d.payments_left || 0), d.cuota_done ? 'last one ' + short(d.cuota_done) : '');
+      kpi(grid, 'Paid Off', d.paid_off ? '✓ Done' : (d.cuota_done ? short(d.cuota_done) : '—'), d.paid_off ? '' : (d.cuota_done && d.cuota_done <= P.goal_month ? 'on time' : 'after ' + short(P.goal_month)), d.paid_off || (d.cuota_done && d.cuota_done <= P.goal_month));
       const pc = card('ex-span12', 'Progress');
       const bar = el('div', 'ex-dp-bar ex-dp-bar-lg'); const f = el('div'); f.style.width = Math.max(0, Math.min(100, d.pct_paid)) + '%'; bar.append(f);
       const facts = el('div', 'ex-dp-facts'); const fact = (k, v) => { const x = el('div'); x.append(el('span', '', k), el('b', '', v)); facts.append(x); };
@@ -1072,6 +1077,30 @@ window.exU = (function () {
       if (d.monthly) fact('Minimum', usd0(d.monthly) + ' a month');
       if (who === 'Jorgie') fact('Paid from', job);
       pc.append(bar, facts); grid.append(pc);
+      if (!d.paid_off && (d.schedule || []).length) {
+        // installments at the fixed cuota, and a "pay extra" calculator (extra payments cut months, the cuota stays)
+        const sc = card('ex-span6', 'Your Installments'); const t = el('div', 'ex-dp-budget');
+        d.schedule.slice(0, 18).forEach((x) => { const r = el('div', 'ex-dp-bline'); const l = el('span', '', U.monthName(x.month)); l.append(el('small', '', usd0(x.left) + ' left after')); r.append(l, el('b', '', usd0(x.pay))); t.append(r); });
+        sc.append(t); grid.append(sc);
+        const xc = card('ex-span6', 'Pay Extra?');
+        const first = d.schedule[0], firstPay = d.paid_this_month ? first.pay : null, r = (d.apr || 0) / 1200;
+        const sim = (bal) => { const out = []; let b = bal, m = first.month; while (b > 0.005 && out.length < 72) { b += b * r; const p = Math.min(b, (firstPay != null && !out.length) ? firstPay : d.cuota); b -= p; out.push(m); const [yy, mm] = m.split('-').map(Number); m = mm === 12 ? (yy + 1) + '-01' : yy + '-' + String(mm + 1).padStart(2, '0'); } return out; };
+        xc.append(el('div', 'ex-dp-intro', 'Your installment stays ' + usd0(d.cuota) + ' a month. An extra payment cuts months off. Try an amount:'));
+        const inp = el('input', 'ex-dp-input'); inp.type = 'number'; inp.inputMode = 'decimal'; inp.min = '0'; inp.step = '10'; inp.placeholder = 'Extra $';
+        const res = el('div', 'ex-dp-sim');
+        const show = () => {
+          const x = Math.max(0, Number(inp.value) || 0); res.replaceChildren();
+          if (!x) { res.append(el('span', '', 'Now: ' + d.payments_left + ' payments, last one ' + short(d.cuota_done))); return; }
+          if (x >= d.balance - 0.005) { res.append(el('b', '', '✓ Paid off now'), el('span', '', ' — that clears the whole ' + d.name.toLowerCase() + '.')); return; }
+          const s2 = sim(d.balance - x), saved = d.payments_left - s2.length;
+          res.append(el('b', '', s2.length + ' payments'), el('span', '', ', last one ' + short(s2[s2.length - 1]) + (saved > 0 ? ' · ' + saved + (saved === 1 ? ' month' : ' months') + ' sooner' : ' · same months, smaller last payment')));
+        };
+        inp.addEventListener('input', show);
+        const quick = el('div', 'ex-dp-quick');
+        (d.extra_examples || []).forEach((x) => { const b = el('button', '', '+' + usd0(x.extra)); b.type = 'button'; b.addEventListener('click', () => { inp.value = x.extra; show(); }); quick.append(b); });
+        xc.append(inp, quick, res, el('div', 'ex-dp-intro', 'To log it, write "Extra ' + d.name.toLowerCase() + ' 200" in the note.'));
+        show(); grid.append(xc);
+      }
       const rows = tl.filter((t) => t.by_debt && (t.by_debt[d.id] > 0 || (t.pay_by_debt || {})[d.id]));
       if (rows.length) { const tc = card('ex-span12', d.name + ', Month by Month'); const box = el('div'); tc.append(box); grid.append(tc); bars(box, rows, (t) => t.by_debt[d.id] || 0, P.goal_month, d.name + ' left by month'); }
     } else {
