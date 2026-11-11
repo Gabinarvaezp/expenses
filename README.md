@@ -10,3 +10,5 @@ Private household expense dashboard, published with GitHub Pages.
 - `d3.min.js` – charting library (d3 v7).
 
 The data is updated automatically on the 1st of every month from Gabby's and Jorgie's iPhone notes.
+
+The Month Overview at the top shows money in, spent (fixed and variable), saved (Cozy House and personal savings) and free money. Gabby's view shows pesos first with US dollars underneath.
