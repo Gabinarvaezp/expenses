@@ -117,7 +117,9 @@
 .ex-ov-box.save .ex-ov-val { color: #7D3FB3; }
 .ex-ov-chip { --chip: #9B59D0; background: color-mix(in srgb, var(--chip) 12%, #fff); color: color-mix(in srgb, var(--chip) 70%, #2F3542); }
 .ex-ov-chip::before { content: ''; width: 7px; height: 7px; border-radius: 50%; background: var(--chip); align-self: center; }
-.ex-ov-chip.gabby { --chip: #E8697D; } .ex-ov-chip.jorgie { --chip: #4B9FD5; }
+.ex-ov-chip.gabby, .ex-ov-gabby .ex-ov-chip { --chip: #E8697D; } .ex-ov-chip.jorgie, .ex-ov-jorgie .ex-ov-chip { --chip: #4B9FD5; }
+.ex-ov-gabby .ex-ov-box.save { --ov-c: #E8697D; } .ex-ov-gabby .ex-ov-box.save .ex-ov-val { color: #C94A60; }
+.ex-ov-jorgie .ex-ov-box.save { --ov-c: #4B9FD5; } .ex-ov-jorgie .ex-ov-box.save .ex-ov-val { color: #2F7FB8; }
 .ex-msplit { display: flex; flex-direction: column; gap: 14px; padding: 6px 2px 4px; }
 .ex-msplit-total { font-size: 28px; font-weight: 700; font-variant-numeric: tabular-nums; }
 .ex-msplit-total small { display: block; font-size: 12px; font-weight: 500; color: var(--ex-muted); }
@@ -1179,6 +1181,7 @@ window.exU = (function () {
   dash.draw('ovTitle', (el) => { el.textContent = (U.isYear() ? 'Year' : 'Month') + ' Overview'; });
   dash.draw('overview', (el) => {
     el.replaceChildren();
+    el.classList.toggle('ex-ov-gabby', U.per() === 'Gabby'); el.classList.toggle('ex-ov-jorgie', U.per() === 'Jorgie');
     const m = U.month(); if (!m) return;
     const p = U.per(), T = overview(p, m), yr = U.isYear(m), hh = p === 'Household', gab = p === 'Gabby';
     const word = yr ? 'this year' : 'this month';
