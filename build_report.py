@@ -108,6 +108,64 @@ def overview(rows, sav, debts, person, period):
     T['pots'] = list(T['pots'].values())
     return T
 
+def wrapped_html(rows, sav, debts, person, year):
+    """Year in review, Spotify Wrapped style: big colorful cards, one fact each."""
+    hh = person == 'Household'
+    mine = [r for r in rows if r['month'][:4] == year and (hh or r['person'] == person)]
+    spend = [r for r in mine if r['type'] != 'Income']
+    if not spend: return ''
+    you = 'We' if hh else 'You'
+    your = 'Our' if hh else 'Your'
+    total = sum(r['amount_usd'] for r in spend)
+    var = [r for r in spend if r['type'] == 'Variable']
+    cats = {}
+    for r in var: cats[r['category']] = cats.get(r['category'], 0) + r['amount_usd']
+    topc = sorted(cats.items(), key=lambda kv: -kv[1])[:5]
+    big = max(var, key=lambda r: r['amount_usd']) if var else None
+    cnt = {}
+    for r in var: cnt[r['item']] = cnt.get(r['item'], 0) + 1
+    fav = max(cnt.items(), key=lambda kv: kv[1]) if cnt else None
+    bym = {}
+    for r in spend: bym[r['month']] = bym.get(r['month'], 0) + r['amount_usd']
+    topm = max(bym.items(), key=lambda kv: kv[1]) if bym else None
+    lowm = min(bym.items(), key=lambda kv: kv[1]) if len(bym) > 1 else None
+    income = sum(r['amount_usd'] for r in mine if r['type'] == 'Income')
+    cozy = sum(float(x.get('amount_usd') or 0) for x in sav.get('entries', []) if x['month'][:4] == year and x.get('kind') in ('Monthly saving', 'Extra saving') and (hh or x['person'] == person))
+    ids = {a['id'] for a in debts.get('accounts', []) if hh or a.get('owner', 'Jorgie') == person}
+    paid = sum(float(x['amount']) for x in debts.get('payments', []) if x['month'][:4] == year and x['debt_id'] in ids)
+    done = [a['name'] for a in debts.get('accounts', []) if a['id'] in ids and any(d.get('id') == a['id'] and d.get('paid_off') for w in ((debts.get('plan') or {}).get('people') or {}).values() for d in w.get('debts', []))]
+    def slide(bg1, bg2, kicker, big_txt, sub='', extra='', fg='#FFFFFF'):
+        return (f'<tr><td style="padding:0 0 12px;"><table role="presentation" width="100%" cellpadding="0" cellspacing="0" bgcolor="{bg1}" '
+                f'style="background:{bg1};background-image:linear-gradient(135deg,{bg1},{bg2});border-radius:18px;"><tr><td style="padding:28px 24px;color:{fg};">'
+                f'<div style="font-size:12px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;opacity:.85;">{kicker}</div>'
+                f'<div style="font-size:34px;line-height:1.1;font-weight:900;margin-top:10px;">{big_txt}</div>'
+                + (f'<div style="font-size:15px;line-height:1.4;margin-top:8px;opacity:.92;">{sub}</div>' if sub else '') + extra + '</td></tr></table></td></tr>')
+    out = slide('#1DB954', '#0E7A3A', f'{e(year)} Wrapped', f'{"Cozy House" if hh else e(person)},<br>here is {"our" if hh else "your"} year.', 'Swipe through the highlights ↓')
+    out += slide('#9B59D0', '#5B2A8C', f'{your} year in money', usd0(total), f'spent in {e(year)} · {len(spend)} expenses · {len(var)} purchases')
+    if topc:
+        rank = ''.join(f'<tr><td style="padding:6px 0;font-size:22px;font-weight:900;color:#FFD54A;width:34px;">{i + 1}</td>'
+                       f'<td style="padding:6px 0;font-size:17px;font-weight:700;color:#fff;">{e(c)}</td>'
+                       f'<td align="right" style="padding:6px 0;font-size:15px;font-weight:700;color:#fff;white-space:nowrap;">{usd0(v)}</td></tr>' for i, (c, v) in enumerate(topc))
+        out += slide('#E8697D', '#A8324A', f'{your} top categories', e(topc[0][0]), f'#1 with {usd0(topc[0][1])} · {round(topc[0][1] / sum(cats.values()) * 100)}% of {"our" if hh else "your"} purchases',
+                     f'<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin-top:14px;">{rank}</table>')
+    if fav and fav[1] > 1:
+        out += slide('#4B9FD5', '#1F5F96', f'{"Our" if hh else "Your"} on-repeat', e(fav[0]), f'{you} bought it {fav[1]} times this year')
+    if big:
+        out += slide('#F59E5B', '#C25E1C', 'The big one', usd0(big['amount_usd']), f'{e(big["item"])} · {MONTHS[int(big["month"][5:]) - 1]} — a one-off splurge')
+    if topm:
+        sub = f'{usd0(topm[1])} spent' + (f' · calmest month: {MONTHS[int(lowm[0][5:]) - 1]} ({usd0(lowm[1])})' if lowm else '')
+        out += slide('#2F3542', '#111827', 'Biggest month', MONTHS[int(topm[0][5:]) - 1], sub)
+    wins = []
+    if cozy: wins.append(f'{usd0(cozy)} into the Cozy House fund')
+    if paid: wins.append(f'{usd0(paid)} paid on debts')
+    if done: wins.append('Paid off: ' + ', '.join(e(x) for x in done))
+    if income and not hh: wins.append(f'{usd0(income)} earned')
+    if wins:
+        lst = ''.join(f'<div style="font-size:16px;font-weight:700;margin-top:8px;">✓ {w}</div>' for w in wins)
+        out += slide('#FFD54A', '#F2A900', f'{your} wins', 'Look at that.', '', lst, fg='#2F3542')
+    out += slide('#1DB954', '#0E7A3A', 'See you next year', f'{int(year) + 1}, here {"we" if hh else "you"} come.', 'The full numbers are below and in the dashboard.')
+    return f'<tr><td style="padding:0 24px 6px;"><table role="presentation" width="100%" cellpadding="0" cellspacing="0">{out}</table></td></tr>'
+
 def card(title, body, sub='', center=False):
     al = 'text-align:center;' if center else ''
     s = f'<div style="font-size:14px;font-weight:700;color:{TEXT};{al}">{title}</div>'
@@ -403,6 +461,7 @@ def main():
         + ov_row('Cozy House saved' if hh_o else 'Saved', usd(O['cozy'] + pots_u), sv_cap, PURPLE) + subs
         + ('' if hh_o else ov_row('Free money', fm_val, fm_cap, fm_col)) + '</table>')
 
+    wrapped_block = wrapped_html(rows, sav, debts, person, month) if year_mode else ''
     title = ((f'Cozy House {month} Wrapped' if who else f'{person}’s {month} Wrapped') if year_mode
              else ('Cozy House' if who else f'{person}’s Report'))
     span = 'this year' if year_mode else 'this month'
@@ -432,6 +491,7 @@ def main():
     <div style="font-size:14px;color:{MUTED};margin-top:6px;padding-bottom:14px;border-bottom:1px solid #DADDE2;">{greeting}</div>
   </td></tr>
   <tr><td height="14"></td></tr>
+  {wrapped_block}
   {kpis}
   {overview_html}
   {card('Spending by Category', pie, 'Variable spending ' + span, center=True)}
