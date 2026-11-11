@@ -154,7 +154,8 @@ def compute(expenses, debts, today, owner='Jorgie'):
         orig = float(a.get('original', a['balance']))
         promo = a.get('interest_free_until') or ''
         cuota = cuota_for(a, cur, goal)
-        if is_revolving(a): cuota = b  # pay the full current balance this month
+        if is_revolving(a):  # suggested payment: spread the current balance until the goal month (pay more when possible)
+            cuota = float(-(-b // max(1, months_between(cur, goal) + 1))) if b > 0 else 0.0
         need = cuota
         if promo and b > 0:  # 0% deal: must be fully paid by the end of that month (catch up if payments were missed)
             need = max(need, -(-b // max(1, months_between(cur, promo) + 1)))
@@ -255,8 +256,8 @@ def compute(expenses, debts, today, owner='Jorgie'):
         left_now = max(0.0, d['cuota'] - d['paid_this_month'])
         start, first_pay = (cur, left_now) if left_now > 0.5 else (add_month(cur), None)
         if d.get('revolving'):
-            start, first_pay = cur, None
-            d['cuota'] = d['balance']
+            left_now = max(0.0, d['cuota'] - d['paid_this_month'])
+            start, first_pay = (cur, left_now) if left_now > 0.5 else (add_month(cur), None)
         d['schedule'] = schedule(d['balance'], d['cuota'], d['apr'], start, first_pay)
         d['payments_left'] = len(d['schedule'])
         d['cuota_done'] = d['schedule'][-1]['month'] if d['schedule'] else (cur if d['balance'] <= 0 else None)
@@ -541,9 +542,9 @@ def email_html(plan, who, url):
         live = [d for d in p['debts'] if not d.get('paid_off')]
         for d in [x for x in live if x.get('revolving')]:
             body += card(d['name'], '<table role="presentation" width="100%" cellpadding="0" cellspacing="0"><tr>'
-                         + kpi('Balance now', usd(d['balance']), 'changes every month') + kpi('Pay this month', usd0(d['balance']), 'the full balance')
-                         + kpi('Interest', f"{d['apr']}%" if d['apr'] else '—', 'if not paid in full') + '</tr></table>'
-                         + f'<div style="font-size:12px;color:{MUTED};margin-top:8px;">Write the new balance under Debts each month (e.g. "Credit card 850"); paying it in full keeps it at $0 interest.</div>')
+                         + kpi('Balance now', usd(d['balance']), 'changes every month') + kpi('Suggested a month', usd0(d['cuota']), 'pay more when you can')
+                         + kpi('Clear by', mname(d['cuota_done'], True) if d.get('cuota_done') else '—', 'at this pace') + '</tr></table>'
+                         + f'<div style="font-size:12px;color:{MUTED};margin-top:8px;">Write the new balance under Debts each month (e.g. "Credit card 850"). Paying the full balance avoids interest.</div>')
         live = [x for x in live if not x.get('revolving')]
         for d in sorted(live, key=lambda d: d.get('cuota_done') or '9999'):
             sub = ('0% until ' + mname(d['interest_free_until'], True)) if d.get('interest_free_until') else (f"{d['apr']}% interest" if d['apr'] else 'no interest')
@@ -607,7 +608,7 @@ def email_text(plan, who, url):
             if d.get('paid_off'):
                 L.append(f"- {d['name']}: PAID OFF"); continue
             if d.get('revolving'):
-                L.append(f"- {d['name']}: balance {usd(d['balance'])} · pay it in full this month (it changes every month)"); continue
+                L.append(f"- {d['name']}: balance {usd(d['balance'])} · suggested {usd0(d['cuota'])} a month (pay more when you can; it changes every month)"); continue
             L.append(f"- {d['name']}: owe {usd(d['balance'])} · installment {usd0(d['cuota'])} a month · {d['payments_left']} payments left" + (f", done {mname(d['cuota_done'], True)}" if d.get('cuota_done') else ''))
             L += [f"    {mname(x['month'])}: {usd0(x['pay'])} ({usd0(x['left'])} left)" for x in d['schedule'][:12]]
             for x in d.get('extra_examples', []):

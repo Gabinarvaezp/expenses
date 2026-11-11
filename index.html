@@ -152,6 +152,11 @@
 .ex-dg-bar { height: 6px; background: #EEF0F3; border-radius: 3px; overflow: hidden; } .ex-dg-bar > div { height: 100%; background: #9B59D0; border-radius: 3px; }
 .ex-dg-cap { display: flex; justify-content: space-between; font-size: 12px; color: var(--ex-muted); }
 @container (max-width: 460px) { .ex-dg-total b { font-size: 17px; } .ex-dg-head { gap: 6px; } .ex-dg-total { padding: 8px 9px; } .ex-dg-top .amt { font-size: 18px; } }
+.ex-catf { display: flex; gap: 6px; overflow-x: auto; padding: 0 0 10px; margin-top: -4px; scrollbar-width: none; }
+.ex-catf::-webkit-scrollbar { display: none; }
+.ex-catf-chip { all: unset; cursor: pointer; flex: none; display: inline-flex; align-items: center; gap: 6px; font-size: 12.5px; padding: 6px 11px; border-radius: 999px; background: #F3F4F6; color: #5D6470; }
+.ex-catf-chip b { color: var(--ex-text); font-weight: 600; font-variant-numeric: tabular-nums; }
+.ex-catf-chip[aria-pressed="true"] { background: #9B59D0; color: #fff; } .ex-catf-chip[aria-pressed="true"] b { color: #fff; }
 .ex-msplit { display: flex; flex-direction: column; gap: 14px; padding: 6px 2px 4px; }
 .ex-msplit-total { font-size: 28px; font-weight: 700; font-variant-numeric: tabular-nums; }
 .ex-msplit-total small { display: block; font-size: 12px; font-weight: 500; color: var(--ex-muted); }
@@ -304,6 +309,13 @@ html, body { margin: 0; padding: 0; background: #F1F2F4; }
       <label class="ex-range"><strong>Month:</strong> <select class="dash-select" data-draw="selMonth" aria-label="Month" data-source="summary"></select></label>
     </header>
 
+    <section class="ex-grid" id="month-overview">
+      <div class="ex-card ex-span12 ex-ov-card">
+        <h2 data-draw="ovTitle">Month Overview</h2>
+        <div data-draw="overview" data-source="expenses"></div>
+      </div>
+    </section>
+
     <section class="ex-grid" id="my-debts" style="display:none">
       <div class="ex-span12" data-draw="myDebts" data-source="debts"></div>
     </section>
@@ -332,13 +344,6 @@ html, body { margin: 0; padding: 0; background: #F1F2F4; }
         <div class="ex-delta" data-draw="dTop" data-source="summary"></div>
         <div class="ex-kpi-value ex-word" data-draw="vTop" data-source="summary" data-field="top_category">—</div>
         <div class="ex-kpi-cap" data-draw="cTop" data-source="summary">—</div>
-      </div>
-    </section>
-
-    <section class="ex-grid" id="month-overview">
-      <div class="ex-card ex-span12 ex-ov-card">
-        <h2 data-draw="ovTitle">Month Overview</h2>
-        <div data-draw="overview" data-source="expenses"></div>
       </div>
     </section>
 
@@ -874,6 +879,8 @@ window.exU = (function () {
       const v = document.createElement('span'); v.className = 'ex-v'; v.dataset.source = 'categories'; v.dataset.field = key; v.dataset.where = w; v.textContent = cop ? U.copK(r[key]) : U.usd0(r[key]);
       const pc = document.createElement('span'); pc.className = 'ex-p'; pc.dataset.source = 'categories'; pc.dataset.field = 'pct'; pc.dataset.where = w; pc.textContent = U.pct(r.pct);
       row.append(dt, n, v, pc); list.append(row);
+      row.style.cursor = 'pointer'; row.title = 'See these purchases';
+      row.addEventListener('click', () => { window.exCat = r.category; dash.draw('tVar'); const vp = document.getElementById('variable-purchases'); if (vp) vp.scrollIntoView({ behavior: 'smooth', block: 'start' }); });
     });
     el.append(list);
   });
@@ -1098,7 +1105,7 @@ window.exU = (function () {
     } else if (debts.some((d) => d.id === selId)) {
       const d = debts.find((x) => x.id === selId); const job = d.paid_from;
       kpi(grid, 'Owe Now', U.usd(d.balance), d.paid_so_far ? usd0(d.paid_so_far) + ' paid so far' : 'nothing paid yet');
-      kpi(grid, d.revolving ? 'Pay This Month' : 'Monthly Installment', d.paid_off ? '$0' : usd0(d.cuota || d.this_month || d.goal_monthly), d.paid_off ? 'paid off' : (d.paid_this_month ? usd0(d.paid_this_month) + ' paid this month' : (d.revolving ? 'the full balance' : d.interest_free_until ? '0% until ' + short(d.interest_free_until) : 'fixed each month')));
+      kpi(grid, d.revolving ? 'Suggested a Month' : 'Monthly Installment', d.paid_off ? '$0' : usd0(d.cuota || d.this_month || d.goal_monthly), d.paid_off ? 'paid off' : (d.paid_this_month ? usd0(d.paid_this_month) + ' paid this month' : (d.revolving ? 'pay more when you can' : d.interest_free_until ? '0% until ' + short(d.interest_free_until) : 'fixed each month')));
       if (d.per_check != null) kpi(grid, 'Each ' + job + ' Check', usd0(d.per_check), 'of about ' + usd0(p.income[job].per_check));
       else if (d.revolving) kpi(grid, 'Updated', d.updated ? short(d.updated) : '—', 'write the new balance monthly');
       else kpi(grid, 'Payments Left', String(d.payments_left || 0), d.cuota_done ? 'last one ' + short(d.cuota_done) : '');
@@ -1298,8 +1305,8 @@ window.exDebtGlance = function (who, opts) {
   const add = (m, k) => { let [y, mm] = m.split('-').map(Number); mm += k; while (mm > 12) { mm -= 12; y++; } return y + '-' + String(mm).padStart(2, '0'); };
   const live = debts.filter((x) => !x.paid_off), done = debts.filter((x) => x.paid_off);
   const owe = live.reduce((a, x) => a + x.balance, 0);
-  const perMonth = live.reduce((a, x) => a + (x.revolving ? x.balance : x.cuota || 0), 0);
-  const freeBy = live.filter((x) => !x.revolving).map((x) => x.cuota_done).filter(Boolean).sort().pop();
+  const perMonth = live.reduce((a, x) => a + (x.due_this_month != null ? x.due_this_month : x.cuota || 0), 0);
+  const freeBy = live.map((x) => x.cuota_done).filter(Boolean).sort().pop();
   const card = el('div', 'ex-card ex-dg' + (opts.compact ? ' compact' : ''));
   const head = el('div', 'ex-dg-head');
   const h1 = el('div', 'ex-dg-total'); h1.append(el('span', 'lbl', who === 'Together' ? 'We owe' : (opts.you ? 'You owe' : who + ' owes')), el('b', '', usd0(owe)));
@@ -1315,7 +1322,7 @@ window.exDebtGlance = function (who, opts) {
     r.append(top);
     const chips = el('div', 'ex-dg-chips');
     if (x.revolving) {
-      chips.append(el('span', 'chip pay', 'Pay ' + usd0(x.balance) + ' this month'), el('span', 'chip', 'Balance changes monthly'));
+      chips.append(el('span', 'chip pay', 'Suggested ' + usd0(x.cuota) + ' / month'), el('span', 'chip', 'Changes monthly'), el('span', 'chip end', 'Clear by ' + monY(x.cuota_done)));
     } else {
       const due = x.due_this_month > 0.5;
       chips.append(el('span', 'chip pay', usd0(x.cuota) + ' / month'),
@@ -1323,7 +1330,11 @@ window.exDebtGlance = function (who, opts) {
         el('span', 'chip end', 'Done ' + monY(x.cuota_done)));
     }
     r.append(chips);
-    if (!x.revolving && x.schedule && x.schedule.length) {
+    if (x.revolving) {
+      const bar = el('div', 'ex-dg-bar'); const f = el('div'); f.style.width = Math.max(2, Math.min(100, x.pct_paid)) + '%'; bar.append(f);
+      const cap = el('div', 'ex-dg-cap'); cap.append(el('span', '', Math.round(x.pct_paid) + '% paid'), el('span', '', 'pay more when you can'));
+      r.append(bar, cap);
+    } else if (x.schedule && x.schedule.length) {
       // one dot per monthly installment, from when it started to the last one
       const start = x.payments && x.payments.length ? x.payments.map((q) => q.month).sort()[0] : x.schedule[0].month;
       const first = start < x.schedule[0].month ? start : x.schedule[0].month;
@@ -1424,12 +1435,31 @@ window.exDebtGlance = function (who, opts) {
       const rs = U.rows('expenses').filter((r) => U.inPeriod(r.month, m) && r.type === type && (p === 'Household' || r.person === p))
         .sort((a, b) => Number(b.amount_usd) - Number(a.amount_usd));
       const cols = 4;
+      let rsAll = rs;
+      if (type === 'Variable') {
+        // category filter: chips with each category's total; tap one to see only those purchases
+        const card = tb.closest('.ex-card'); let bar = card.querySelector('.ex-catf');
+        if (!bar) { bar = document.createElement('div'); bar.className = 'ex-catf'; card.insertBefore(bar, card.querySelector('.ex-tablewrap')); }
+        bar.replaceChildren();
+        const tot = {}; rs.forEach((r) => { tot[r.category] = (tot[r.category] || 0) + Number(r.amount_usd); });
+        const cats = Object.keys(tot).sort((a, b) => tot[b] - tot[a]);
+        if (window.exCat && !cats.includes(window.exCat)) window.exCat = null;
+        const colors = U.catColors();
+        const mk = (label, val, key) => {
+          const b = document.createElement('button'); b.type = 'button'; b.className = 'ex-catf-chip'; b.setAttribute('aria-pressed', (window.exCat || null) === key ? 'true' : 'false');
+          if (key) { const d = document.createElement('span'); d.className = 'ex-dot'; d.style.background = colors[key]; b.append(d); }
+          const n = document.createElement('span'); n.textContent = label; const v = document.createElement('b'); v.textContent = U.usd0(val); b.append(n, v);
+          b.addEventListener('click', () => { window.exCat = key; dash.draw('tVar'); }); bar.append(b);
+        };
+        if (cats.length > 1) { mk('All', rs.reduce((a, r) => a + Number(r.amount_usd), 0), null); cats.forEach((c) => mk(c, tot[c], c)); }
+        if (window.exCat) rsAll = rs.filter((r) => r.category === window.exCat);
+      }
       if (type === 'Income') {
         const card = tb.closest('.ex-card'); if (card) card.hidden = !rs.length;
         const fx = document.getElementById('fixed-bills'); if (fx) fx.classList.toggle('ex-span12', !rs.length);
       }
-      if (!rs.length) { const tr = tb.insertRow(); const td = tr.insertCell(); td.colSpan = cols; td.className = 'ex-empty'; td.textContent = type === 'Fixed' ? 'No fixed expenses this month' : 'Nothing this month'; return; }
-      rs.forEach((r) => {
+      if (!rsAll.length) { const tr = tb.insertRow(); const td = tr.insertCell(); td.colSpan = cols; td.className = 'ex-empty'; td.textContent = type === 'Fixed' ? 'No fixed expenses this month' : 'Nothing this month'; return; }
+      rsAll.forEach((r) => {
         const tr = tb.insertRow(); tr.dataset.key = U.enc(r.id);
         const a = tr.insertCell(); const tag = document.createElement('span'); tag.className = 'ex-tag';
         const dt = document.createElement('span'); dt.className = 'ex-dot'; dt.style.background = U.PERSON[r.person];
