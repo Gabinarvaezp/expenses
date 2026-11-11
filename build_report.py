@@ -378,8 +378,11 @@ def main():
     sp_cap = f'Fixed {usd0(O["fixed"])} &middot; variable {usd0(O["variable"])}' + (f' &middot; &asymp; {cop(O["spent_cop"])}' if gab else '') + (f' &middot; plus {usd0(O["from_free"])} paid with free money' if O['from_free'] else '')
     pots_u = sum(x['usd'] for x in O['pots'])
     sv_cap = f'Cozy House {usd0(O["cozy"])} &middot; personal savings {usd0(pots_u)}' if (O['cozy'] or pots_u) else f'Nothing saved {span_o}'
+    hh_o = person == 'Household'
+    if hh_o: pots_u = 0.0; O['pots'] = []  # Cozy House shows the shared fund only; personal savings and free money are per person
+    sv_cap = (f'Cozy House {usd0(O["cozy"])}' + ('' if hh_o else f' &middot; personal savings {usd0(pots_u)}')) if (O['cozy'] or pots_u) else f'Nothing saved {span_o}'
     subs = ''
-    if O['cozy']: subs += sub_row('Cozy House', cop(O['cozy_cop']) if gab else usd0(O['cozy']))
+    if O['cozy'] and not hh_o: subs += sub_row('Cozy House', cop(O['cozy_cop']) if gab else usd0(O['cozy']))
     for x in O['pots']:
         subs += sub_row((x['who'] + ' · ' if person == 'Household' else '') + x['name'], cop(x['cop']) if (x['cop'] is not None and person != 'Household') else usd0(x['usd']))
     if O['left'] is None:
@@ -391,8 +394,8 @@ def main():
         f'<table role="presentation" width="100%" cellpadding="0" cellspacing="0">'
         + ov_row('Money in', usd(O['inc']), inc_cap)
         + ov_row('Spent', usd(O['fixed'] + O['variable']), sp_cap)
-        + ov_row('Saved', usd(O['cozy'] + pots_u), sv_cap) + subs
-        + ov_row('Free money', fm_val, fm_cap, fm_col) + '</table>')
+        + ov_row('Cozy House saved' if hh_o else 'Saved', usd(O['cozy'] + pots_u), sv_cap) + subs
+        + ('' if hh_o else ov_row('Free money', fm_val, fm_cap, fm_col)) + '</table>')
 
     title = ((f'Cozy House {month} Wrapped' if who else f'{person}’s {month} Wrapped') if year_mode
              else ('Cozy House' if who else f'{person}’s Report'))

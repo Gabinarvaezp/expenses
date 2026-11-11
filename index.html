@@ -97,17 +97,17 @@
 .ex-single .ex-sav-bars { display: none; }
 .ex-sb-val { font-weight: 600; color: #5D6470; font-variant-numeric: tabular-nums; }
 @container (max-width: 760px) { .ex-sav-bars { justify-content: flex-start; } }
-.ex-ov { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; }
-.ex-ov-box { border: 1px solid var(--ex-line); border-radius: 4px; padding: 12px 14px; display: flex; flex-direction: column; gap: 3px; min-width: 0; }
-.ex-ov-label { font-size: 12px; font-weight: 600; color: var(--ex-muted); text-transform: uppercase; letter-spacing: .04em; }
-.ex-ov-val { font-size: 22px; font-weight: 700; font-variant-numeric: tabular-nums; }
+.ex-ov-card { padding: 10px 16px; }
+.ex-ov-card h2 { margin: 0 0 6px; font-size: 12px; color: var(--ex-muted); }
+.ex-ov { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); }
+.ex-ov.ex-ov3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.ex-ov-box { padding: 2px 12px; border-left: 1px solid var(--ex-line); display: flex; flex-direction: column; gap: 1px; min-width: 0; }
+.ex-ov-box:first-child { border-left: 0; padding-left: 0; }
+.ex-ov-label { font-size: 11px; font-weight: 600; color: var(--ex-muted); text-transform: uppercase; letter-spacing: .04em; }
+.ex-ov-val { font-size: 17px; font-weight: 700; font-variant-numeric: tabular-nums; }
 .ex-ov-val.good { color: var(--ex-down); } .ex-ov-val.neg { color: var(--ex-up); }
-.ex-ov-cap { font-size: 12px; color: var(--ex-muted); font-variant-numeric: tabular-nums; }
-.ex-ov-list { margin-top: 6px; display: flex; flex-direction: column; gap: 3px; font-size: 12.5px; }
-.ex-ov-li { display: flex; justify-content: space-between; gap: 8px; border-top: 1px dashed var(--ex-line); padding-top: 3px; }
-.ex-ov-li span:last-child { font-weight: 600; font-variant-numeric: tabular-nums; white-space: nowrap; }
-@container (max-width: 900px) { .ex-ov { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
-@container (max-width: 460px) { .ex-ov { grid-template-columns: minmax(0, 1fr); } }
+.ex-ov-cap { font-size: 11.5px; color: var(--ex-muted); font-variant-numeric: tabular-nums; }
+@container (max-width: 760px) { .ex-ov, .ex-ov.ex-ov3 { grid-template-columns: repeat(2, minmax(0, 1fr)); row-gap: 8px; } .ex-ov-box:nth-child(odd) { border-left: 0; padding-left: 0; } }
 .ex-nav-sep { margin: 10px 20px 4px; padding-top: 12px; border-top: 1px solid var(--ex-line); font-size: 10.5px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--ex-muted); }
 .ex-app:not(.ex-planmode) #debt-plan { display: none; }
 .ex-planmode .ex-main > section:not(#debt-plan) { display: none; }
@@ -278,7 +278,7 @@ html, body { margin: 0; padding: 0; background: #F1F2F4; }
     </section>
 
     <section class="ex-grid" id="month-overview">
-      <div class="ex-card ex-span12">
+      <div class="ex-card ex-span12 ex-ov-card">
         <h2 data-draw="ovTitle">Month Overview</h2>
         <div class="ex-ov" data-draw="overview" data-source="expenses"></div>
       </div>
@@ -1131,35 +1131,28 @@ window.exU = (function () {
     const m = U.month(); if (!m) return;
     const p = U.per(), T = overview(p, m), yr = U.isYear(m), hh = p === 'Household';
     const word = yr ? 'this year' : 'this month';
-    const copNote = (v) => (p === 'Gabby' && v) ? '≈ ' + U.cop(v) : null;
-    // 1. Money in
-    el.append(box('Money In', U.usd(T.inc), '', T.nInc
-      ? [T.nInc + (T.nInc === 1 ? ' payment' : ' payments') + ' logged', copNote(T.incCop)].filter(Boolean)
-      : ['No income logged ' + word]));
-    // 2. Spent
-    el.append(box('Spent', U.usd(T.fix + T.vr), '', ['Fixed ' + U.usd0(T.fix) + ' · variable ' + U.usd0(T.vr)]
-      .concat(copNote(T.spentCop) ? [copNote(T.spentCop)] : []).concat(T.fromFree ? ['+ ' + U.usd0(T.fromFree) + ' paid with free money'] : [])));
-    // 3. Saved: Cozy House + each personal savings pot
-    const potsU = T.pots.reduce((a, x) => a + x.usd, 0);
-    const list = [];
-    if (T.cozy) list.push(['Cozy House', p === 'Gabby' ? U.cop(T.cozyCop) : U.usd0(T.cozy)]);
-    for (const x of T.pots) list.push([(hh ? x.who + ' · ' : '') + x.name, (x.cop != null && !hh) ? U.cop(x.cop) : U.usd0(x.usd)]);
-    el.append(box('Saved', U.usd(T.cozy + potsU), '',
-      [(T.cozy || potsU) ? 'Cozy House ' + U.usd0(T.cozy) + ' · personal ' + U.usd0(potsU) : 'Nothing saved ' + word], list));
-    // 4. Free money: what is left after spending, savings and debt payments
-    const soFar = !yr && m >= nowMonth();
-    let caps;
-    if (T.left == null) caps = ['Log income to see what is left'];
-    else {
-      caps = [(soFar ? 'Left so far ' : 'Left over ') + word + (soFar ? '' : ', added to Free money')];
-      if (T.pay) caps.push('After ' + U.usd0(T.pay) + ' paid to debts');
-      if (copNote(T.leftCop)) caps.push(copNote(T.leftCop));
-      if (!hh) {
-        const fr = ((((get('debts', {}).plan || {}).people || {})[p]) || {}).free;
-        if (fr && fr.months && fr.months.length) caps.push('Free money total ' + U.usd0(fr.balance));
-      }
+    const cop = (v) => (p === 'Gabby' && v) ? ' · ' + U.cop(v) : '';
+    el.classList.toggle('ex-ov3', hh);
+    el.append(box('Money In', U.usd0(T.inc), '', [T.nInc ? T.nInc + (T.nInc === 1 ? ' payment' : ' payments') + cop(T.incCop) : 'Nothing logged yet']));
+    el.append(box('Spent', U.usd0(T.fix + T.vr), '', ['Fixed ' + U.usd0(T.fix) + ' · variable ' + U.usd0(T.vr) + cop(T.spentCop)]));
+    if (hh) {
+      // Cozy House is the shared fund only; personal savings and free money belong to each person's view
+      el.append(box('Cozy House Saved', U.usd0(T.cozy), '', [T.cozy ? 'Into the house fund ' + word : 'Nothing added ' + word]));
+      return;
     }
-    el.append(box('Free Money', T.left == null ? '—' : U.usd(T.left), T.left == null ? '' : (T.left >= 0 ? 'good' : 'neg'), caps));
+    const parts = [];
+    if (T.cozy) parts.push('Cozy House ' + (p === 'Gabby' ? U.cop(T.cozyCop) : U.usd0(T.cozy)));
+    for (const x of T.pots) parts.push(x.name + ' ' + (x.cop != null ? U.cop(x.cop) : U.usd0(x.usd)));
+    el.append(box('Saved', U.usd0(T.cozy + T.pots.reduce((a, x) => a + x.usd, 0)), '', [parts.length ? parts.join(' · ') : 'Nothing saved ' + word]));
+    const soFar = !yr && m >= nowMonth();
+    let cap;
+    if (T.left == null) cap = 'Log income to see it';
+    else {
+      cap = (soFar ? 'Left so far' : 'Left over') + (T.pay ? ' after ' + U.usd0(T.pay) + ' to debts' : '') + cop(T.leftCop);
+      const fr = ((((get('debts', {}).plan || {}).people || {})[p]) || {}).free;
+      if (fr && fr.months && fr.months.length) cap += ' · total ' + U.usd0(fr.balance);
+    }
+    el.append(box('Free Money', T.left == null ? '—' : U.usd0(T.left), T.left == null ? '' : (T.left >= 0 ? 'good' : 'neg'), [cap]));
   });
 })();
 
