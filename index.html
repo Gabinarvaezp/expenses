@@ -1189,8 +1189,9 @@ window.exU = (function () {
     const big = (u, c) => gab ? U.cop(c) : U.usd0(u);
     const small = (u, c) => gab ? (c >= 1e6 || c <= -1e6 ? 'COP ' + U.copK(c) : 'COP ' + Math.round(c / 1e3) + 'K') : U.usd0(u);
     const grid = document.createElement('div'); grid.className = 'ex-ov' + (hh ? ' ex-ov3' : '');
-    grid.append(box('Money In', big(T.inc, T.incCop), '', [T.nInc ? (gab ? U.usd0(T.inc) + ' · ' : '') + T.nInc + (T.nInc === 1 ? ' payment' : ' payments') : 'Nothing logged yet'], null, 'in'));
-    grid.append(box('Spent', big(T.fix + T.vr, T.spentCop), '', ['Fixed ' + small(T.fix, T.fixCop) + ' · variable ' + small(T.vr, T.vrCop)], null, 'out'));
+    const usdLine = (u) => gab ? [U.usd0(u) + ' USD'] : [];
+    grid.append(box('Money In', big(T.inc, T.incCop), '', usdLine(T.inc).concat([T.nInc ? T.nInc + (T.nInc === 1 ? ' payment' : ' payments') : 'Nothing logged yet']), null, 'in'));
+    grid.append(box('Spent', big(T.fix + T.vr, T.spentCop), '', usdLine(T.fix + T.vr).concat(['Fixed ' + small(T.fix, T.fixCop) + ' · variable ' + small(T.vr, T.vrCop)]), null, 'out'));
     const potsU = T.pots.reduce((a, x) => a + x.usd, 0);
     const rate = T.spentCop && (T.fix + T.vr) ? T.spentCop / (T.fix + T.vr) : 4000;
     const items = [];
@@ -1199,11 +1200,11 @@ window.exU = (function () {
     if (!hh) for (const x of T.pots) items.push([x.name, x.cop != null ? U.cop(x.cop) : U.usd0(x.usd)]);
     const savedU = T.cozy + (hh ? 0 : potsU);
     const savedC = T.cozyCop + (hh ? 0 : T.pots.reduce((a, x) => a + (x.cop != null ? x.cop : x.usd * rate), 0));
-    grid.append(box(hh ? 'Cozy House Saved' : 'Saved', big(savedU, savedC), '', [items.length ? (hh ? 'Gabby + Jorgie ' + word : items.length === 1 ? items[0][0] : items.length + ' savings') : 'Nothing saved ' + word], null, 'save'));
+    grid.append(box(hh ? 'Cozy House Saved' : 'Saved', big(savedU, savedC), '', usdLine(savedU).concat([items.length ? (hh ? 'Gabby + Jorgie ' + word : items.length === 1 ? items[0][0] : items.length + ' savings') : 'Nothing saved ' + word]), null, 'save'));
     if (!hh) {
       const soFar = !yr && m >= nowMonth();
       const cap = T.left == null ? 'Log income to see it' : (soFar ? 'Left so far' : 'Left over') + (T.pay ? ' after debts' : '');
-      grid.append(box('Free Money', T.left == null ? '—' : big(T.left, T.leftCop), T.left == null ? '' : (T.left >= 0 ? 'good' : 'neg'), [cap], null, 'free'));
+      grid.append(box('Free Money', T.left == null ? '—' : big(T.left, T.leftCop), T.left == null ? '' : (T.left >= 0 ? 'good' : 'neg'), (T.left == null ? [] : usdLine(T.left)).concat([cap]), null, 'free'));
     }
     el.append(grid);
     if (items.length > 1 || (hh && items.length)) {
