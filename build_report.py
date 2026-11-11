@@ -134,36 +134,52 @@ def wrapped_html(rows, sav, debts, person, year):
     ids = {a['id'] for a in debts.get('accounts', []) if hh or a.get('owner', 'Jorgie') == person}
     paid = sum(float(x['amount']) for x in debts.get('payments', []) if x['month'][:4] == year and x['debt_id'] in ids)
     done = [a['name'] for a in debts.get('accounts', []) if a['id'] in ids and any(d.get('id') == a['id'] and d.get('paid_off') for w in ((debts.get('plan') or {}).get('people') or {}).values() for d in w.get('debts', []))]
-    def slide(bg1, bg2, kicker, big_txt, sub='', extra='', fg='#FFFFFF'):
-        return (f'<tr><td style="padding:0 0 12px;"><table role="presentation" width="100%" cellpadding="0" cellspacing="0" bgcolor="{bg1}" '
-                f'style="background:{bg1};background-image:linear-gradient(135deg,{bg1},{bg2});border-radius:18px;"><tr><td style="padding:28px 24px;color:{fg};">'
-                f'<div style="font-size:12px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;opacity:.85;">{kicker}</div>'
-                f'<div style="font-size:34px;line-height:1.1;font-weight:900;margin-top:10px;">{big_txt}</div>'
-                + (f'<div style="font-size:15px;line-height:1.4;margin-top:8px;opacity:.92;">{sub}</div>' if sub else '') + extra + '</td></tr></table></td></tr>')
-    out = slide('#1DB954', '#0E7A3A', f'{e(year)} Wrapped', f'{"Cozy House" if hh else e(person)},<br>here is {"our" if hh else "your"} year.', 'Swipe through the highlights ↓')
-    out += slide('#9B59D0', '#5B2A8C', f'{your} year in money', usd0(total), f'spent in {e(year)} · {len(spend)} expenses · {len(var)} purchases')
+    accent = PERSON.get(person, PURPLE)
+    tint = {'Gabby': '#FCEEF1', 'Jorgie': '#EAF4FB'}.get(person, '#F5EEFB')
+    who_name = 'Cozy House' if hh else person
+    months_n = len(bym) or 1
+    def box(inner, pad='22px 22px'):
+        return (f'<tr><td style="padding:0 0 12px;"><table role="presentation" width="100%" cellpadding="0" cellspacing="0" '
+                f'style="background:{CARD};border:1px solid {LINE};border-radius:12px;"><tr><td style="padding:{pad};">{inner}</td></tr></table></td></tr>')
+    def label(t): return f'<div style="font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:{MUTED};">{t}</div>'
+    # hero
+    hero = (f'<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:{tint};border-radius:12px;"><tr><td style="padding:26px 22px;">'
+            f'<div style="font-size:12px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:{accent};">{e(year)} in review</div>'
+            f'<div style="font-size:15px;color:{TEXT};margin-top:6px;">{e(who_name)}</div>'
+            f'<div style="font-size:40px;font-weight:800;color:{TEXT};line-height:1.1;margin-top:10px;">{usd0(total)}</div>'
+            f'<div style="font-size:13px;color:{MUTED};margin-top:4px;">spent in {e(year)} · {len(spend)} expenses · {usd0(total / months_n)} a month on average</div></td></tr></table>')
+    out = f'<tr><td style="padding:0 0 12px;">{hero}</td></tr>'
+    # four tiles
+    def tile(lbl, val, sub):
+        return (f'<td width="50%" valign="top" style="padding:0;"><table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:{CARD};border:1px solid {LINE};border-radius:12px;">'
+                f'<tr><td style="padding:16px;">{label(lbl)}<div style="font-size:20px;font-weight:800;color:{TEXT};margin-top:6px;">{val}</div>'
+                f'<div style="font-size:12px;color:{MUTED};margin-top:2px;">{sub}</div></td></tr></table></td>')
+    t1 = tile('Top category', e(topc[0][0]) if topc else '—', (usd0(topc[0][1]) + f' · {round(topc[0][1] / sum(cats.values()) * 100)}%') if topc else '')
+    t2 = tile('Biggest month', MONTHS[int(topm[0][5:]) - 1] if topm else '—', usd0(topm[1]) if topm else '')
+    t3 = tile('Biggest purchase', usd0(big['amount_usd']) if big else '—', (e(big['item']) + ' · ' + SHORT[int(big['month'][5:]) - 1]) if big else '')
+    t4 = tile('On repeat', e(fav[0]) if fav and fav[1] > 1 else '—', (f'{fav[1]} times') if fav and fav[1] > 1 else '')
+    out += (f'<tr><td style="padding:0 0 12px;"><table role="presentation" width="100%" cellpadding="0" cellspacing="0">'
+            f'<tr>{t1}<td width="10"></td>{t2}</tr><tr><td colspan="3" height="10"></td></tr><tr>{t3}<td width="10"></td>{t4}</tr></table></td></tr>')
+    # top 5 categories with thin bars
     if topc:
-        rank = ''.join(f'<tr><td style="padding:6px 0;font-size:22px;font-weight:900;color:#FFD54A;width:34px;">{i + 1}</td>'
-                       f'<td style="padding:6px 0;font-size:17px;font-weight:700;color:#fff;">{e(c)}</td>'
-                       f'<td align="right" style="padding:6px 0;font-size:15px;font-weight:700;color:#fff;white-space:nowrap;">{usd0(v)}</td></tr>' for i, (c, v) in enumerate(topc))
-        out += slide('#E8697D', '#A8324A', f'{your} top categories', e(topc[0][0]), f'#1 with {usd0(topc[0][1])} · {round(topc[0][1] / sum(cats.values()) * 100)}% of {"our" if hh else "your"} purchases',
-                     f'<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin-top:14px;">{rank}</table>')
-    if fav and fav[1] > 1:
-        out += slide('#4B9FD5', '#1F5F96', f'{"Our" if hh else "Your"} on-repeat', e(fav[0]), f'{you} bought it {fav[1]} times this year')
-    if big:
-        out += slide('#F59E5B', '#C25E1C', 'The big one', usd0(big['amount_usd']), f'{e(big["item"])} · {MONTHS[int(big["month"][5:]) - 1]} — a one-off splurge')
-    if topm:
-        sub = f'{usd0(topm[1])} spent' + (f' · calmest month: {MONTHS[int(lowm[0][5:]) - 1]} ({usd0(lowm[1])})' if lowm else '')
-        out += slide('#2F3542', '#111827', 'Biggest month', MONTHS[int(topm[0][5:]) - 1], sub)
+        allc = sorted({r['category'] for r in rows}); ccol = {c: PIE[k % len(PIE)] for k, c in enumerate(allc)}
+        mx = topc[0][1] or 1
+        rk = ''.join(f'<tr><td style="padding:8px 0 2px;font-size:14px;font-weight:600;color:{TEXT};">{k + 1}.&nbsp; {e(c)}</td>'
+                     f'<td align="right" style="padding:8px 0 2px;font-size:14px;font-weight:700;color:{TEXT};">{usd0(v)}</td></tr>'
+                     f'<tr><td colspan="2" style="padding:0 0 6px;"><table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#EEF0F3;border-radius:3px;">'
+                     f'<tr><td width="{max(2, round(v / mx * 100))}%" style="background:{ccol[c]};height:6px;line-height:6px;font-size:0;border-radius:3px;">&nbsp;</td><td style="font-size:0;">&nbsp;</td></tr></table></td></tr>'
+                     for k, (c, v) in enumerate(topc))
+        out += box(label('Top 5 categories') + f'<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin-top:8px;">{rk}</table>')
+    # wins
     wins = []
-    if cozy: wins.append(f'{usd0(cozy)} into the Cozy House fund')
-    if paid: wins.append(f'{usd0(paid)} paid on debts')
-    if done: wins.append('Paid off: ' + ', '.join(e(x) for x in done))
-    if income and not hh: wins.append(f'{usd0(income)} earned')
+    if income and not hh: wins.append(('Earned', usd0(income)))
+    if cozy: wins.append(('Into the Cozy House fund', usd0(cozy)))
+    if paid: wins.append(('Paid on debts', usd0(paid)))
+    for x in done: wins.append(('Paid off', e(x)))
     if wins:
-        lst = ''.join(f'<div style="font-size:16px;font-weight:700;margin-top:8px;">✓ {w}</div>' for w in wins)
-        out += slide('#FFD54A', '#F2A900', f'{your} wins', 'Look at that.', '', lst, fg='#2F3542')
-    out += slide('#1DB954', '#0E7A3A', 'See you next year', f'{int(year) + 1}, here {"we" if hh else "you"} come.', 'The full numbers are below and in the dashboard.')
+        wr = ''.join(f'<tr><td style="padding:8px 0;font-size:14px;color:{TEXT};border-bottom:1px solid #F1F2F4;"><span style="color:{DOWN};font-weight:800;">&#10003;</span>&nbsp; {k}</td>'
+                     f'<td align="right" style="padding:8px 0;font-size:14px;font-weight:700;color:{DOWN};border-bottom:1px solid #F1F2F4;white-space:nowrap;">{v}</td></tr>' for k, v in wins)
+        out += box(label(f'{your} wins in {e(year)}') + f'<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin-top:6px;">{wr}</table>')
     return f'<tr><td style="padding:0 24px 6px;"><table role="presentation" width="100%" cellpadding="0" cellspacing="0">{out}</table></td></tr>'
 
 def card(title, body, sub='', center=False):
@@ -492,7 +508,7 @@ def main():
   </td></tr>
   <tr><td height="14"></td></tr>
   {wrapped_block}
-  {kpis}
+  {'' if wrapped_block else kpis}
   {overview_html}
   {card('Spending by Category', pie, 'Variable spending ' + span, center=True)}
   {card('Month by Month', monthly, 'Total spent each month' + ('' if year_mode else ' · ' + mname(month) + ' in color'), center=True)}
