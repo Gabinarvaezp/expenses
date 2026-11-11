@@ -80,12 +80,20 @@ def cuota_for(a, cur, goal):
     with interest when it has an APR. Extra payments do not change the cuota: they shorten the months."""
     if float(a.get('monthly') or 0) > 0:
         return float(a['monthly'])
+    if is_revolving(a):  # credit card: the balance changes every month; pay the whole statement to avoid interest
+        return 0.0
     start = a.get('added') or cur
     end = a.get('interest_free_until') or goal
     n = max(1, months_between(start, end) + 1)
     orig = float(a.get('original', a['balance']))
     r = float(a.get('apr') or 0) / 1200
     return float(-(-((orig * r / (1 - (1 + r) ** -n)) if r else orig / n) // 1))
+
+
+def is_revolving(a):
+    """A credit card is revolving: new purchases change the balance every month (unless it is a fixed 0% plan)."""
+    k = (a.get('kind') or a.get('name') or '').lower()
+    return ('credit' in k or 'tarjeta' in k) and not a.get('interest_free_until') and not float(a.get('monthly') or 0)
 
 
 def schedule(balance, cuota, apr, first_month, first_pay=None, max_n=72):
@@ -146,6 +154,7 @@ def compute(expenses, debts, today, owner='Jorgie'):
         orig = float(a.get('original', a['balance']))
         promo = a.get('interest_free_until') or ''
         cuota = cuota_for(a, cur, goal)
+        if is_revolving(a): cuota = b  # pay the full current balance this month
         need = cuota
         if promo and b > 0:  # 0% deal: must be fully paid by the end of that month (catch up if payments were missed)
             need = max(need, -(-b // max(1, months_between(cur, promo) + 1)))
@@ -162,7 +171,8 @@ def compute(expenses, debts, today, owner='Jorgie'):
                           'paid_from': a.get('paid_from', 'Target'),
                           'balance': b, 'original': max(orig, b),
                           'paid_so_far': round(sum(p['amount'] for p in payments if p['debt_id'] == a['id']), 2),
-                          'cuota': round(need, 2), 'paid_this_month': paid_now,
+                          'cuota': round(need, 2), 'paid_this_month': paid_now, 'revolving': is_revolving(a),
+                          'updated': (a.get('updates') or [{}])[-1].get('month') or a.get('added'),
                           'payments': [{'month': p['month'], 'amount': round(p['amount'], 2), 'extra': bool(p.get('extra'))} for p in payments if p['debt_id'] == a['id']]})
 
     # a job with no paycheck logged yet: assume it covers just the minimum of its own debts (estimated plan)
@@ -244,6 +254,9 @@ def compute(expenses, debts, today, owner='Jorgie'):
         # fixed-installment schedule: this month's cuota counts what was already paid this month
         left_now = max(0.0, d['cuota'] - d['paid_this_month'])
         start, first_pay = (cur, left_now) if left_now > 0.5 else (add_month(cur), None)
+        if d.get('revolving'):
+            start, first_pay = cur, None
+            d['cuota'] = d['balance']
         d['schedule'] = schedule(d['balance'], d['cuota'], d['apr'], start, first_pay)
         d['payments_left'] = len(d['schedule'])
         d['cuota_done'] = d['schedule'][-1]['month'] if d['schedule'] else (cur if d['balance'] <= 0 else None)
@@ -251,7 +264,7 @@ def compute(expenses, debts, today, owner='Jorgie'):
         d['paid_off'] = d['balance'] <= 0.005
         # extra payment examples: the smallest extra (in $10 steps) that cuts 1, 2 and 3 installments
         ex, n0 = [], len(d['schedule'])
-        for k in (1, 2, 3):
+        for k in ((1, 2, 3) if not d.get('revolving') else ()):
             if n0 - k < 1: break
             x = 10
             while x < d['balance']:
@@ -526,6 +539,12 @@ def email_html(plan, who, url):
         if checks:
             body += card('Every paycheck', checks)
         live = [d for d in p['debts'] if not d.get('paid_off')]
+        for d in [x for x in live if x.get('revolving')]:
+            body += card(d['name'], '<table role="presentation" width="100%" cellpadding="0" cellspacing="0"><tr>'
+                         + kpi('Balance now', usd(d['balance']), 'changes every month') + kpi('Pay this month', usd0(d['balance']), 'the full balance')
+                         + kpi('Interest', f"{d['apr']}%" if d['apr'] else '—', 'if not paid in full') + '</tr></table>'
+                         + f'<div style="font-size:12px;color:{MUTED};margin-top:8px;">Write the new balance under Debts each month (e.g. "Credit card 850"); paying it in full keeps it at $0 interest.</div>')
+        live = [x for x in live if not x.get('revolving')]
         for d in sorted(live, key=lambda d: d.get('cuota_done') or '9999'):
             sub = ('0% until ' + mname(d['interest_free_until'], True)) if d.get('interest_free_until') else (f"{d['apr']}% interest" if d['apr'] else 'no interest')
             top = ('<table role="presentation" width="100%" cellpadding="0" cellspacing="0"><tr>'
@@ -540,7 +559,7 @@ def email_html(plan, who, url):
             extra = ''.join(f'<div style="font-size:13px;color:{TEXT};padding:3px 0;">+{usd0(x["extra"])} extra now → <b>{x["payments_left"]} payments</b>, done {e(mname(x["done"], True))}'
                             + (f' <span style="color:{GOOD};font-weight:700;">({x["months_sooner"]} month{"s" if x["months_sooner"] != 1 else ""} sooner)</span>' if x['months_sooner'] > 0 else '') + '</div>' for x in d.get('extra_examples', []))
             extra_html = (f'<div style="font-size:12px;font-weight:700;color:{ACCENT};margin:12px 0 2px;">PAY EXTRA?</div>'
-                          f'<div style="font-size:12px;color:{MUTED};margin-bottom:4px;">The installment stays {usd0(d["cuota"])}; extra payments cut months off. Write "Extra {e(d["name"].lower())} 200" in your note.</div>' + extra) if extra else ''
+                          f'<div style="font-size:12px;color:{MUTED};margin-bottom:4px;">The installment stays {usd0(d["cuota"])}; extra payments cut months off. Write "Extra {e(d["name"].lower())} 200" under the month, and the new total under Debts.</div>' + extra) if extra else ''
             body += card(d['name'], top + sched_html + extra_html)
         done = [d for d in p['debts'] if d.get('paid_off')]
         if done:
@@ -587,6 +606,8 @@ def email_text(plan, who, url):
         for d in p['debts']:
             if d.get('paid_off'):
                 L.append(f"- {d['name']}: PAID OFF"); continue
+            if d.get('revolving'):
+                L.append(f"- {d['name']}: balance {usd(d['balance'])} · pay it in full this month (it changes every month)"); continue
             L.append(f"- {d['name']}: owe {usd(d['balance'])} · installment {usd0(d['cuota'])} a month · {d['payments_left']} payments left" + (f", done {mname(d['cuota_done'], True)}" if d.get('cuota_done') else ''))
             L += [f"    {mname(x['month'])}: {usd0(x['pay'])} ({usd0(x['left'])} left)" for x in d['schedule'][:12]]
             for x in d.get('extra_examples', []):
