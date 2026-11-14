@@ -39,7 +39,6 @@
 .ex-kpi .ex-kpi-label { font-size: 13px; font-weight: 600; align-self: stretch; text-align: left; margin-bottom: 4px; }
 .ex-delta { font-size: 12px; font-weight: 600; min-height: 16px; font-variant-numeric: tabular-nums; }
 .ex-delta.ex-isup { color: var(--ex-up); } .ex-delta.ex-isdown { color: var(--ex-down); }
-.ex-kpi .ex-delta { display: none; }
 .ex-kpi-value { font-size: 30px; font-weight: 700; letter-spacing: -.01em; font-variant-numeric: tabular-nums; line-height: 1.15; overflow-wrap: anywhere; }
 .ex-kpi-value.ex-word { font-size: 21px; }
 .ex-kpi-cap { font-size: 12px; color: var(--ex-muted); font-variant-numeric: tabular-nums; }
@@ -60,10 +59,7 @@
 .ex-tip b { font-weight: 700; }
 .ex-tip .ex-tip-row { display: flex; align-items: center; gap: 6px; }
 .ex-analysis-title { font-size: 18px; font-weight: 600; margin: 0 0 8px; line-height: 1.3; }
-.ex-analysis-text { margin: 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 8px; color: #474E5A; line-height: 1.45; }
-.ex-analysis-text li { position: relative; padding-left: 16px; }
-.ex-analysis-text li::before { content: ''; position: absolute; left: 2px; top: .55em; width: 6px; height: 6px; border-radius: 50%; background: var(--ex-purple); }
-.ex-analysis-text b { color: var(--ex-text); font-weight: 700; font-variant-numeric: tabular-nums; }
+.ex-analysis-text { margin: 0; line-height: 1.65; color: #474E5A; }
 .ex-who { display: flex; flex-direction: column; gap: 14px; }
 .ex-who-row { display: grid; grid-template-columns: 1fr auto; align-items: end; gap: 6px 10px; }
 .ex-who-name { display: flex; align-items: center; gap: 8px; font-weight: 600; }
@@ -83,161 +79,11 @@
 .ex-tag { display: inline-flex; align-items: center; gap: 6px; }
 .ex-chip { display: inline-block; padding: 2px 8px; border-radius: 3px; background: #F1F2F5; font-size: 12px; color: #4D5562; }
 .ex-empty { color: var(--ex-muted); font-size: 13px; padding: 10px; }
-.ex-sav-card { padding: 10px 16px; background: transparent; border-style: dashed; }
-.ex-sav-wrap { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 22px; font-size: 12px; color: var(--ex-muted); }
-.ex-sav-label { font-weight: 600; color: var(--ex-muted); }
-.ex-sav-num { display: flex; align-items: baseline; gap: 8px; }
-.ex-sav-big { font-size: 14px; font-weight: 700; font-variant-numeric: tabular-nums; color: var(--ex-text); }
-.ex-sav-cap { display: none; }
-.ex-sav-bars { display: flex; flex-wrap: wrap; gap: 6px 22px; flex: 1; justify-content: flex-end; }
-.ex-sb-row { display: flex; align-items: center; gap: 6px; }
-.ex-sb-name { display: flex; align-items: center; gap: 5px; }
-.ex-sb-name .ex-dot { width: 7px; height: 7px; }
-.ex-sb-track, .ex-sb-plan { display: none; }
-.ex-single .ex-sav-bars { display: none; }
-.ex-sb-val { font-weight: 600; color: #5D6470; font-variant-numeric: tabular-nums; }
-@container (max-width: 760px) { .ex-sav-bars { justify-content: flex-start; } }
-.ex-ov-card { padding: 10px 16px; }
-.ex-ov-card h2 { margin: 0 0 6px; font-size: 12px; color: var(--ex-muted); }
-.ex-ov { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); }
-.ex-ov.ex-ov3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
-.ex-ov-box { padding: 2px 12px; border-left: 1px solid var(--ex-line); display: flex; flex-direction: column; gap: 1px; min-width: 0; }
-.ex-ov-box:first-child { border-left: 0; padding-left: 0; }
-.ex-ov-label { font-size: 11px; font-weight: 600; color: var(--ex-muted); text-transform: uppercase; letter-spacing: .04em; }
-.ex-ov-val { font-size: 17px; font-weight: 700; font-variant-numeric: tabular-nums; }
-.ex-ov-val.good { color: var(--ex-down); } .ex-ov-val.neg { color: var(--ex-up); }
-.ex-ov-cap { font-size: 11.5px; color: var(--ex-muted); font-variant-numeric: tabular-nums; }
-@container (max-width: 760px) { .ex-ov, .ex-ov.ex-ov3 { grid-template-columns: repeat(2, minmax(0, 1fr)); row-gap: 8px; } .ex-ov-box:nth-child(odd) { border-left: 0; padding-left: 0; } }
-.ex-ov-chips { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; padding-top: 10px; border-top: 1px solid var(--ex-line); }
-.ex-ov-chip { display: inline-flex; gap: 6px; align-items: baseline; background: #F5F6F8; border-radius: 999px; padding: 4px 10px; font-size: 12px; color: #5D6470; }
-.ex-ov-chip b { color: var(--ex-text); font-weight: 600; font-variant-numeric: tabular-nums; }
-.ex-chart:has(.ex-msplit) { min-height: 0; flex: 0 0 auto; }
-.ex-ov-box .ex-ov-label::before { content: ''; display: inline-block; width: 7px; height: 7px; border-radius: 50%; margin-right: 6px; vertical-align: 1px; background: var(--ov-c, #9AA5B1); }
-.ex-ov-box.in { --ov-c: #2E9E6A; } .ex-ov-box.out { --ov-c: #E8697D; } .ex-ov-box.save { --ov-c: #9B59D0; } .ex-ov-box.free { --ov-c: #E9A23B; }
-.ex-ov-box.save .ex-ov-val { color: #7D3FB3; }
-.ex-ov-chip { --chip: #9B59D0; background: color-mix(in srgb, var(--chip) 12%, #fff); color: color-mix(in srgb, var(--chip) 70%, #2F3542); }
-.ex-ov-chip::before { content: ''; width: 7px; height: 7px; border-radius: 50%; background: var(--chip); align-self: center; }
-.ex-ov-chip.gabby, .ex-ov-gabby .ex-ov-chip { --chip: #E8697D; } .ex-ov-chip.jorgie, .ex-ov-jorgie .ex-ov-chip { --chip: #4B9FD5; }
-.ex-ov-gabby .ex-ov-box.save { --ov-c: #E8697D; } .ex-ov-gabby .ex-ov-box.save .ex-ov-val { color: #C94A60; }
-.ex-ov-jorgie .ex-ov-box.save { --ov-c: #4B9FD5; } .ex-ov-jorgie .ex-ov-box.save .ex-ov-val { color: #2F7FB8; }
-.ex-dp-paid { opacity: .6; } .ex-dp-paid .ex-dp-bar > div { background: var(--ex-down); }
-.ex-dp-input { width: 100%; box-sizing: border-box; font: inherit; font-size: 16px; padding: 10px 12px; border: 1px solid #D5D9DF; border-radius: 6px; margin: 10px 0 8px; background: var(--ex-card); color: var(--ex-text); }
-.ex-dp-quick { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 10px; }
-.ex-dp-quick button { all: unset; cursor: pointer; font-size: 12.5px; font-weight: 600; padding: 5px 10px; border-radius: 999px; background: #F3ECFA; color: #7D3FB3; }
-.ex-dp-sim { font-size: 14px; padding: 10px 12px; border-radius: 6px; background: #F1FAF5; color: #22543D; margin-bottom: 8px; }
-.ex-dg { gap: 14px; }
-.ex-dg-head { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; }
-.ex-dg-total { background: #F7F4FB; border-radius: 10px; padding: 10px 12px; display: flex; flex-direction: column; gap: 2px; min-width: 0; }
-.ex-dg-total .lbl { font-size: 11.5px; color: var(--ex-muted); font-weight: 600; text-transform: uppercase; letter-spacing: .04em; }
-.ex-dg-total b { font-size: 22px; font-variant-numeric: tabular-nums; color: var(--ex-text); white-space: nowrap; }
-.ex-dg-total.good { background: #EEF8F2; } .ex-dg-total.good b { color: #23845A; }
-.ex-dg-list { display: flex; flex-direction: column; gap: 10px; }
-.ex-dg-debt { border: 1px solid var(--ex-line); border-radius: 10px; padding: 12px 14px; display: flex; flex-direction: column; gap: 8px; }
-.ex-dg-debt.click { cursor: pointer; } .ex-dg-debt.click:hover { border-color: #CDB5E6; }
-.ex-dg-debt.done { opacity: .6; padding: 8px 14px; } .ex-dg-debt.done .amt { color: #23845A; font-size: 14px; }
-.ex-dg-top { display: flex; justify-content: space-between; align-items: baseline; gap: 10px; }
-.ex-dg-top .nm { font-size: 16px; font-weight: 700; }
-.ex-dg-top .amt { font-size: 20px; font-variant-numeric: tabular-nums; }
-.ex-dg-chips { display: flex; flex-wrap: wrap; gap: 6px; }
-.ex-dg-chips .chip { font-size: 12.5px; font-weight: 600; padding: 4px 10px; border-radius: 999px; background: #F1F2F4; color: #5D6470; }
-.ex-dg-chips .chip.pay { background: #F1E8FA; color: #7D3FB3; }
-.ex-dg-chips .chip.due { background: #FFF3DD; color: #A06000; }
-.ex-dg-chips .chip.ok, .ex-dg-chips .chip.end { background: #EEF8F2; color: #23845A; }
-.ex-dg-dots { display: flex; gap: 6px; flex-wrap: wrap; }
-.ex-dg-dots .dot { width: 26px; height: 26px; border-radius: 50%; border: 2px solid #E2D6EF; display: grid; place-items: center; font-size: 11px; font-weight: 700; color: #9A8FB0; }
-.ex-dg-dots .dot i { font-style: normal; }
-.ex-dg-dots .dot.paid { background: #9B59D0; border-color: #9B59D0; color: #fff; }
-.ex-dg-dots .dot.now { border-color: #E9A23B; color: #A06000; }
-.ex-dg-dots .dot.miss { border-color: #E8697D; color: #C94A60; }
-.ex-dg-bar { height: 6px; background: #EEF0F3; border-radius: 3px; overflow: hidden; } .ex-dg-bar > div { height: 100%; background: #9B59D0; border-radius: 3px; }
-.ex-dg-cap { display: flex; justify-content: space-between; font-size: 12px; color: var(--ex-muted); }
-@container (max-width: 460px) { .ex-dg-total b { font-size: 17px; } .ex-dg-head { gap: 6px; } .ex-dg-total { padding: 8px 9px; } .ex-dg-top .amt { font-size: 18px; } }
-.ex-catf { display: flex; gap: 6px; overflow-x: auto; padding: 0 0 10px; margin-top: -4px; scrollbar-width: none; }
-.ex-catf::-webkit-scrollbar { display: none; }
-.ex-catf-chip { all: unset; cursor: pointer; flex: none; display: inline-flex; align-items: center; gap: 6px; font-size: 12.5px; padding: 6px 11px; border-radius: 999px; background: #F3F4F6; color: #5D6470; }
-.ex-catf-chip b { color: var(--ex-text); font-weight: 600; font-variant-numeric: tabular-nums; }
-.ex-catf-chip[aria-pressed="true"] { background: #9B59D0; color: #fff; } .ex-catf-chip[aria-pressed="true"] b { color: #fff; }
-.ex-msplit { display: flex; flex-direction: column; gap: 14px; padding: 6px 2px 4px; }
-.ex-msplit-total { font-size: 28px; font-weight: 700; font-variant-numeric: tabular-nums; }
-.ex-msplit-total small { display: block; font-size: 12px; font-weight: 500; color: var(--ex-muted); }
-.ex-msplit-bar { display: flex; gap: 2px; height: 14px; }
-.ex-msplit-bar > div { height: 100%; border-radius: 4px; min-width: 4px; }
-.ex-msplit-rows { display: flex; flex-direction: column; gap: 8px; }
-.ex-msplit-row { display: grid; grid-template-columns: auto 1fr auto auto; align-items: center; gap: 8px; font-size: 13px; }
-.ex-msplit-row b { font-variant-numeric: tabular-nums; }
-.ex-msplit-row .pct { color: var(--ex-muted); font-size: 12px; min-width: 38px; text-align: right; font-variant-numeric: tabular-nums; }
-.ex-msplit-note { font-size: 12px; color: var(--ex-muted); }
-.ex-nav-sep { margin: 10px 20px 4px; padding-top: 12px; border-top: 1px solid var(--ex-line); font-size: 10.5px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--ex-muted); }
-.ex-app:not(.ex-planmode) #debt-plan { display: none; }
-.ex-planmode .ex-main > section:not(#debt-plan) { display: none; }
-.ex-planmode .ex-range { display: none; }
-.ex-dp-intro { font-size: 13px; color: var(--ex-muted); margin: -4px 0 2px; }
-.ex-dp-kpi .ex-kpi-value { font-size: 26px; }
-.ex-dp-kpi .ex-kpi-value.good { color: var(--ex-down); }
-.ex-dp-check { border-radius: 8px; background: #F7F8FA; padding: 12px 14px; margin-bottom: 10px; }
-.ex-dp-check:last-child { margin-bottom: 0; }
-.ex-dp-check .hd { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 6px; }
-.ex-dp-check .hd b { font-size: 13px; }
-.ex-dp-check .hd span { font-size: 12px; color: var(--ex-muted); font-variant-numeric: tabular-nums; }
-.ex-dp-line { display: flex; justify-content: space-between; gap: 10px; padding: 5px 0; font-size: 14px; }
-.ex-dp-line b { font-variant-numeric: tabular-nums; }
-.ex-dp-debt { padding: 10px 0; border-bottom: 1px solid #EEF0F3; }
-.ex-dp-debt:first-child { padding-top: 0; }
-.ex-dp-debt:last-child { border-bottom: 0; padding-bottom: 0; }
-.ex-dp-debt .top { display: flex; justify-content: space-between; gap: 10px; font-size: 14px; }
-.ex-dp-debt .top b { font-variant-numeric: tabular-nums; }
-.ex-dp-debt .meta { font-size: 11.5px; color: var(--ex-muted); display: flex; justify-content: space-between; gap: 8px; flex-wrap: wrap; }
-.ex-dp-bar { height: 6px; background: #EEF0F3; border-radius: 3px; overflow: hidden; margin: 7px 0 5px; }
-.ex-dp-bar > div { height: 100%; background: var(--ex-purple); border-radius: 3px; }
-.ex-dp-tag { font-weight: 600; } .ex-dp-tag.ok { color: var(--ex-down); } .ex-dp-tag.late { color: #B7791F; }
-.ex-dp-steps { margin: 0; padding: 0; list-style: none; counter-reset: st; display: grid; gap: 10px; }
-.ex-dp-steps li { counter-increment: st; position: relative; padding-left: 30px; line-height: 1.45; color: #474E5A; font-size: 13.5px; }
-.ex-dp-steps li::before { content: counter(st); position: absolute; left: 0; top: 0; width: 20px; height: 20px; border-radius: 50%; background: #F1E8FA; color: var(--ex-purple); font-size: 11px; font-weight: 700; display: grid; place-items: center; }
-.ex-dp-seg { display: inline-flex; justify-self: start; background: #E6E8EC; border-radius: 10px; padding: 3px; gap: 2px; width: max-content; }
-.ex-dp-seg button { all: unset; cursor: pointer; padding: 7px 18px; border-radius: 8px; font-size: 13.5px; font-weight: 600; color: #5D6470; }
-.ex-dp-seg button[aria-pressed="true"] { background: var(--ex-card); color: var(--ex-text); box-shadow: 0 1px 3px rgba(30,40,60,.12); }
-.ex-dp-chip.goal span::before { content: ''; display: inline-block; width: 7px; height: 7px; border-radius: 50%; background: #2E9E6A; margin-right: 6px; vertical-align: 1px; }
-.ex-dp-opts { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; }
-.ex-dp-opt { background: #F7F8FA; border-radius: 8px; padding: 12px 14px; display: flex; flex-direction: column; gap: 2px; }
-.ex-dp-opt span { font-size: 12px; color: var(--ex-muted); font-weight: 600; }
-.ex-dp-opt b { font-size: 18px; font-variant-numeric: tabular-nums; }
-.ex-dp-opt small { font-size: 11.5px; color: var(--ex-muted); }
-@container (max-width: 760px) { .ex-dp-opts { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
-.ex-dp-read { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; background: #F7F8FA; border-radius: 8px; padding: 8px 12px; margin: -2px 0 8px; font-size: 13px; color: var(--ex-muted); }
-.ex-dp-read b { font-size: 17px; color: var(--ex-text); font-variant-numeric: tabular-nums; }
-.ex-dp-budget { display: flex; flex-direction: column; }
-.ex-auto { margin-left: 6px; font-size: 10px; font-weight: 700; letter-spacing: .03em; text-transform: uppercase; color: #9B59D0; background: rgba(155,89,208,.1); border-radius: 3px; padding: 1px 5px; vertical-align: middle; }
-.ex-dp-tip { margin-top: 12px; padding: 10px 12px; border-radius: 6px; background: rgba(155,89,208,.08); color: inherit; font-size: 13px; line-height: 1.45; }
-.ex-dp-tip b { color: #9B59D0; }
-.ex-dp-bline { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; padding: 8px 0; border-bottom: 1px solid #EEF0F3; font-size: 14px; }
-.ex-dp-bline small { display: block; font-size: 11.5px; color: var(--ex-muted); margin-top: 2px; }
-.ex-dp-bline b { font-variant-numeric: tabular-nums; }
-.ex-dp-bline.total { border-bottom: 0; padding-top: 10px; font-weight: 600; }
-.ex-dp-bline.total b { font-size: 18px; } .ex-dp-bline.total.ok b { color: var(--ex-down); } .ex-dp-bline.total.neg b { color: var(--ex-up); }
-.ex-dp-chips { display: flex; flex-wrap: wrap; gap: 8px; }
-.ex-dp-chip { all: unset; cursor: pointer; display: inline-flex; align-items: baseline; gap: 8px; padding: 8px 14px; border-radius: 999px; background: var(--ex-card); border: 1px solid var(--ex-line); font-size: 13px; color: var(--ex-text); }
-.ex-dp-chip b { font-weight: 600; color: var(--ex-muted); font-variant-numeric: tabular-nums; }
-.ex-dp-chip:hover { border-color: #C9A9E6; }
-.ex-dp-chip[aria-pressed="true"] { background: var(--ex-purple); border-color: var(--ex-purple); color: #fff; }
-.ex-dp-chip[aria-pressed="true"] b { color: #F1E8FA; }
-.ex-dp-click { cursor: pointer; } .ex-dp-click:hover .top span { color: var(--ex-purple); }
-.ex-dp-bar-lg { height: 12px; border-radius: 6px; margin: 4px 0 14px; }
-.ex-dp-facts { display: flex; flex-wrap: wrap; gap: 10px 28px; }
-.ex-dp-facts div { display: flex; flex-direction: column; gap: 2px; }
-.ex-dp-facts span { font-size: 11.5px; color: var(--ex-muted); }
-.ex-dp-facts b { font-size: 14px; font-variant-numeric: tabular-nums; }
-.ex-dp-foot { font-size: 12px; color: var(--ex-muted); text-align: center; padding: 4px 0 8px; }
-.ex-dp-warn { margin-top: 0; font-size: 12.5px; color: #8A5A00; background: #FFF6E0; border-radius: 6px; padding: 8px 12px; }
-.ex-dp-empty { align-items: center; text-align: center; padding: 40px 24px; }
-.ex-dp-empty .ic { width: 46px; height: 46px; border-radius: 12px; background: #F1E8FA; color: var(--ex-purple); display: grid; place-items: center; margin-bottom: 12px; }
-.ex-dp-empty .ic svg { width: 22px; height: 22px; }
-.ex-dp-empty h3 { font-size: 16px; margin: 0; color: var(--ex-muted); font-weight: 600; }
-.ex-dp-empty p { margin: 0 0 18px; color: var(--ex-muted); max-width: 440px; line-height: 1.5; }
-.ex-dp-howto { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; width: 100%; max-width: 760px; text-align: left; }
-.ex-dp-howto div { background: #F7F8FA; border-radius: 8px; padding: 10px 12px; }
-.ex-dp-howto b { display: block; font-size: 11px; color: var(--ex-muted); text-transform: uppercase; letter-spacing: .05em; margin-bottom: 4px; }
-.ex-dp-howto code { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 12.5px; color: var(--ex-text); display: block; line-height: 1.6; }
-@container (max-width: 900px) { .ex-dp-howto { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+.ex-sav-total { display: flex; flex-direction: column; gap: 2px; padding-bottom: 14px; margin-bottom: 14px; border-bottom: 1px solid #EEF0F3; }
+.ex-sav-big { font-size: 32px; font-weight: 700; letter-spacing: -.01em; font-variant-numeric: tabular-nums; line-height: 1.15; color: var(--ex-down); }
+.ex-sav-cap { font-size: 12px; color: var(--ex-muted); font-variant-numeric: tabular-nums; }
+.ex-sav-plan { grid-column: 1 / -1; font-size: 12px; color: #5D6470; font-variant-numeric: tabular-nums; }
+.ex-sav-plan b { color: var(--ex-down); font-weight: 700; }
 [data-dash-source-state=refreshing] { opacity: .5; }
 .ex-shell { container-type: inline-size; }
 .ex-single table[data-row-key] th:first-child, .ex-single table[data-row-key] td:first-child { display: none; }
@@ -250,9 +96,6 @@
   .ex-brand { border-bottom: 0; padding-bottom: 6px; }
   .ex-nav { flex-direction: row; padding: 0; }
   .ex-nav button { flex: 1; justify-content: center; padding: 11px 6px; }
-  .ex-nav-sep { display: none; }
-  .ex-nav button { gap: 6px; font-size: 13px; padding: 11px 4px; }
-  .ex-nav svg { width: 15px; height: 15px; }
   .ex-side-foot { display: none; }
   .ex-main { padding: 16px 14px 24px; }
   .ex-span6 { grid-column: span 12; }
@@ -297,8 +140,6 @@ html, body { margin: 0; padding: 0; background: #F1F2F4; }
       <button type="button" data-per="Household" aria-pressed="true"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M3 17V9M8 17V4M13 17v-6M18 17V7"/></svg>Cozy House</button>
       <button type="button" data-per="Gabby" aria-pressed="false"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="10" cy="7" r="3.2"/><path d="M3.5 17c1.2-3.2 3.6-4.6 6.5-4.6s5.3 1.4 6.5 4.6"/></svg>Gabby</button>
       <button type="button" data-per="Jorgie" aria-pressed="false"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="10" cy="7" r="3.2"/><path d="M3.5 17c1.2-3.2 3.6-4.6 6.5-4.6s5.3 1.4 6.5 4.6"/></svg>Jorgie</button>
-      <div class="ex-nav-sep">Plans</div>
-      <button type="button" data-view="plan" aria-pressed="false"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M4 18V3M4 3h10l-2 3.5L14 10H4"/></svg>Plans</button>
     </nav>
     <div class="ex-side-foot">All amounts in USD. Gabby logs in pesos; they are converted at the TRM and shown small as a reference.</div>
   </aside>
@@ -309,17 +150,6 @@ html, body { margin: 0; padding: 0; background: #F1F2F4; }
       <label class="ex-range"><strong>Month:</strong> <select class="dash-select" data-draw="selMonth" aria-label="Month" data-source="summary"></select></label>
     </header>
 
-    <section class="ex-grid" id="month-overview">
-      <div class="ex-card ex-span12 ex-ov-card">
-        <h2 data-draw="ovTitle">Month Overview</h2>
-        <div data-draw="overview" data-source="expenses"></div>
-      </div>
-    </section>
-
-    <section class="ex-grid" id="my-debts" style="display:none">
-      <div class="ex-span12" data-draw="myDebts" data-source="debts"></div>
-    </section>
-
     <section class="ex-grid" id="kpis">
       <div class="ex-card ex-kpi ex-span3" id="kpi-total">
         <div class="ex-kpi-label">Total Spent</div>
@@ -328,16 +158,16 @@ html, body { margin: 0; padding: 0; background: #F1F2F4; }
         <div class="ex-kpi-cap" data-draw="cTotal" data-source="summary">—</div>
       </div>
       <div class="ex-card ex-kpi ex-span3" id="kpi-everyday">
-        <div class="ex-kpi-label">Variable Spending</div>
+        <div class="ex-kpi-label">Daily Spending</div>
         <div class="ex-delta" data-draw="dVar" data-source="summary"></div>
         <div class="ex-kpi-value" data-draw="vVar" data-source="summary">—</div>
         <div class="ex-kpi-cap"><span data-draw="cVarN" data-source="summary" data-field="n_variable">—</span> purchases</div>
       </div>
       <div class="ex-card ex-kpi ex-span3" id="kpi-recurring">
-        <div class="ex-kpi-label">Fixed Spending</div>
+        <div class="ex-kpi-label">Monthly Bills</div>
         <div class="ex-delta" data-draw="dFixed" data-source="summary"></div>
         <div class="ex-kpi-value" data-draw="vFixed" data-source="summary">—</div>
-        <div class="ex-kpi-cap"><span data-draw="cFixedN" data-source="summary" data-field="n_fixed">—</span> fixed expenses</div>
+        <div class="ex-kpi-cap"><span data-draw="cFixedN" data-source="summary" data-field="n_fixed">—</span> bills</div>
       </div>
       <div class="ex-card ex-kpi ex-span3" id="kpi-top">
         <div class="ex-kpi-label">Top Category</div>
@@ -347,8 +177,17 @@ html, body { margin: 0; padding: 0; background: #F1F2F4; }
       </div>
     </section>
 
-    <section class="ex-grid" id="debt-plan">
-      <div class="ex-span12" data-draw="dpBody"></div>
+    <section class="ex-grid" id="savings">
+      <div class="ex-card ex-span5" id="savings-total">
+        <h2 data-draw="savTitle">Cozy House Savings</h2>
+        <div class="ex-sav-total" data-draw="savTotal" data-source="savings"></div>
+        <div class="ex-who" data-draw="savPeople" data-source="savings"></div>
+      </div>
+      <div class="ex-card ex-span7" id="savings-growth">
+        <h2>Savings Growth</h2>
+        <div class="ex-chart" data-draw="savChart" data-source="savings"></div>
+        <div class="ex-legend" data-draw="savLegend"></div>
+      </div>
     </section>
 
     <section class="ex-grid">
@@ -367,7 +206,7 @@ html, body { margin: 0; padding: 0; background: #F1F2F4; }
       <div class="ex-card ex-span7" id="analysis">
         <h2>Monthly Analysis</h2>
         <h3 class="ex-analysis-title" data-draw="anTitle" data-source="analysis" data-field="title">—</h3>
-        <ul class="ex-analysis-text" data-draw="anText" data-source="analysis" data-field="text"><li>—</li></ul>
+        <p class="ex-analysis-text" data-draw="anText" data-source="analysis" data-field="text">—</p>
       </div>
       <div class="ex-card ex-span5" id="who-spent-what">
         <h2>Who Spent What</h2>
@@ -377,13 +216,13 @@ html, body { margin: 0; padding: 0; background: #F1F2F4; }
 
     <section class="ex-card" id="category-heatmap">
       <h2>Category by Month</h2>
-      <p class="ex-sub">Variable spending per category. Darker cells mean more spending.</p>
+      <p class="ex-sub">Daily spending per category. Darker cells mean more spending.</p>
       <div class="ex-tablewrap"><table class="ex-table ex-heat" data-draw="heat" data-source="categories"></table></div>
     </section>
 
     <section class="ex-grid">
       <div class="ex-card ex-span6" id="fixed-bills">
-        <h2>Fixed Expenses</h2>
+        <h2>Monthly Bills</h2>
         <div class="ex-tablewrap">
           <table class="ex-table" data-source="expenses" data-row-key="id">
             <thead><tr><th data-field="person">Who</th><th data-field="item">Item</th><th data-field="category">Category</th><th data-field="amount_usd" class="ex-r">Amount</th></tr></thead>
@@ -401,22 +240,12 @@ html, body { margin: 0; padding: 0; background: #F1F2F4; }
         </div>
       </div>
       <div class="ex-card ex-span12" id="variable-purchases">
-        <h2>Variable Purchases</h2>
+        <h2>Daily Purchases</h2>
         <div class="ex-tablewrap">
           <table class="ex-table" data-source="expenses" data-row-key="id">
             <thead><tr><th data-field="person">Who</th><th data-field="item">Item</th><th data-field="category">Category</th><th data-field="amount_usd" class="ex-r">Amount</th></tr></thead>
             <tbody data-draw="tVar"></tbody>
           </table>
-        </div>
-      </div>
-    </section>
-
-    <section class="ex-grid" id="savings">
-      <div class="ex-card ex-span12 ex-sav-card" id="savings-total">
-        <div class="ex-sav-wrap">
-          <div class="ex-sav-total"><span class="ex-sav-label" data-draw="savTitle">Cozy House Savings</span></div>
-          <div class="ex-sav-num" data-draw="savTotal" data-source="savings"></div>
-          <div class="ex-sav-bars" data-draw="savPeople" data-source="savings"></div>
         </div>
       </div>
     </section>
@@ -437,12 +266,12 @@ window.dash = (function () {
     onData(fn) { onDatas.push(fn); },
     _load(d) {
       src.expenses = d.expenses || []; src.analysis = d.analysis || [];
-      const sv = d.savings || {}; src.savings_entries = sv.entries || []; src.savings_plan = sv.plan || []; src.debts = d.debts || {};
+      const sv = d.savings || {}; src.savings_entries = sv.entries || []; src.savings_plan = sv.plan || [];
       for (const [id, o] of calcs) src[id] = o.fn(...o.inputs.map((i) => src[i] || []));
       onDatas.forEach((f) => f());
       Object.keys(draws).forEach(run);
     },
-    _redrawCharts() { ['monthly', 'pie'].forEach(run); }
+    _redrawCharts() { ['monthly', 'pie', 'savChart'].forEach(run); }
   };
 })();
 </script>
@@ -616,7 +445,7 @@ window.exU = (function () {
     tip.style.left = Math.max(0, Math.min(e.clientX - b.left + 12, el.clientWidth - tip.offsetWidth)) + 'px';
     tip.style.top = (e.clientY - b.top + 14) + 'px';
   }
-  const ALL = ['pageTitle','selMonth','dTotal','vTotal','cTotal','dVar','vVar','cVarN','dFixed','vFixed','cFixedN','dTop','vTop','cTop','savTitle','savTotal','savPeople','dpBody','tIncome','monthly','monthlyLegend','pie','anTitle','anText','who','heat','tFixed','tVar','ovTitle','overview','myDebts'];
+  const ALL = ['pageTitle','selMonth','dTotal','vTotal','cTotal','dVar','vVar','cVarN','dFixed','vFixed','cFixedN','dTop','vTop','cTop','savTitle','savTotal','savPeople','savChart','savLegend','tIncome','monthly','monthlyLegend','pie','anTitle','anText','who','heat','tFixed','tVar'];
   function redraw() { ALL.forEach((n) => dash.draw(n)); }
   function pickMonth(m) { window.exMonth = m; redraw(); }
   return { monthName, usd, usd0, cop, copK, usdK, pct, enc, PERSON, PIE, LINE, per, isCop, suf, money, rows, months, years, month, isYear, inPeriod, sumRow, where, catColors, tipAt, redraw, pickMonth };
@@ -627,20 +456,15 @@ window.exU = (function () {
 // ---------- navigation and sample notice ----------
 (function () {
   const U = window.exU;
-  const setPressed = (b) => document.querySelectorAll('.ex-nav button').forEach((x) => x.setAttribute('aria-pressed', x === b ? 'true' : 'false'));
   document.querySelectorAll('.ex-nav button').forEach((b) => {
     b.addEventListener('click', () => {
-      setPressed(b);
-      const plan = b.getAttribute('data-view') === 'plan';
-      window.exView = plan ? 'plan' : 'dash';
-      document.querySelectorAll('.ex-app').forEach((el) => el.classList.toggle('ex-planmode', plan));
-      if (!plan) window.exPer = b.getAttribute('data-per');
+      window.exPer = b.getAttribute('data-per');
+      document.querySelectorAll('.ex-nav button').forEach((x) => x.setAttribute('aria-pressed', x === b ? 'true' : 'false'));
       const single = U.per() !== 'Household';
       document.querySelectorAll('.ex-app').forEach((el) => el.classList.toggle('ex-single', single));
       document.querySelectorAll('#who-spent-what').forEach((el) => { el.hidden = single; });
       document.querySelectorAll('#analysis').forEach((el) => el.classList.toggle('ex-span12', single));
       U.redraw();
-      window.scrollTo(0, 0);
     });
   });
   dash.onData(() => {
@@ -657,7 +481,7 @@ window.exU = (function () {
 (function () {
   const U = window.exU;
   const mark = (el, r, field) => { el.dataset.where = U.where(r); if (field) el.dataset.field = field; };
-  dash.draw('pageTitle', (el) => { const p = U.per(); el.textContent = window.exView === 'plan' ? 'Plans' : (p === 'Household' ? 'Cozy House' : p + '’s Dashboard'); });
+  dash.draw('pageTitle', (el) => { const p = U.per(); el.textContent = p === 'Household' ? 'Cozy House' : p + '’s Dashboard'; });
   dash.draw('selMonth', (sel) => {
     const opts = U.years().slice().reverse().concat(U.months().slice().reverse());
     sel.replaceChildren(...opts.map((m) => new Option(U.monthName(m), m)));
@@ -698,19 +522,7 @@ window.exU = (function () {
   // analysis
   const an = () => { const m = U.month(), p = U.per(); return U.rows('analysis').find((a) => a.month === m && a.person === p) || null; };
   dash.draw('anTitle', (el) => { const a = an(); if (!a) { el.textContent = 'No analysis for this period yet'; delete el.dataset.where; return; } el.dataset.where = U.where(a); el.textContent = a.title; });
-  dash.draw('anText', (el) => {
-    el.replaceChildren();
-    const a = an();
-    const li = (txt) => {
-      const n = document.createElement('li');
-      String(txt).split(/(\$[\d,.]+K?|COP [\d,.]+[MK]?|[\d.]+%)/).forEach((part, i) => { if (!part) return; if (i % 2) { const b = document.createElement('b'); b.textContent = part; n.append(b); } else n.append(part); });
-      el.append(n);
-    };
-    if (!a) { li('The analysis is written when the month’s notes are processed.'); delete el.dataset.where; return; }
-    el.dataset.where = U.where(a);
-    const parts = String(a.text).includes('\n') ? String(a.text).split('\n') : String(a.text).split(/(?<=\.)\s+(?=[A-Z])/);
-    parts.map((t) => t.replace(/^\s*[-•·]\s*/, '').trim()).filter(Boolean).forEach(li);
-  });
+  dash.draw('anText', (el) => { const a = an(); if (!a) { el.textContent = 'The analysis is written when the month’s notes are processed.'; delete el.dataset.where; return; } el.dataset.where = U.where(a); el.textContent = a.text; });
 
   // who spent what
   dash.draw('who', (el) => {
@@ -745,11 +557,11 @@ window.exU = (function () {
   const U = window.exU;
   function series() {
     const p = U.per();
-    return [{ k: 'fixed', label: 'Fixed', col: '#B8C0CC' }, { k: 'variable', label: 'Variable', col: p === 'Household' ? '#9B59D0' : U.PERSON[p] }];
+    if (p === 'Household') return [{ k: 'Gabby', label: 'Gabby', col: U.PERSON.Gabby }, { k: 'Jorgie', label: 'Jorgie', col: U.PERSON.Jorgie }];
+    return [{ k: 'fixed', label: 'Monthly bills', col: '#C7CDD6' }, { k: 'variable', label: 'Daily', col: U.PERSON[p] }];
   }
   dash.draw('monthlyLegend', (el) => {
     el.replaceChildren();
-    const sel = U.month(); el.style.display = (U.isYear(sel) ? U.months().filter((m) => m.slice(0, 4) === sel) : U.months()).length < 2 ? 'none' : '';
     const items = series().map((s) => [s.label, s.col]);
     for (const [t, c] of items) { const s = document.createElement('span'); const d = document.createElement('span'); d.className = 'ex-dot'; d.style.background = c; const x = document.createElement('span'); x.textContent = t; s.append(d, x); el.append(s); }
   });
@@ -764,41 +576,17 @@ window.exU = (function () {
     const get = (m, who) => d.data.find((r) => r.month === m && r.person === who);
     const data = ms.map((m) => {
       const r = get(m, p) || {};
-      const parts = [{ k: 'fixed', v: r['fixed' + sf] || 0 }, { k: 'variable', v: r['variable' + sf] || 0 }];
+      const parts = p === 'Household'
+        ? [{ k: 'Gabby', v: (get(m, 'Gabby') || {}).total_usd || 0 }, { k: 'Jorgie', v: (get(m, 'Jorgie') || {}).total_usd || 0 }]
+        : [{ k: 'fixed', v: r['fixed' + sf] || 0 }, { k: 'variable', v: r['variable' + sf] || 0 }];
       return { month: m, parts, total: r['total' + sf] || 0, variable: r['variable' + sf] || 0, row: r };
     });
     const ser = series(); const colOf = Object.fromEntries(ser.map((s) => [s.k, s.col])); const labOf = Object.fromEntries(ser.map((s) => [s.k, s.label]));
-    const legEl = el.parentNode && el.parentNode.querySelector('.ex-legend');
-    if (legEl) legEl.style.display = data.length < 2 ? 'none' : '';
-    if (data.length < 2) {
-      // One month only: a bar chart of one bar says little. Show the total and its fixed / variable split.
-      const r = data[0], gab = p === 'Gabby', row = r.row || {};
-      const fmt = (u, c) => gab ? U.cop(c) : U.usd(u);
-      const wrap = document.createElement('div'); wrap.className = 'ex-msplit';
-      const tot = document.createElement('div'); tot.className = 'ex-msplit-total'; tot.textContent = fmt(r.total, row.total_cop || 0);
-      const sm = document.createElement('small'); sm.textContent = 'spent in ' + U.monthName(r.month) + (gab ? ' · ' + U.usd(r.total) : ''); tot.append(sm);
-      const bar = document.createElement('div'); bar.className = 'ex-msplit-bar';
-      const rows = document.createElement('div'); rows.className = 'ex-msplit-rows';
-      for (const pt of r.parts) {
-        if (!pt.v) continue;
-        const pc = r.total ? pt.v / r.total * 100 : 0;
-        const seg = document.createElement('div'); seg.style.flex = String(pt.v); seg.style.background = colOf[pt.k]; seg.title = labOf[pt.k] + ': ' + U.money(pt.v); bar.append(seg);
-        const rw = document.createElement('div'); rw.className = 'ex-msplit-row';
-        const dot = document.createElement('span'); dot.className = 'ex-dot'; dot.style.background = colOf[pt.k];
-        const lb = document.createElement('span'); lb.textContent = labOf[pt.k];
-        const v = document.createElement('b'); v.textContent = fmt(pt.v, row[pt.k + '_cop'] || 0);
-        const pcEl = document.createElement('span'); pcEl.className = 'pct'; pcEl.textContent = Math.round(pc) + '%';
-        rw.append(dot, lb, v, pcEl); rows.append(rw);
-      }
-      const note = document.createElement('div'); note.className = 'ex-msplit-note'; note.textContent = 'Month-by-month bars start once there are two months of data.';
-      wrap.append(tot, bar, rows, note); el.append(wrap);
-      return;
-    }
     const W = Math.max(260, el.clientWidth || 500), H = 260;
     const fmtAxis = cop ? (v) => U.copK(v) : (v) => U.usdK(v);
     const y = d3.scaleLinear().domain([0, (d3.max(data, (r) => r.total) || 100) * 1.15]).nice().range([H - 26, 14]);
     const ticks = y.ticks(4);
-    const svg = d3.select(el).append('svg').attr('class', 'ex-svg').attr('width', '100%').attr('viewBox', `0 0 ${W} ${H}`).attr('role', 'img').attr('aria-label', 'Spending by month, stacked bars with an everyday spending trend line');
+    const svg = d3.select(el).append('svg').attr('class', 'ex-svg').attr('width', '100%').attr('viewBox', `0 0 ${W} ${H}`).attr('role', 'img').attr('aria-label', 'Spending by month, stacked bars with an daily spending');
     const tmp = svg.append('g'); let ml = 0;
     ticks.forEach((t) => { const tx = tmp.append('text').text(fmtAxis(t)); ml = Math.max(ml, tx.node().getComputedTextLength()); }); tmp.remove();
     const left = ml + 10, right = 8;
@@ -809,15 +597,9 @@ window.exU = (function () {
     });
     const tip = d3.select(el).append('div').attr('class', 'ex-tip').property('hidden', true);
     const g = svg.selectAll('g.b').data(data).join('g').attr('class', 'b').style('cursor', 'pointer').style('opacity', (r) => (r.month === sel || U.isYear(sel)) ? 1 : 0.6);
-    const bw = Math.min(x.bandwidth(), 46), bx = (m) => x(m) + (x.bandwidth() - bw) / 2;
     g.each(function (r) {
       let acc = 0; const gg = d3.select(this);
-      r.parts.forEach((pt, i) => {
-        if (!pt.v) return;
-        const h = Math.max(0, y(acc) - y(acc + pt.v) - (i ? 2 : 0));
-        gg.append('rect').attr('x', bx(r.month)).attr('width', bw).attr('y', y(acc + pt.v)).attr('height', h).attr('rx', 3).style('fill', colOf[pt.k]);
-        acc += pt.v;
-      });
+      r.parts.forEach((pt) => { gg.append('rect').attr('x', x(r.month)).attr('width', x.bandwidth()).attr('y', y(acc + pt.v)).attr('height', Math.max(0, y(acc) - y(acc + pt.v))).style('fill', colOf[pt.k]); acc += pt.v; });
     });
     if (x.bandwidth() > 36) {
       g.append('text').attr('class', 'ex-vlabel').attr('text-anchor', 'middle').attr('x', (r) => x(r.month) + x.bandwidth() / 2).attr('y', (r) => y(r.total) - 6)
@@ -851,11 +633,11 @@ window.exU = (function () {
     const m = U.month(), p = U.per(), cop = U.isCop();
     const key = cop ? 'total_cop' : 'total_usd';
     const rs = d.data.filter((r) => r.month === m && r.person === p);
-    if (!rs.length) { const e = document.createElement('div'); e.className = 'ex-empty'; e.textContent = 'No variable spending this month'; el.append(e); return; }
+    if (!rs.length) { const e = document.createElement('div'); e.className = 'ex-empty'; e.textContent = 'No daily spending this month'; el.append(e); return; }
     const colors = U.catColors();
     const size = Math.min(190, Math.max(140, (el.clientWidth || 300) * 0.5));
     const R = size / 2;
-    const svg = d3.select(el).append('svg').attr('class', 'ex-svg').attr('width', size).attr('height', size).attr('viewBox', `0 0 ${size} ${size}`).attr('role', 'img').attr('aria-label', 'Everyday spending by category');
+    const svg = d3.select(el).append('svg').attr('class', 'ex-svg').attr('width', size).attr('height', size).attr('viewBox', `0 0 ${size} ${size}`).attr('role', 'img').attr('aria-label', 'Daily spending by category');
     const gr = svg.append('g').attr('transform', `translate(${R},${R})`);
     const arcs = d3.pie().sort(null).value((r) => r[key])(rs);
     const arc = d3.arc().innerRadius(0).outerRadius(R - 2);
@@ -879,8 +661,6 @@ window.exU = (function () {
       const v = document.createElement('span'); v.className = 'ex-v'; v.dataset.source = 'categories'; v.dataset.field = key; v.dataset.where = w; v.textContent = cop ? U.copK(r[key]) : U.usd0(r[key]);
       const pc = document.createElement('span'); pc.className = 'ex-p'; pc.dataset.source = 'categories'; pc.dataset.field = 'pct'; pc.dataset.where = w; pc.textContent = U.pct(r.pct);
       row.append(dt, n, v, pc); list.append(row);
-      row.style.cursor = 'pointer'; row.title = 'See these purchases';
-      row.addEventListener('click', () => { window.exCat = r.category; dash.draw('tVar'); const vp = document.getElementById('variable-purchases'); if (vp) vp.scrollIntoView({ behavior: 'smooth', block: 'start' }); });
     });
     el.append(list);
   });
@@ -898,7 +678,7 @@ window.exU = (function () {
     const p = U.per(), cop = U.isCop(), key = cop ? 'total_cop' : 'total_usd';
     const cur = U.month(); const ms = U.isYear(cur) ? U.months().filter((m) => m.slice(0, 4) === cur) : U.months().slice(-6);
     const rs = d.data.filter((r) => r.person === p && ms.includes(r.month));
-    if (!rs.length) { const tr = tbl.insertRow(); const td = tr.insertCell(); td.className = 'ex-empty'; td.textContent = 'No variable spending yet'; return; }
+    if (!rs.length) { const tr = tbl.insertRow(); const td = tr.insertCell(); td.className = 'ex-empty'; td.textContent = 'No daily spending yet'; return; }
     const cats = d3.rollups(rs, (v) => d3.sum(v, (r) => r[key]), (r) => r.category).sort((a, b) => b[1] - a[1]).map((c) => c[0]);
     const max = d3.max(rs, (r) => r[key]) || 1;
     const scale = d3.scaleLinear().domain([0, max]).range([0.08, 1]);
@@ -926,453 +706,6 @@ window.exU = (function () {
 </script>
 
 <script>
-// ---------- Plans page: Jorgie, Gabby and Together (debts + goals) ----------
-(function () {
-  const U = window.exU;
-  const WHO = ['Jorgie', 'Gabby', 'Together'];
-  const plans = () => { const d = dash.data('debts'); const pl = d.status === 'ok' && d.data ? d.data.plan : null; if (!pl) return null; return pl.people ? pl : { generated: pl.generated, month: pl.month, goal_month: pl.goal_month, people: { Jorgie: pl } }; };
-  const el = (tag, cls, txt) => { const n = document.createElement(tag); if (cls) n.className = cls; if (txt !== undefined) n.textContent = txt; return n; };
-  const usd0 = (v) => '$' + d3.format(',.0f')(Math.round(v));
-  const short = (m) => U.monthName(m, true);
-  const card = (span, title) => { const c = el('div', 'ex-card ' + span); if (title) c.append(el('h2', '', title)); return c; };
-  const ICON = '<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M4 18V3M4 3h10l-2 3.5L14 10H4"/></svg>';
-  const kpi = (grid, label, value, cap, good) => { // eslint-disable-line
-    const c = card('ex-span3 ex-kpi ex-dp-kpi'); c.append(el('div', 'ex-kpi-label', label));
-    c.append(el('div', 'ex-kpi-value' + (good ? ' good' : ''), value)); c.append(el('div', 'ex-kpi-cap', cap || '')); grid.append(c);
-  };
-  const redraw = () => { dash.draw('dpBody'); dash.draw('pageTitle'); };
-  const bars = (box, data, val, goal, label, target) => requestAnimationFrame(() => {
-    // readout: shows the tapped month (starts on the goal month, or the last bar)
-    const read = el('div', 'ex-dp-read'); box.append(read);
-    const W = Math.max(280, box.clientWidth || 560), H = 190;
-    const x = d3.scaleBand().domain(data.map((d) => d.month)).range([4, W - 4]).padding(0.3);
-    const y = d3.scaleLinear().domain([0, Math.max(d3.max(data, val) || 1, target || 0)]).range([H - 22, 18]);
-    const svg = d3.select(box).append('svg').attr('class', 'ex-svg').attr('width', '100%').attr('viewBox', `0 0 ${W} ${H}`).attr('role', 'img').attr('aria-label', label);
-    if (target) {
-      svg.append('line').attr('x1', 4).attr('x2', W - 4).attr('y1', y(target)).attr('y2', y(target)).style('stroke', '#2E9E6A').style('stroke-dasharray', '4 4');
-      svg.append('text').attr('x', W - 6).attr('y', y(target) - 5).attr('text-anchor', 'end').style('fill', '#2E9E6A').style('font-weight', 600).text('Goal ' + U.usdK(target));
-    }
-    const color = (d, sel) => d.month === sel ? '#7B3FB3' : (d.month === goal ? '#9B59D0' : (d.month > goal ? '#E6DAF2' : '#C9A9E6'));
-    const rects = svg.selectAll('rect.b').data(data).join('rect').attr('class', 'b').attr('x', (d) => x(d.month)).attr('width', x.bandwidth()).attr('y', (d) => y(val(d))).attr('height', (d) => Math.max(1, y(0) - y(val(d)))).attr('rx', 3);
-    if (x.bandwidth() > 26) svg.selectAll('text.v').data(data).join('text').attr('class', 'ex-vlabel').attr('text-anchor', 'middle').attr('x', (d) => x(d.month) + x.bandwidth() / 2).attr('y', (d) => y(val(d)) - 5).style('font-size', '10px').text((d) => U.usdK(val(d)));
-    svg.selectAll('text.m').data(data).join('text').attr('text-anchor', 'middle').attr('x', (d) => x(d.month) + x.bandwidth() / 2).attr('y', H - 6).style('font-size', '10px')
-      .style('font-weight', (d) => d.month === goal ? 700 : 400).text((d, i) => (i % Math.max(1, Math.ceil(40 / x.step())) === 0) ? short(d.month).replace(/ 20(\d\d)$/, " '$1") : '');
-    const pick = (d) => {
-      rects.style('fill', (r) => color(r, d.month));
-      read.replaceChildren(el('span', '', U.monthName(d.month)), el('b', '', usd0(val(d))));
-    };
-    // full-height invisible tap areas, so every month is easy to tap on a phone
-    svg.selectAll('rect.hit').data(data).join('rect').attr('class', 'hit').attr('x', (d) => x(d.month) - x.step() * x.paddingInner() / 2).attr('width', x.step()).attr('y', 0).attr('height', H)
-      .style('fill', 'transparent').style('cursor', 'pointer').on('click', (e, d) => pick(d)).on('pointerenter', (e, d) => { if (e.pointerType === 'mouse') pick(d); });
-    pick(data.find((d) => d.month === goal) || data[data.length - 1]);
-  });
-  const doneTag = (d) => d.balance <= 0 ? el('span', 'ex-dp-tag ok', d.revolving ? '✓ Paid' : '✓ Paid off') : d.revolving ? el('span', 'ex-dp-tag late', 'Pay in full')  : el('span', 'ex-dp-tag ' + (d.by_goal ? 'ok' : 'late'), d.payoff_month ? 'Done ' + short(d.payoff_month) : 'Long term');
-  const row = (name, right, pct, metaL, metaR, onClick) => {
-    const r = el('div', 'ex-dp-debt ex-dp-click'); r.addEventListener('click', onClick);
-    const top = el('div', 'top'); const nm = el('span', '', name); nm.style.fontWeight = '600'; top.append(nm, el('b', '', right));
-    const bar = el('div', 'ex-dp-bar'); const f = el('div'); f.style.width = Math.max(0, Math.min(100, pct)) + '%'; bar.append(f);
-    const meta = el('div', 'meta'); meta.append(el('span', '', metaL), metaR); r.append(top, bar, meta); return r;
-  };
-  const goalTag = (g) => g.remaining <= 0 ? el('span', 'ex-dp-tag ok', 'Ready') : el('span', 'ex-dp-tag ok', g.reach_month ? 'Ready ' + short(g.reach_month) : '');
-
-  dash.draw('dpBody', (root) => {
-    root.replaceChildren();
-    if (window.exView !== 'plan') return;
-    const P = plans();
-    const who = WHO.includes(window.exPlanWho) ? window.exPlanWho : 'Jorgie';
-    const grid = el('div', 'ex-grid'); root.append(grid);
-
-    // who: Jorgie | Gabby | Together
-    const seg = el('div', 'ex-span12 ex-dp-seg');
-    WHO.forEach((w) => { const b = el('button', '', w); b.type = 'button'; b.setAttribute('aria-pressed', w === who ? 'true' : 'false'); b.addEventListener('click', () => { window.exPlanWho = w; window.exDebt = 'all'; redraw(); }); seg.append(b); });
-    grid.append(seg);
-
-    const p = P && P.people[who];
-    const debts = p ? [...(p.debts || [])].sort((a, b) => (a.payoff_month || '9999').localeCompare(b.payoff_month || '9999')) : [];
-    const goals = p ? (p.goals || []) : [];
-    const fund = p && p.fund;
-    if (!p || (!debts.length && !goals.length && !fund && !p.budget && !(p.pots || []).length && !((p.free || {}).months || []).length)) {
-      const c = card('ex-span12 ex-dp-empty'); const ic = el('div', 'ic'); ic.innerHTML = ICON;
-      c.append(ic, el('h3', '', 'Nothing here yet')); grid.append(c); return;
-    }
-    const items = debts.map((d) => ({ id: d.id, name: (d.paid_off ? '✓ ' : '') + d.name, v: d.paid_off ? null : d.balance })).concat(goals.map((g) => ({ id: g.id, name: g.name, v: g.target, goal: true })));
-    const selId = items.some((i) => i.id === window.exDebt) ? window.exDebt : 'all';
-    const select = (id) => { window.exDebt = id; redraw(); };
-    if (items.length) {
-      const chips = el('div', 'ex-span12 ex-dp-chips');
-      [{ id: 'all', name: who === 'Together' ? 'Overview' : 'All', v: null }].concat(items).forEach((it) => {
-        const b = el('button', 'ex-dp-chip' + (it.goal ? ' goal' : '')); b.type = 'button'; b.setAttribute('aria-pressed', it.id === selId ? 'true' : 'false');
-        b.append(el('span', '', it.name)); if (it.v != null) b.append(el('b', '', usd0(it.v))); b.addEventListener('click', () => select(it.id)); chips.append(b);
-      });
-      grid.append(chips);
-    }
-    const tl = (p.timeline || []).slice(0, 18);
-
-    if (selId === 'all') {
-      if (who === 'Together') {
-        const next = goals.filter((g) => g.remaining > 0).sort((a, b) => (a.reach_month || '9999').localeCompare(b.reach_month || '9999'))[0];
-        kpi(grid, 'Cozy House Fund', usd0(fund.balance), 'saved so far');
-        kpi(grid, 'Going In a Month', usd0(fund.monthly_in), 'Gabby + Jorgie');
-        kpi(grid, 'By ' + short(P.goal_month), usd0(fund.at_goal), 'at this pace');
-        kpi(grid, next ? next.name + ' Ready' : 'Next Goal', next && next.reach_month ? short(next.reach_month) : '—', next ? usd0(next.target) + ' goal' : 'none set yet');
-      } else if (debts.length) {
-        const gl = window.exDebtGlance(who, { you: false, onPick: (id) => select(id) }); gl.classList.add('ex-span12'); grid.append(gl);
-      } else {
-        const onTime = p.debt_free_month && p.debt_free_month <= P.goal_month;
-        kpi(grid, 'Total Owed', debts.length ? U.usd(p.total_debt) : '$0', debts.length + (debts.length === 1 ? ' debt' : ' debts'));
-        kpi(grid, 'Debts a Month', usd0(p.available_monthly || 0), debts.length ? (p.estimated ? 'to be done on time' : 'from your pay') : 'no debts');
-        kpi(grid, 'Debt-Free By', debts.length ? (p.debt_free_month ? short(p.debt_free_month) : '—') : 'Now', debts.length ? (onTime ? 'on time' : 'goal ' + short(P.goal_month)) : 'nothing owed', !debts.length || onTime);
-        kpi(grid, 'Goals a Month', usd0(p.goals_monthly || 0), goals.length + (goals.length === 1 ? ' goal' : ' goals'));
-      }
-      const bg = p.budget;
-      if (bg) {
-        const bc = card('ex-span12', 'Money In vs Out');
-        const sub = 'average of ' + bg.months_used.map((m) => short(m)).join(', ');
-        const lines = [['Expected income', bg.income_avg, sub + (bg.income_avg_cop ? ' · ≈ ' + U.cop(bg.income_avg_cop) : '')], ['Fixed expenses', -(bg.fixed_avg ?? 0)], ['Variable spending', -(bg.variable_avg ?? bg.spend_avg)]];
-        if (bg.savings_monthly) lines.push(['Cozy House saving', -bg.savings_monthly]);
-        if (bg.pots_monthly) lines.push(['Other savings', -bg.pots_monthly]);
-        if (bg.debts_monthly) lines.push(['Debts', -bg.debts_monthly]);
-        if (bg.goals_monthly) lines.push(['Goals', -bg.goals_monthly]);
-        const t = el('div', 'ex-dp-budget');
-        lines.forEach(([k, v, note]) => { const r = el('div', 'ex-dp-bline'); const l = el('span', '', k); if (note) l.append(el('small', '', note)); r.append(l, el('b', '', (v < 0 ? '−' : '') + usd0(Math.abs(v)))); t.append(r); });
-        const tot = el('div', 'ex-dp-bline total ' + (bg.free >= 0 ? 'ok' : 'neg')); tot.append(el('span', '', bg.free >= 0 ? 'Left over a month' : 'Short a month'), el('b', '', usd0(Math.abs(bg.free)))); t.append(tot);
-        bc.append(t); grid.append(bc);
-      }
-      const hasChecks = ['Valet', 'Target'].some((j) => ((p.per_check || {})[j] || []).length);
-      if (hasChecks) {
-        const chk = card('ex-span5', 'Every Paycheck');
-        for (const job of ['Valet', 'Target']) {
-          const xs = p.per_check[job] || []; if (!xs.length) continue;
-          const b = el('div', 'ex-dp-check'); const hd = el('div', 'hd'); hd.append(el('b', '', job + ' check'), el('span', '', 'about ' + usd0(p.income[job].per_check)));
-          b.append(hd); xs.forEach((x) => { const r = el('div', 'ex-dp-line'); r.append(el('span', '', 'To ' + x.debt), el('b', '', U.usd(x.amount))); b.append(r); });
-          chk.append(b);
-        }
-        grid.append(chk);
-      }
-      const span = (n) => n === 2 ? 'ex-span6' : 'ex-span12';
-      const lists = (debts.length ? 1 : 0) + (goals.length ? 1 : 0);
-      if (debts.length && who === 'Together') {
-        const dc = card(hasChecks ? 'ex-span7' : span(lists), 'Debts');
-        debts.forEach((d) => { const r = row(d.name, d.paid_off ? '✓ ' + usd0(d.original) : U.usd(d.balance), d.paid_off ? 100 : d.pct_paid, d.paid_off ? (d.revolving ? 'paid · changes monthly' : 'paid off') : d.revolving ? 'balance changes monthly' : usd0(d.cuota || d.this_month) + ' a month · ' + (d.payments_left || 0) + ' left', doneTag(d), () => select(d.id)); if (d.paid_off) r.classList.add('ex-dp-paid'); dc.append(r); });
-        grid.append(dc);
-      }
-      if (goals.length) {
-        const gc = card(hasChecks ? 'ex-span12' : span(lists), who === 'Together' ? 'Our Goals' : 'Goals');
-        goals.forEach((g) => gc.append(row(g.name, usd0(g.target), g.pct, g.remaining > 0 ? usd0(g.monthly_needed) + ' a month' + (g.uses_cozy_fund ? ' · Cozy House fund' : '') : 'Saved', goalTag(g), () => select(g.id))));
-        grid.append(gc);
-      }
-      const pots = (p.pots || []).filter((x) => x.active || x.saved);
-      if (pots.length) {
-        const pc2 = card('ex-span12', 'Savings');
-        pots.forEach((x) => {
-          const r = el('div', 'ex-dp-debt');
-          const top = el('div', 'top'); const nm = el('span', '', x.name); nm.style.fontWeight = '600'; top.append(nm, el('b', '', usd0(x.saved)));
-          const meta = el('div', 'meta'); meta.append(el('span', '', usd0(x.monthly) + ' a month' + (x.monthly_cop ? ' · ' + U.cop(x.monthly_cop) : '') + (x.active ? ' · automatic' : ' · stopped')), el('span', '', x.saved_cop ? '≈ ' + U.cop(x.saved_cop) + ' saved' : 'saved'));
-          r.append(top, meta); pc2.append(r);
-        });
-        grid.append(pc2);
-      }
-      const fr = p.free;
-      if (fr && (fr.months.length || fr.this_month || fr.spent)) {
-        const fc = card('ex-span12', 'Free Money');
-        const head = el('div', 'ex-dp-debt'); const top = el('div', 'top'); const nm = el('span', '', 'Ready to use'); nm.style.fontWeight = '600';
-        top.append(nm, el('b', '', usd0(fr.balance))); const meta = el('div', 'meta');
-        meta.append(el('span', '', 'what was left each month · trips & fun'), el('span', '', fr.balance_cop != null ? '≈ ' + U.cop(fr.balance_cop) : ''));
-        head.append(top, meta); fc.append(head);
-        const t = el('div', 'ex-dp-budget');
-        const line = (k, v, note, cls) => { const r = el('div', 'ex-dp-bline' + (cls ? ' ' + cls : '')); const l = el('span', '', k); if (note) l.append(el('small', '', note)); r.append(l, el('b', '', v)); t.append(r); };
-        fr.months.forEach((x) => line(short(x.month), x.left > 0 ? '+' + usd0(x.left) : usd0(0), 'in ' + usd0(x.income) + ' · fixed ' + usd0(x.fixed) + ' · variable ' + usd0(x.variable) + (x.saved ? ' · saved ' + usd0(x.saved) : '') + (x.debts ? ' · debts ' + usd0(x.debts) : '')));
-        if (fr.this_month) line(short(fr.this_month.month) + ' so far', (fr.this_month.left < 0 ? '−' : '') + usd0(Math.abs(fr.this_month.left)), 'adds when the month closes');
-        if (fr.spent) line('Used', '−' + usd0(fr.spent), fr.spent_items.map((x) => x.item).join(', '));
-        fc.append(t);
-        if (fr.tip) {
-          const tp = el('div', 'ex-dp-tip');
-          tp.append(el('b', '', 'Tip: '), document.createTextNode(usd0(fr.tip.amount) + (fr.tip.amount_cop ? ' (' + U.cop(fr.tip.amount_cop) + ')' : '') + ' extra to ' + fr.tip.debt
-            + (fr.tip.clears ? ' → paid off now' : fr.tip.months_sooner > 0 ? ' → paid off ' + fr.tip.months_sooner + (fr.tip.months_sooner === 1 ? ' month' : ' months') + ' sooner' : '')
-            + (fr.tip.reason === 'interest' ? ', less interest' : '') + '. Keep ' + usd0(fr.tip.keep) + ' for fun.'));
-          fc.append(tp);
-        }
-        grid.append(fc);
-      }
-      if (who === 'Together' && fund) {
-        const house = goals.find((g) => g.uses_cozy_fund);
-        const tc = card('ex-span12', 'Cozy House Fund, Month by Month'); const box = el('div'); tc.append(box); grid.append(tc);
-        bars(box, fund.projection, (t) => t.balance, P.goal_month, 'Fund by month', house ? house.target : null);
-      } else if (tl.length > 1) {
-        const tc = card('ex-span12', 'What You Owe, Month by Month'); const box = el('div'); tc.append(box); grid.append(tc);
-        bars(box, tl, (t) => t.left, P.goal_month, 'Debt left by month');
-      }
-    } else if (debts.some((d) => d.id === selId)) {
-      const d = debts.find((x) => x.id === selId); const job = d.paid_from;
-      kpi(grid, 'Owe Now', U.usd(d.balance), d.paid_so_far ? usd0(d.paid_so_far) + ' paid so far' : 'nothing paid yet');
-      kpi(grid, d.revolving ? 'Suggested a Month' : 'Monthly Installment', d.paid_off ? '$0' : usd0(d.cuota || d.this_month || d.goal_monthly), d.paid_off ? 'paid off' : (d.paid_this_month ? usd0(d.paid_this_month) + ' paid this month' : (d.revolving ? 'pay more when you can' : d.interest_free_until ? '0% until ' + short(d.interest_free_until) : 'fixed each month')));
-      if (d.per_check != null) kpi(grid, 'Each ' + job + ' Check', usd0(d.per_check), 'of about ' + usd0(p.income[job].per_check));
-      else if (d.revolving) kpi(grid, 'Updated', d.updated ? short(d.updated) : '—', 'write the new balance monthly');
-      else kpi(grid, 'Payments Left', String(d.payments_left || 0), d.cuota_done ? 'last one ' + short(d.cuota_done) : '');
-      kpi(grid, d.revolving ? 'Status' : 'Paid Off', d.revolving ? (d.paid_off ? '✓ Paid' : 'Open') : d.paid_off ? '✓ Done' : (d.cuota_done ? short(d.cuota_done) : '—'), d.revolving ? (d.paid_off ? 'nothing owed now' : 'pay ' + usd0(d.balance) + ' to clear it') : d.paid_off ? '' : (d.cuota_done && d.cuota_done <= P.goal_month ? 'on time' : 'after ' + short(P.goal_month)), d.paid_off || (!d.revolving && d.cuota_done && d.cuota_done <= P.goal_month));
-      const pc = card('ex-span12', 'Progress');
-      const bar = el('div', 'ex-dp-bar ex-dp-bar-lg'); const f = el('div'); f.style.width = Math.max(0, Math.min(100, d.pct_paid)) + '%'; bar.append(f);
-      const facts = el('div', 'ex-dp-facts'); const fact = (k, v) => { const x = el('div'); x.append(el('span', '', k), el('b', '', v)); facts.append(x); };
-      fact('Paid', Math.round(d.pct_paid) + '%'); fact('Started at', U.usd(d.original));
-      fact('Interest', d.apr ? d.apr + '% APR' : (d.interest_free_until ? '0% until ' + short(d.interest_free_until) : '0%'));
-      if (d.monthly) fact('Minimum', usd0(d.monthly) + ' a month');
-      if (who === 'Jorgie') fact('Paid from', job);
-      if (!d.revolving) { pc.append(bar, facts); grid.append(pc); }
-      if (d.revolving) {
-        const rc = card('ex-span12', 'How the Card Works');
-        rc.append(el('div', 'ex-dp-intro', 'A credit card balance changes every month with new purchases. Each month, write the new balance under Debts (e.g. "Credit card 850") and the payment under the month. Paying the full balance keeps it at $0 interest.'));
-        grid.append(rc);
-      }
-      if (!d.paid_off && !d.revolving && (d.schedule || []).length) {
-        // installments at the fixed cuota, and a "pay extra" calculator (extra payments cut months, the cuota stays)
-        const sc = card('ex-span6', 'Your Installments'); const t = el('div', 'ex-dp-budget');
-        d.schedule.slice(0, 18).forEach((x) => { const r = el('div', 'ex-dp-bline'); const l = el('span', '', U.monthName(x.month)); l.append(el('small', '', usd0(x.left) + ' left after')); r.append(l, el('b', '', usd0(x.pay))); t.append(r); });
-        sc.append(t); grid.append(sc);
-        const xc = card('ex-span6', 'Pay Extra?');
-        const first = d.schedule[0], firstPay = d.paid_this_month ? first.pay : null, r = (d.apr || 0) / 1200;
-        const sim = (bal) => { const out = []; let b = bal, m = first.month; while (b > 0.005 && out.length < 72) { b += b * r; const p = Math.min(b, (firstPay != null && !out.length) ? firstPay : d.cuota); b -= p; out.push(m); const [yy, mm] = m.split('-').map(Number); m = mm === 12 ? (yy + 1) + '-01' : yy + '-' + String(mm + 1).padStart(2, '0'); } return out; };
-        xc.append(el('div', 'ex-dp-intro', 'Your installment stays ' + usd0(d.cuota) + ' a month. An extra payment cuts months off. Try an amount:'));
-        const inp = el('input', 'ex-dp-input'); inp.type = 'number'; inp.inputMode = 'decimal'; inp.min = '0'; inp.step = '10'; inp.placeholder = 'Extra $';
-        const res = el('div', 'ex-dp-sim');
-        const show = () => {
-          const x = Math.max(0, Number(inp.value) || 0); res.replaceChildren();
-          if (!x) { res.append(el('span', '', 'Now: ' + d.payments_left + ' payments, last one ' + short(d.cuota_done))); return; }
-          if (x >= d.balance - 0.005) { res.append(el('b', '', '✓ Paid off now'), el('span', '', ' — that clears the whole ' + d.name.toLowerCase() + '.')); return; }
-          const s2 = sim(d.balance - x), saved = d.payments_left - s2.length;
-          res.append(el('b', '', 'You would owe ' + usd0(d.balance - x)), el('br'), el('span', '', s2.length + ' payments left, last one ' + short(s2[s2.length - 1]) + (saved > 0 ? ' · ' + saved + (saved === 1 ? ' month' : ' months') + ' sooner' : ' · same months, smaller last payment')));
-        };
-        inp.addEventListener('input', show);
-        const quick = el('div', 'ex-dp-quick');
-        (d.extra_examples || []).forEach((x) => { const b = el('button', '', '+' + usd0(x.extra)); b.type = 'button'; b.addEventListener('click', () => { inp.value = x.extra; show(); }); quick.append(b); });
-        xc.append(inp, quick, res, el('div', 'ex-dp-intro', 'To log it: under the month write "Extra ' + d.name.toLowerCase() + ' 200", and update the total under Debts (e.g. "' + d.name + ' ' + Math.round(Math.max(0, d.balance - 200)) + '").'));
-        show(); grid.append(xc);
-      }
-      const rows = tl.filter((t) => t.by_debt && (t.by_debt[d.id] > 0 || (t.pay_by_debt || {})[d.id]));
-      if (rows.length > 1 && !d.revolving) { const tc = card('ex-span12', d.name + ', Month by Month'); const box = el('div'); tc.append(box); grid.append(tc); bars(box, rows, (t) => t.by_debt[d.id] || 0, P.goal_month, d.name + ' left by month'); }
-    } else {
-      const g = goals.find((x) => x.id === selId);
-      kpi(grid, 'Cost', usd0(g.target), g.kind === 'Home' ? 'goal' : 'to buy');
-      kpi(grid, g.uses_cozy_fund ? 'Cozy House Fund' : 'Saved', usd0(g.saved), Math.round(g.pct) + '% of the goal');
-      kpi(grid, 'Save Each Month', g.remaining > 0 ? usd0(g.monthly_needed) : '$0', g.uses_cozy_fund ? 'what goes in today' : (g.by_month ? 'to buy it on time' : 'suggested'));
-      kpi(grid, 'Ready By', g.reach_month ? short(g.reach_month) : '—', g.by_month ? 'your date' : 'at this pace', true);
-      const pc = card('ex-span12', 'Progress');
-      const bar = el('div', 'ex-dp-bar ex-dp-bar-lg'); const f = el('div'); f.style.width = Math.max(0, Math.min(100, g.pct)) + '%'; bar.append(f);
-      const facts = el('div', 'ex-dp-facts'); const fact = (k, v) => { const x = el('div'); x.append(el('span', '', k), el('b', '', v)); facts.append(x); };
-      fact('Saved', usd0(g.saved)); fact('Still needed', usd0(g.remaining)); if (g.by_month) fact('Wanted by', short(g.by_month));
-      pc.append(bar, facts); grid.append(pc);
-      if (g.options && g.options.length) {
-        const oc = card('ex-span12', 'Other Ways to Get There'); const ow = el('div', 'ex-dp-opts');
-        g.options.forEach((o) => { const b = el('div', 'ex-dp-opt'); b.append(el('span', '', o.months + ' months'), el('b', '', usd0(o.monthly) + '/mo'), el('small', '', 'ready ' + short(o.month))); ow.append(b); });
-        oc.append(ow); grid.append(oc);
-      }
-      if (g.remaining > 0 && g.monthly_needed) {
-        const data = []; let v = g.saved, m = P.month;
-        for (let k = 0; k < 18 && v < g.target; k++) { v = Math.min(g.target, v + g.monthly_needed); data.push({ month: m, v }); const [yy, mm] = m.split('-').map(Number); m = mm === 12 ? (yy + 1) + '-01' : yy + '-' + String(mm + 1).padStart(2, '0'); }
-        if (data.length > 1) { const tc = card('ex-span12', g.name + ', Month by Month'); const box = el('div'); tc.append(box); grid.append(tc); bars(box, data, (t) => t.v, g.reach_month || P.goal_month, g.name + ' saved by month', g.target); }
-      }
-    }
-    if (p.shortfall) grid.append(el('div', 'ex-span12 ex-dp-warn', 'Heads-up: the money left after spending does not cover the monthly payments yet.'));
-  });
-})();
-
-// ---------- month overview: money in, spent, saved (Cozy House + personal savings), free money ----------
-(function () {
-  const U = window.exU;
-  const get = (id, d) => { const x = dash.data(id); return x.status === 'ok' ? x.data : d; };
-  const nowMonth = () => { const d = new Date(Date.now() - 5 * 3600e3); return d.getUTCFullYear() + '-' + String(d.getUTCMonth() + 1).padStart(2, '0'); };
-  function rateFor(ex, m) {
-    const r = ex.find((e) => e.person === 'Gabby' && e.month === m && Number(e.rate)) || ex.slice().reverse().find((e) => Number(e.rate));
-    return r ? Number(r.rate) : 4000;
-  }
-  function potAt(pt, m) {
-    const ch = (pt.changes || []).slice().sort((a, b) => a.month.localeCompare(b.month));
-    if (!ch.length) return Number(pt.monthly);
-    let v = Number(ch[0].from != null ? ch[0].from : pt.monthly);
-    for (const c of ch) if (c.month <= m) v = Number(c.to);
-    return v;
-  }
-  // Same rules as compute_free in debt_plan.py (Jorgie's paychecks already arrive after his Cozy House saving).
-  function one(who, m, ex, ses, debts) {
-    const o = { inc: 0, incCop: 0, nInc: 0, fix: 0, vr: 0, fixCop: 0, vrCop: 0, spentCop: 0, fromFree: 0, cozy: 0, cozyCop: 0, pots: [], pay: 0, left: null, leftCop: null };
-    for (const e of ex) {
-      if (e.person !== who || e.month !== m) continue;
-      const v = Number(e.amount_usd) || 0;
-      if (e.type === 'Income') { o.inc += v; o.incCop += Number(e.amount_cop) || 0; o.nInc += 1; }
-      else if (e.from_free) o.fromFree += v;
-      else { const c = Number(e.amount_cop) || 0; if (e.type === 'Fixed') { o.fix += v; o.fixCop += c; } else { o.vr += v; o.vrCop += c; } o.spentCop += c; }
-    }
-    for (const x of ses) if (x.person === who && x.month === m && (x.kind === 'Monthly saving' || x.kind === 'Extra saving')) { o.cozy += Number(x.amount_usd) || 0; o.cozyCop += Number(x.amount_cop) || 0; }
-    const rate = rateFor(ex, m);
-    for (const pt of debts.pots || []) {
-      if (pt.person !== who || pt.start_month > m || (pt.end_month && m > pt.end_month)) continue;
-      const n = potAt(pt, m), cop = pt.currency === 'COP';
-      o.pots.push({ name: pt.name, who, usd: cop ? n / rate : n, cop: cop ? n : null });
-    }
-    const ids = new Set((debts.accounts || []).filter((a) => (a.owner || 'Jorgie') === who).map((a) => a.id));
-    for (const p of debts.payments || []) if (ids.has(p.debt_id) && p.month === m) o.pay += Number(p.amount) || 0;
-    if (o.nInc) {
-      o.left = o.inc - (o.fix + o.vr + (who === 'Gabby' ? o.cozy : 0) + o.pots.reduce((a, p) => a + p.usd, 0) + o.pay);
-      o.leftCop = who === 'Gabby' ? Math.round(o.incCop - o.spentCop - o.cozyCop - o.pots.reduce((a, p) => a + (p.cop != null ? p.cop : p.usd * rate), 0) - o.pay * rate) : null;
-    }
-    return o;
-  }
-  function overview(person, period) {
-    const ex = get('expenses', []), ses = get('savings_entries', []), debts = get('debts', {});
-    const ms = period.length === 4 ? [...new Set(ex.map((e) => e.month).concat(ses.map((x) => x.month)))].filter((m) => m.slice(0, 4) === period) : [period];
-    const people = person === 'Household' ? ['Gabby', 'Jorgie'] : [person];
-    const T = { inc: 0, incCop: 0, nInc: 0, fix: 0, vr: 0, fixCop: 0, vrCop: 0, spentCop: 0, fromFree: 0, cozy: 0, cozyCop: 0, pots: {}, pay: 0, left: null, leftCop: null, cozyBy: {} };
-    for (const m of ms) for (const w of people) {
-      const o = one(w, m, ex, ses, debts);
-      const cb = T.cozyBy[w] || (T.cozyBy[w] = { usd: 0, cop: 0 }); cb.usd += o.cozy; cb.cop += o.cozyCop;
-      for (const k of ['inc', 'incCop', 'nInc', 'fix', 'vr', 'fixCop', 'vrCop', 'spentCop', 'fromFree', 'cozy', 'cozyCop', 'pay']) T[k] += o[k];
-      for (const p of o.pots) {
-        const k = p.who + '|' + p.name;
-        const q = T.pots[k] || (T.pots[k] = { name: p.name, who: p.who, usd: 0, cop: p.cop == null ? null : 0 });
-        q.usd += p.usd; if (q.cop != null) q.cop += p.cop;
-      }
-      if (o.left != null) { T.left = (T.left || 0) + o.left; if (o.leftCop != null) T.leftCop = (T.leftCop || 0) + o.leftCop; }
-    }
-    T.pots = Object.values(T.pots);
-    return T;
-  }
-  const box = (label, val, cls, caps, list, kind) => {
-    const b = document.createElement('div'); b.className = 'ex-ov-box' + (kind ? ' ' + kind : '');
-    const l = document.createElement('div'); l.className = 'ex-ov-label'; l.textContent = label;
-    const v = document.createElement('div'); v.className = 'ex-ov-val' + (cls ? ' ' + cls : ''); v.textContent = val;
-    b.append(l, v);
-    for (const c of caps || []) { const d = document.createElement('div'); d.className = 'ex-ov-cap'; d.textContent = c; b.append(d); }
-    if (list && list.length) {
-      const ul = document.createElement('div'); ul.className = 'ex-ov-list';
-      for (const [a, z] of list) {
-        const li = document.createElement('div'); li.className = 'ex-ov-li';
-        const s1 = document.createElement('span'); s1.textContent = a;
-        const s2 = document.createElement('span'); s2.textContent = z;
-        li.append(s1, s2); ul.append(li);
-      }
-      b.append(ul);
-    }
-    return b;
-  };
-  dash.draw('ovTitle', (el) => { el.textContent = (U.isYear() ? 'Year' : 'Month') + ' Overview'; });
-  dash.draw('overview', (el) => {
-    el.replaceChildren();
-    el.classList.toggle('ex-ov-gabby', U.per() === 'Gabby'); el.classList.toggle('ex-ov-jorgie', U.per() === 'Jorgie');
-    const m = U.month(); if (!m) return;
-    const p = U.per(), T = overview(p, m), yr = U.isYear(m), hh = p === 'Household', gab = p === 'Gabby';
-    const word = yr ? 'this year' : 'this month';
-    // Gabby thinks in pesos: COP first, USD small. Everyone else: USD.
-    const big = (u, c) => gab ? U.cop(c) : U.usd0(u);
-    const small = (u, c) => gab ? (c >= 1e6 || c <= -1e6 ? 'COP ' + U.copK(c) : 'COP ' + Math.round(c / 1e3) + 'K') : U.usd0(u);
-    const grid = document.createElement('div'); grid.className = 'ex-ov' + (hh ? ' ex-ov3' : '');
-    const usdLine = (u) => gab ? [U.usd0(u) + ' USD'] : [];
-    grid.append(box('Money In', big(T.inc, T.incCop), '', usdLine(T.inc).concat([T.nInc ? T.nInc + (T.nInc === 1 ? ' payment' : ' payments') : 'Nothing logged yet']), null, 'in'));
-    grid.append(box('Spent', big(T.fix + T.vr, T.spentCop), '', usdLine(T.fix + T.vr).concat(['Fixed ' + small(T.fix, T.fixCop) + ' · variable ' + small(T.vr, T.vrCop)]), null, 'out'));
-    const potsU = T.pots.reduce((a, x) => a + x.usd, 0);
-    const rate = T.spentCop && (T.fix + T.vr) ? T.spentCop / (T.fix + T.vr) : 4000;
-    const items = [];
-    if (hh) { for (const w of ['Gabby', 'Jorgie']) { const cb = T.cozyBy[w]; if (cb && cb.usd) items.push([w, w === 'Gabby' ? U.cop(cb.cop) + ' (' + U.usd0(cb.usd) + ')' : U.usd0(cb.usd)]); } }
-    else if (T.cozy) items.push(['Cozy House', gab ? U.cop(T.cozyCop) : U.usd0(T.cozy)]);
-    if (!hh) for (const x of T.pots) items.push([x.name, x.cop != null ? U.cop(x.cop) : U.usd0(x.usd)]);
-    const savedU = T.cozy + (hh ? 0 : potsU);
-    const savedC = T.cozyCop + (hh ? 0 : T.pots.reduce((a, x) => a + (x.cop != null ? x.cop : x.usd * rate), 0));
-    grid.append(box(hh ? 'Cozy House Saved' : 'Saved', big(savedU, savedC), '', usdLine(savedU).concat([items.length ? (hh ? 'Gabby + Jorgie ' + word : items.length === 1 ? items[0][0] : items.length + ' savings') : 'Nothing saved ' + word]), null, 'save'));
-    if (!hh) {
-      const soFar = !yr && m >= nowMonth();
-      const cap = T.left == null ? 'Log income to see it' : (soFar ? 'Left so far' : 'Left over') + (T.pay ? ' after debts' : '');
-      grid.append(box('Free Money', T.left == null ? '—' : big(T.left, T.leftCop), T.left == null ? '' : (T.left >= 0 ? 'good' : 'neg'), (T.left == null ? [] : usdLine(T.left)).concat([cap]), null, 'free'));
-    }
-    el.append(grid);
-    if (items.length > 1 || (hh && items.length)) {
-      const chips = document.createElement('div'); chips.className = 'ex-ov-chips';
-      for (const [a, z] of items) { const c = document.createElement('span'); c.className = 'ex-ov-chip' + (a === 'Gabby' ? ' gabby' : a === 'Jorgie' ? ' jorgie' : ''); const n = document.createElement('span'); n.textContent = a; const v = document.createElement('b'); v.textContent = z; c.append(n, v); chips.append(c); }
-      el.append(chips);
-    }
-  });
-})();
-
-// ---------- debts at a glance: what I owe, what I pay, when I finish (simple and visual) ----------
-window.exDebtGlance = function (who, opts) {
-  const U = window.exU; opts = opts || {};
-  const d = dash.data('debts'); const pl = d.status === 'ok' && d.data ? d.data.plan : null;
-  const p = pl && pl.people ? pl.people[who] : null;
-  const debts = p ? (p.debts || []) : [];
-  if (!debts.length) return null;
-  const el = (t, c, x) => { const n = document.createElement(t); if (c) n.className = c; if (x !== undefined) n.textContent = x; return n; };
-  const usd0 = (v) => '$' + d3.format(',.0f')(Math.round(v));
-  const SH = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
-  const mon = (m) => SH[Number(m.slice(5)) - 1];
-  const monY = (m) => mon(m) + ' ' + m.slice(0, 4);
-  const add = (m, k) => { let [y, mm] = m.split('-').map(Number); mm += k; while (mm > 12) { mm -= 12; y++; } return y + '-' + String(mm).padStart(2, '0'); };
-  const live = debts.filter((x) => !x.paid_off), done = debts.filter((x) => x.paid_off);
-  const owe = live.reduce((a, x) => a + x.balance, 0);
-  const perMonth = live.reduce((a, x) => a + (x.due_this_month != null ? x.due_this_month : x.cuota || 0), 0);
-  const freeBy = live.map((x) => x.cuota_done).filter(Boolean).sort().pop();
-  const card = el('div', 'ex-card ex-dg' + (opts.compact ? ' compact' : ''));
-  const head = el('div', 'ex-dg-head');
-  const h1 = el('div', 'ex-dg-total'); h1.append(el('span', 'lbl', who === 'Together' ? 'We owe' : (opts.you ? 'You owe' : who + ' owes')), el('b', '', usd0(owe)));
-  const h2 = el('div', 'ex-dg-total'); h2.append(el('span', 'lbl', 'Pay this month'), el('b', '', usd0(perMonth)));
-  const h3 = el('div', 'ex-dg-total good'); h3.append(el('span', 'lbl', 'Debt-free'), el('b', '', freeBy ? monY(freeBy) : '—'));
-  head.append(h1, h2, h3); card.append(head);
-  const list = el('div', 'ex-dg-list');
-  live.sort((a, b) => (a.revolving ? 1 : 0) - (b.revolving ? 1 : 0) || (a.cuota_done || '').localeCompare(b.cuota_done || ''));
-  for (const x of live) {
-    const r = el('div', 'ex-dg-debt');
-    const top = el('div', 'ex-dg-top');
-    top.append(el('span', 'nm', x.name), el('b', 'amt', usd0(x.balance)));
-    r.append(top);
-    const chips = el('div', 'ex-dg-chips');
-    if (x.revolving) {
-      chips.append(el('span', 'chip pay', 'Suggested ' + usd0(x.cuota) + ' / month'), el('span', 'chip', 'Changes monthly'), el('span', 'chip end', 'Clear by ' + monY(x.cuota_done)));
-    } else {
-      const due = x.due_this_month > 0.5;
-      chips.append(el('span', 'chip pay', usd0(x.cuota) + ' / month'),
-        el('span', 'chip ' + (due ? 'due' : 'ok'), due ? usd0(x.due_this_month) + ' due in ' + mon(pl.month) : '✓ ' + mon(pl.month) + ' paid'),
-        el('span', 'chip end', 'Done ' + monY(x.cuota_done)));
-    }
-    r.append(chips);
-    if (x.revolving) {
-      const bar = el('div', 'ex-dg-bar'); const f = el('div'); f.style.width = Math.max(2, Math.min(100, x.pct_paid)) + '%'; bar.append(f);
-      const cap = el('div', 'ex-dg-cap'); cap.append(el('span', '', Math.round(x.pct_paid) + '% paid'), el('span', '', 'pay more when you can'));
-      r.append(bar, cap);
-    } else if (x.schedule && x.schedule.length) {
-      // one dot per monthly installment, from when it started to the last one
-      const start = x.payments && x.payments.length ? x.payments.map((q) => q.month).sort()[0] : x.schedule[0].month;
-      const first = start < x.schedule[0].month ? start : x.schedule[0].month;
-      const months = []; for (let m = first; m <= x.cuota_done && months.length < 36; m = add(m, 1)) months.push(m);
-      const dots = el('div', 'ex-dg-dots');
-      months.forEach((m) => {
-        const paidM = (x.payments || []).filter((q) => q.month === m).reduce((a, q) => a + q.amount, 0);
-        const st = paidM >= x.cuota - 0.5 ? 'paid' : (m === pl.month ? 'now' : (m < pl.month ? 'miss' : ''));
-        const dt = el('span', 'dot ' + st); dt.title = monY(m) + (paidM ? ': paid ' + usd0(paidM) : ''); dt.append(el('i', '', mon(m)[0]));
-        dots.append(dt);
-      });
-      r.append(dots);
-      const bar = el('div', 'ex-dg-bar'); const f = el('div'); f.style.width = Math.max(2, Math.min(100, x.pct_paid)) + '%'; bar.append(f);
-      const cap = el('div', 'ex-dg-cap'); cap.append(el('span', '', Math.round(x.pct_paid) + '% paid'), el('span', '', x.payments_left + (x.payments_left === 1 ? ' payment left' : ' payments left')));
-      r.append(bar, cap);
-    }
-    if (opts.onPick) { r.classList.add('click'); r.addEventListener('click', () => opts.onPick(x.id)); }
-    list.append(r);
-  }
-  for (const x of done) {
-    const r = el('div', 'ex-dg-debt done'); const top = el('div', 'ex-dg-top');
-    top.append(el('span', 'nm', '✓ ' + x.name), el('b', 'amt', 'Paid off')); r.append(top); list.append(r);
-  }
-  card.append(list);
-  return card;
-};
-
-// ---------- my debts section on the personal view ----------
-(function () {
-  dash.draw('myDebts', (el) => {
-    el.replaceChildren();
-    const p = window.exU.per();
-    const c = p === 'Household' ? null : window.exDebtGlance(p, { you: false, compact: true });
-    el.closest('section').style.display = c ? '' : 'none';
-    if (c) { c.classList.add('ex-span12'); el.append(c); }
-  });
-})();
-
 // ---------- savings ----------
 (function () {
   const U = window.exU;
@@ -1394,31 +727,103 @@ window.exDebtGlance = function (who, opts) {
   });
   dash.draw('savPeople', (el) => {
     el.replaceChildren();
-    const p = U.per(), people = p === 'Household' ? ['Gabby', 'Jorgie'] : [p], yr = U.isYear();
-    const rs = people.map((n) => row(n));
-    const max = Math.max(1, ...rs.map((r) => r ? r.balance_usd : 0));
-    people.forEach((name, i) => {
-      const r = rs[i], pl = plan(name);
-      const rowEl = document.createElement('div'); rowEl.className = 'ex-sb-row';
-      const n = document.createElement('div'); n.className = 'ex-sb-name';
+    const p = U.per(), people = p === 'Household' ? ['Gabby', 'Jorgie'] : [p];
+    for (const name of people) {
+      const r = row(name), pl = plan(name), yr = U.isYear();
+      const rowEl = document.createElement('div'); rowEl.className = 'ex-who-row';
+      const n = document.createElement('div'); n.className = 'ex-who-name';
       const d = document.createElement('span'); d.className = 'ex-dot'; d.style.background = U.PERSON[name];
-      const t = document.createElement('span'); t.textContent = name; n.append(d, t);
-      const track = document.createElement('div'); track.className = 'ex-sb-track'; const fill = document.createElement('div'); fill.style.background = U.PERSON[name];
-      fill.style.width = (r ? Math.max(0, r.balance_usd) / max * 100 : 0) + '%'; track.append(fill);
-      track.title = name + ': ' + (r ? U.usd(r.balance_usd) : '$0.00') + ' saved';
-      const v = document.createElement('div'); v.className = 'ex-sb-val'; v.textContent = r ? U.usd(r.balance_usd) : '$0.00';
-      if (r) { v.dataset.source = 'savings'; v.dataset.where = U.where(r); v.dataset.field = 'balance_usd'; }
-      const planEl = document.createElement('div'); planEl.className = 'ex-sb-plan';
-      const fmtPlan = pl ? (pl.currency === 'COP' ? U.cop(pl.monthly) : U.usd(pl.monthly)) : '';
-      if (r && (r.n_contrib || yr)) {
-        planEl.append(yr ? 'This year ' : 'This month ');
+      const t = document.createElement('span'); t.textContent = people.length > 1 ? name : (yr ? 'This year' : 'This month'); n.append(d, t);
+      const v = document.createElement('div'); v.className = 'ex-who-val';
+      const s = document.createElement('div'); s.className = 'ex-who-sub';
+      const planEl = document.createElement('div'); planEl.className = 'ex-sav-plan';
+      const bar = document.createElement('div'); bar.className = 'ex-who-bar'; const fill = document.createElement('div'); fill.style.background = U.PERSON[name]; bar.append(fill);
+      if (people.length > 1) {
+        v.textContent = r ? U.usd(r.balance_usd) : '$0.00';
+        if (r) { v.dataset.source = 'savings'; v.dataset.where = U.where(r); v.dataset.field = 'balance_usd'; }
+        s.textContent = name === 'Gabby' ? (r ? '≈ ' + U.cop(r.balance_cop) + ' saved' : 'Nothing saved yet') : 'Saved in US dollars';
+      } else {
+        v.textContent = r ? '+' + native(name, r, 'saved') : '—';
+        s.textContent = r && name === 'Gabby' ? '≈ +' + U.usd(r.saved_usd) : '';
+      }
+      let pct = null;
+      if (!r) planEl.textContent = pl ? 'Plan: ' + (pl.currency === 'COP' ? U.cop(pl.monthly) : U.usd(pl.monthly)) + ' a month' + (pl.automatic ? ', automatic' : '') : '';
+      else if (people.length === 1) {
+        if (!yr && r.has_start && !r.n_contrib) planEl.textContent = 'Starting balance recorded this month';
+        else if (!yr && pl) {
+          planEl.textContent = 'Plan: ' + (pl.currency === 'COP' ? U.cop(pl.monthly) : U.usd(pl.monthly)) + ' a month' + (pl.automatic ? ', saved automatically' : '');
+          const got = pl.currency === 'COP' ? r.saved_cop : r.saved_usd;
+          pct = pl.monthly ? Math.max(0, Math.min(100, got / pl.monthly * 100)) : null;
+        }
+      } else if (yr) {
+        planEl.innerHTML = '';
+        planEl.append('Saved this year: ');
         const b = document.createElement('b'); b.textContent = '+' + native(name, r, 'saved'); planEl.append(b);
-        if (!yr && pl) planEl.append(' of ' + fmtPlan + (pl.automatic ? ' (automatic)' : ' plan'));
-      } else if (pl) planEl.textContent = (r && r.has_start ? 'Starting balance · ' : '') + 'Plan ' + fmtPlan + ' a month' + (pl.automatic ? ', automatic' : '');
-      rowEl.append(n, track, v);
+      } else if (r.has_start && !r.n_contrib) {
+        planEl.textContent = 'Starting balance recorded this month' + (pl ? ' · plan ' + (pl.currency === 'COP' ? U.cop(pl.monthly) : U.usd(pl.monthly)) + ' a month' : '');
+      } else {
+        planEl.append('This month: ');
+        const b = document.createElement('b'); b.textContent = '+' + native(name, r, 'saved'); planEl.append(b);
+        if (pl) {
+          const got = pl.currency === 'COP' ? r.saved_cop : r.saved_usd;
+          planEl.append(' of ' + (pl.currency === 'COP' ? U.cop(pl.monthly) : U.usd(pl.monthly)) + (pl.automatic ? ' · automatic' : ' plan'));
+          pct = pl.monthly ? Math.max(0, Math.min(100, got / pl.monthly * 100)) : null;
+        }
+      }
+      rowEl.append(n, v);
+      if (s.textContent) rowEl.append(s);
       if (planEl.textContent) rowEl.append(planEl);
+      if (pct !== null) { fill.style.width = pct + '%'; rowEl.append(bar); }
       el.append(rowEl);
+    }
+  });
+  dash.draw('savLegend', (el) => {
+    el.replaceChildren();
+    const p = U.per(), people = p === 'Household' ? ['Gabby', 'Jorgie'] : [p];
+    for (const name of people) { const s = document.createElement('span'); const d = document.createElement('span'); d.className = 'ex-dot'; d.style.background = U.PERSON[name]; const x = document.createElement('span'); x.textContent = name; s.append(d, x); el.append(s); }
+  });
+  dash.draw('savChart', (el) => {
+    el.replaceChildren();
+    const all = U.rows('savings'); const p = U.per(), sel = U.month();
+    let ms = [...new Set(all.filter((r) => r.month.length === 7).map((r) => r.month))].sort();
+    ms = U.isYear(sel) ? ms.filter((m) => m.slice(0, 4) === sel) : ms.filter((m) => !sel || m <= sel).slice(-12);
+    if (!ms.length) { const e = document.createElement('div'); e.className = 'ex-empty'; e.textContent = 'No savings recorded yet'; el.append(e); return; }
+    const people = p === 'Household' ? ['Gabby', 'Jorgie'] : [p];
+    const get = (m, who) => all.find((r) => r.month === m && r.person === who) || { balance_usd: 0 };
+    const data = ms.map((m) => ({ month: m, parts: people.map((k) => ({ k, v: get(m, k).balance_usd })), total: get(m, p).balance_usd }));
+    const W = Math.max(260, el.clientWidth || 500), H = 250;
+    const y = d3.scaleLinear().domain([0, (d3.max(data, (r) => r.total) || 100) * 1.15]).nice().range([H - 26, 14]);
+    const ticks = y.ticks(4);
+    const svg = d3.select(el).append('svg').attr('class', 'ex-svg').attr('width', '100%').attr('viewBox', `0 0 ${W} ${H}`).attr('role', 'img').attr('aria-label', 'Savings balance by month');
+    const tmp = svg.append('g'); let ml = 0;
+    ticks.forEach((t) => { const tx = tmp.append('text').text(U.usdK(t)); ml = Math.max(ml, tx.node().getComputedTextLength()); }); tmp.remove();
+    const left = ml + 10, right = 8;
+    const x = d3.scaleBand().domain(ms).range([left, W - right]).padding(ms.length < 5 ? 0.55 : 0.35);
+    ticks.forEach((t) => {
+      svg.append('line').attr('class', 'ex-gridline').attr('x1', left).attr('x2', W - right).attr('y1', y(t)).attr('y2', y(t));
+      svg.append('text').attr('x', left - 6).attr('y', y(t) + 4).attr('text-anchor', 'end').text(U.usdK(t));
     });
+    const tip = d3.select(el).append('div').attr('class', 'ex-tip').property('hidden', true);
+    const g = svg.selectAll('g.b').data(data).join('g').attr('class', 'b').style('cursor', 'pointer').style('opacity', (r) => (r.month === sel || U.isYear(sel)) ? 1 : 0.6);
+    g.each(function (r) {
+      let acc = 0; const gg = d3.select(this);
+      r.parts.forEach((pt) => { gg.append('rect').attr('x', x(r.month)).attr('width', x.bandwidth()).attr('y', y(acc + pt.v)).attr('height', Math.max(0, y(acc) - y(acc + pt.v))).style('fill', U.PERSON[pt.k]); acc += pt.v; });
+    });
+    if (x.bandwidth() > 36) {
+      g.append('text').attr('class', 'ex-vlabel').attr('text-anchor', 'middle').attr('x', (r) => x(r.month) + x.bandwidth() / 2).attr('y', (r) => y(r.total) - 6)
+        .attr('data-source', 'savings').attr('data-field', 'balance_usd').attr('data-where', (r) => 'month=' + U.enc(r.month) + '&person=' + U.enc(p))
+        .text((r) => U.usdK(r.total));
+    }
+    g.append('text').attr('text-anchor', 'middle').attr('x', (r) => x(r.month) + x.bandwidth() / 2).attr('y', H - 8).text((r) => U.monthName(r.month, true));
+    g.on('click', (e, r) => U.pickMonth(r.month))
+      .on('pointermove', (e, r) => {
+        tip.property('hidden', false).selectAll('*').remove();
+        tip.append('div').append('b').text(U.monthName(r.month));
+        r.parts.forEach((pt) => { const rw = tip.append('div').attr('class', 'ex-tip-row'); rw.append('span').attr('class', 'ex-dot').style('background', U.PERSON[pt.k]); rw.append('span').text(pt.k + ': ' + U.usd(pt.v)); });
+        if (r.parts.length > 1) tip.append('div').text('Total: ' + U.usd(r.total));
+        U.tipAt(el, tip.node(), e);
+      })
+      .on('pointerleave', () => tip.property('hidden', true));
   });
 })();
 </script>
@@ -1435,37 +840,17 @@ window.exDebtGlance = function (who, opts) {
       const rs = U.rows('expenses').filter((r) => U.inPeriod(r.month, m) && r.type === type && (p === 'Household' || r.person === p))
         .sort((a, b) => Number(b.amount_usd) - Number(a.amount_usd));
       const cols = 4;
-      let rsAll = rs;
-      if (type === 'Variable') {
-        // category filter: chips with each category's total; tap one to see only those purchases
-        const card = tb.closest('.ex-card'); let bar = card.querySelector('.ex-catf');
-        if (!bar) { bar = document.createElement('div'); bar.className = 'ex-catf'; card.insertBefore(bar, card.querySelector('.ex-tablewrap')); }
-        bar.replaceChildren();
-        const tot = {}; rs.forEach((r) => { tot[r.category] = (tot[r.category] || 0) + Number(r.amount_usd); });
-        const cats = Object.keys(tot).sort((a, b) => tot[b] - tot[a]);
-        if (window.exCat && !cats.includes(window.exCat)) window.exCat = null;
-        const colors = U.catColors();
-        const mk = (label, val, key) => {
-          const b = document.createElement('button'); b.type = 'button'; b.className = 'ex-catf-chip'; b.setAttribute('aria-pressed', (window.exCat || null) === key ? 'true' : 'false');
-          if (key) { const d = document.createElement('span'); d.className = 'ex-dot'; d.style.background = colors[key]; b.append(d); }
-          const n = document.createElement('span'); n.textContent = label; const v = document.createElement('b'); v.textContent = U.usd0(val); b.append(n, v);
-          b.addEventListener('click', () => { window.exCat = key; dash.draw('tVar'); }); bar.append(b);
-        };
-        if (cats.length > 1) { mk('All', rs.reduce((a, r) => a + Number(r.amount_usd), 0), null); cats.forEach((c) => mk(c, tot[c], c)); }
-        if (window.exCat) rsAll = rs.filter((r) => r.category === window.exCat);
-      }
       if (type === 'Income') {
         const card = tb.closest('.ex-card'); if (card) card.hidden = !rs.length;
         const fx = document.getElementById('fixed-bills'); if (fx) fx.classList.toggle('ex-span12', !rs.length);
       }
-      if (!rsAll.length) { const tr = tb.insertRow(); const td = tr.insertCell(); td.colSpan = cols; td.className = 'ex-empty'; td.textContent = type === 'Fixed' ? 'No fixed expenses this month' : 'Nothing this month'; return; }
-      rsAll.forEach((r) => {
+      if (!rs.length) { const tr = tb.insertRow(); const td = tr.insertCell(); td.colSpan = cols; td.className = 'ex-empty'; td.textContent = type === 'Fixed' ? 'No monthly bills this month' : 'Nothing this month'; return; }
+      rs.forEach((r) => {
         const tr = tb.insertRow(); tr.dataset.key = U.enc(r.id);
         const a = tr.insertCell(); const tag = document.createElement('span'); tag.className = 'ex-tag';
         const dt = document.createElement('span'); dt.className = 'ex-dot'; dt.style.background = U.PERSON[r.person];
         const nm = document.createElement('span'); nm.textContent = r.person; tag.append(dt, nm); a.append(tag);
         const b = tr.insertCell(); b.textContent = r.item;
-        if (r.origin === 'auto') { const at = document.createElement('span'); at.className = 'ex-auto'; at.textContent = 'auto'; b.append(at); }
         const c = tr.insertCell(); const ch = document.createElement('span'); ch.className = 'ex-chip'; ch.textContent = r.category; c.append(ch);
         const dd = tr.insertCell(); dd.className = 'ex-r'; dd.textContent = U.usd(Number(r.amount_usd));
         if (r.currency === 'COP') { const sm = document.createElement('div'); sm.className = 'ex-small'; sm.textContent = U.cop(Number(r.amount)); dd.append(sm); }
