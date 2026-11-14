@@ -285,8 +285,8 @@ def main():
     tiles = [
         ('Total Spent', delta(S['total'], P['total'] if P else None), money(S['total']),
          ('&asymp; ' + cop(S['cop'])) if person != 'Jorgie' else f"{S['n_var'] + S['n_fixed']} expenses"),
-        ('Variable Spending', delta(S['variable'], P['variable'] if P else None), money(S['variable']), f"{S['n_var']} purchases"),
-        ('Fixed Spending', delta(S['fixed'], P['fixed'] if P else None), money(S['fixed']), f"{S['n_fixed']} fixed expenses"),
+        ('Daily Spending', delta(S['variable'], P['variable'] if P else None), money(S['variable']), f"{S['n_var']} purchases"),
+        ('Monthly Bills', delta(S['fixed'], P['fixed'] if P else None), money(S['fixed']), f"{S['n_fixed']} bills"),
         ('Top Category', '&nbsp;', e(top[0]) if top else '&mdash;', (money(top[1]['v']) + (' this year' if year_mode else ' this month')) if top else ''),
     ]
     def tile(t):
@@ -510,14 +510,14 @@ def main():
   {wrapped_block}
   {'' if wrapped_block else kpis}
   {overview_html}
-  {card('Spending by Category', pie, 'Variable spending ' + span, center=True)}
+  {card('Spending by Category', pie, 'Daily spending ' + span, center=True)}
   {card('Month by Month', monthly, 'Total spent each month' + ('' if year_mode else ' · ' + mname(month) + ' in color'), center=True)}
   {analysis_html}
   {who_html}
-  {card('Category by Month', heatmap, 'Variable spending in US dollars. Darker cells mean more spending.')}
+  {card('Category by Month', heatmap, 'Daily spending in US dollars. Darker cells mean more spending.')}
   {card(top_title, rows_html(topbuy, who))}
   {card('Income', rows_html(sorted(S['income_rows'], key=lambda r: (r['month'], -r['amount_usd'])), who)) if (S['income_rows'] and not who) else ''}
-  {card('Fixed Expenses', rows_html(fixed, who) if fixed else f'<div style="font-size:13px;color:{MUTED};">No fixed expenses this month</div>', 'Automatic debits and monthly bills' + (f' &middot; {money(S["fixed"])} in total' if fixed else ''))}
+  {card('Monthly Bills', rows_html(fixed, who) if fixed else f'<div style="font-size:13px;color:{MUTED};">No monthly bills this month</div>', 'Automatic debits and monthly bills' + (f' &middot; {money(S["fixed"])} in total' if fixed else ''))}
   {free_html}
   {savings_html}
   {button}

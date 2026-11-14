@@ -328,16 +328,16 @@ html, body { margin: 0; padding: 0; background: #F1F2F4; }
         <div class="ex-kpi-cap" data-draw="cTotal" data-source="summary">—</div>
       </div>
       <div class="ex-card ex-kpi ex-span3" id="kpi-everyday">
-        <div class="ex-kpi-label">Variable Spending</div>
+        <div class="ex-kpi-label">Daily Spending</div>
         <div class="ex-delta" data-draw="dVar" data-source="summary"></div>
         <div class="ex-kpi-value" data-draw="vVar" data-source="summary">—</div>
         <div class="ex-kpi-cap"><span data-draw="cVarN" data-source="summary" data-field="n_variable">—</span> purchases</div>
       </div>
       <div class="ex-card ex-kpi ex-span3" id="kpi-recurring">
-        <div class="ex-kpi-label">Fixed Spending</div>
+        <div class="ex-kpi-label">Monthly Bills</div>
         <div class="ex-delta" data-draw="dFixed" data-source="summary"></div>
         <div class="ex-kpi-value" data-draw="vFixed" data-source="summary">—</div>
-        <div class="ex-kpi-cap"><span data-draw="cFixedN" data-source="summary" data-field="n_fixed">—</span> fixed expenses</div>
+        <div class="ex-kpi-cap"><span data-draw="cFixedN" data-source="summary" data-field="n_fixed">—</span> bills</div>
       </div>
       <div class="ex-card ex-kpi ex-span3" id="kpi-top">
         <div class="ex-kpi-label">Top Category</div>
@@ -377,13 +377,13 @@ html, body { margin: 0; padding: 0; background: #F1F2F4; }
 
     <section class="ex-card" id="category-heatmap">
       <h2>Category by Month</h2>
-      <p class="ex-sub">Variable spending per category. Darker cells mean more spending.</p>
+      <p class="ex-sub">Daily spending per category. Darker cells mean more spending.</p>
       <div class="ex-tablewrap"><table class="ex-table ex-heat" data-draw="heat" data-source="categories"></table></div>
     </section>
 
     <section class="ex-grid">
       <div class="ex-card ex-span6" id="fixed-bills">
-        <h2>Fixed Expenses</h2>
+        <h2>Monthly Bills</h2>
         <div class="ex-tablewrap">
           <table class="ex-table" data-source="expenses" data-row-key="id">
             <thead><tr><th data-field="person">Who</th><th data-field="item">Item</th><th data-field="category">Category</th><th data-field="amount_usd" class="ex-r">Amount</th></tr></thead>
@@ -401,7 +401,7 @@ html, body { margin: 0; padding: 0; background: #F1F2F4; }
         </div>
       </div>
       <div class="ex-card ex-span12" id="variable-purchases">
-        <h2>Variable Purchases</h2>
+        <h2>Daily Purchases</h2>
         <div class="ex-tablewrap">
           <table class="ex-table" data-source="expenses" data-row-key="id">
             <thead><tr><th data-field="person">Who</th><th data-field="item">Item</th><th data-field="category">Category</th><th data-field="amount_usd" class="ex-r">Amount</th></tr></thead>
@@ -745,7 +745,7 @@ window.exU = (function () {
   const U = window.exU;
   function series() {
     const p = U.per();
-    return [{ k: 'fixed', label: 'Fixed', col: '#B8C0CC' }, { k: 'variable', label: 'Variable', col: p === 'Household' ? '#9B59D0' : U.PERSON[p] }];
+    return [{ k: 'fixed', label: 'Monthly bills', col: '#B8C0CC' }, { k: 'variable', label: 'Daily', col: p === 'Household' ? '#9B59D0' : U.PERSON[p] }];
   }
   dash.draw('monthlyLegend', (el) => {
     el.replaceChildren();
@@ -851,7 +851,7 @@ window.exU = (function () {
     const m = U.month(), p = U.per(), cop = U.isCop();
     const key = cop ? 'total_cop' : 'total_usd';
     const rs = d.data.filter((r) => r.month === m && r.person === p);
-    if (!rs.length) { const e = document.createElement('div'); e.className = 'ex-empty'; e.textContent = 'No variable spending this month'; el.append(e); return; }
+    if (!rs.length) { const e = document.createElement('div'); e.className = 'ex-empty'; e.textContent = 'No daily spending this month'; el.append(e); return; }
     const colors = U.catColors();
     const size = Math.min(190, Math.max(140, (el.clientWidth || 300) * 0.5));
     const R = size / 2;
@@ -898,7 +898,7 @@ window.exU = (function () {
     const p = U.per(), cop = U.isCop(), key = cop ? 'total_cop' : 'total_usd';
     const cur = U.month(); const ms = U.isYear(cur) ? U.months().filter((m) => m.slice(0, 4) === cur) : U.months().slice(-6);
     const rs = d.data.filter((r) => r.person === p && ms.includes(r.month));
-    if (!rs.length) { const tr = tbl.insertRow(); const td = tr.insertCell(); td.className = 'ex-empty'; td.textContent = 'No variable spending yet'; return; }
+    if (!rs.length) { const tr = tbl.insertRow(); const td = tr.insertCell(); td.className = 'ex-empty'; td.textContent = 'No daily spending yet'; return; }
     const cats = d3.rollups(rs, (v) => d3.sum(v, (r) => r[key]), (r) => r.category).sort((a, b) => b[1] - a[1]).map((c) => c[0]);
     const max = d3.max(rs, (r) => r[key]) || 1;
     const scale = d3.scaleLinear().domain([0, max]).range([0.08, 1]);
@@ -1028,7 +1028,7 @@ window.exU = (function () {
       if (bg) {
         const bc = card('ex-span12', 'Money In vs Out');
         const sub = 'average of ' + bg.months_used.map((m) => short(m)).join(', ');
-        const lines = [['Expected income', bg.income_avg, sub + (bg.income_avg_cop ? ' · ≈ ' + U.cop(bg.income_avg_cop) : '')], ['Fixed expenses', -(bg.fixed_avg ?? 0)], ['Variable spending', -(bg.variable_avg ?? bg.spend_avg)]];
+        const lines = [['Expected income', bg.income_avg, sub + (bg.income_avg_cop ? ' · ≈ ' + U.cop(bg.income_avg_cop) : '')], ['Monthly bills', -(bg.fixed_avg ?? 0)], ['Daily spending', -(bg.variable_avg ?? bg.spend_avg)]];
         if (bg.savings_monthly) lines.push(['Cozy House saving', -bg.savings_monthly]);
         if (bg.pots_monthly) lines.push(['Other savings', -bg.pots_monthly]);
         if (bg.debts_monthly) lines.push(['Debts', -bg.debts_monthly]);
@@ -1266,7 +1266,7 @@ window.exU = (function () {
     const grid = document.createElement('div'); grid.className = 'ex-ov' + (hh ? ' ex-ov3' : '');
     const usdLine = (u) => gab ? [U.usd0(u) + ' USD'] : [];
     grid.append(box('Money In', big(T.inc, T.incCop), '', usdLine(T.inc).concat([T.nInc ? T.nInc + (T.nInc === 1 ? ' payment' : ' payments') : 'Nothing logged yet']), null, 'in'));
-    grid.append(box('Spent', big(T.fix + T.vr, T.spentCop), '', usdLine(T.fix + T.vr).concat(['Fixed ' + small(T.fix, T.fixCop) + ' · variable ' + small(T.vr, T.vrCop)]), null, 'out'));
+    grid.append(box('Spent', big(T.fix + T.vr, T.spentCop), '', usdLine(T.fix + T.vr).concat(['Bills ' + small(T.fix, T.fixCop) + ' · daily ' + small(T.vr, T.vrCop)]), null, 'out'));
     const potsU = T.pots.reduce((a, x) => a + x.usd, 0);
     const rate = T.spentCop && (T.fix + T.vr) ? T.spentCop / (T.fix + T.vr) : 4000;
     const items = [];
